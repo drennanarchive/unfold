@@ -277,9 +277,9 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
   .tb-title{font-size:0.9rem;}
   .sidebar{transform:translateX(-100%);transition:transform 0.3s ease;}
   .sidebar.open{transform:translateX(0);}
-  .sb-overlay{display:block;}
+  .sb-overlay{display:none;pointer-events:none;}
   .sb-overlay.visible{display:block;pointer-events:auto;}
-  .main{margin-left:0;}
+  .main{margin-left:0;overflow-y:visible;}
   .main-inner{padding:1.2rem 1rem 4rem;}
   .ov-chain{gap:0.35rem;}
 }
@@ -785,13 +785,13 @@ function drawSidebarLine(){
   const nodeWraps=[...navEl.querySelectorAll('.nav-node-wrap')];
   if(!nodeWraps.length) return;
 
-  const navRect=navEl.getBoundingClientRect();
+  // Use offsetTop/offsetLeft relative to nav to avoid CSS transform drift
   const points=nodeWraps.map(nw=>{
-    const r=nw.getBoundingClientRect();
-    return {x:r.left-navRect.left+r.width/2, y:r.top-navRect.top+r.height/2};
+    let el=nw, top=0, left=0;
+    while(el&&el!==navEl){ top+=el.offsetTop; left+=el.offsetLeft; el=el.offsetParent; }
+    return {x: left + nw.offsetWidth/2, y: top + nw.offsetHeight/2};
   });
 
-  // count done sections for energized spine
   const doneCount=SECS.filter(id=>state[id].score==='pass').length;
 
   let svgContent=`<defs>
@@ -803,45 +803,34 @@ function drawSidebarLine(){
     </linearGradient>
   </defs>`;
 
-  // draw spine segments between nodes
+  // spine segments
   points.forEach((p,i)=>{
     if(i===points.length-1) return;
     const next=points[i+1];
     const segDone=i<doneCount;
-    const segActive=state[SECS[i]]&&state[SECS[i]].score==='pass';
-
     if(segDone){
-      // energized segment
       svgContent+=`<line x1="${p.x}" y1="${p.y}" x2="${next.x}" y2="${next.y}" stroke="url(#spineGrad)" stroke-width="1.5" opacity="0.7"/>`;
-      svgContent+=`<line x1="${p.x}" y1="${p.y}" x2="${next.x}" y2="${next.y}" stroke="#5BE0C8" stroke-width="0.5" opacity="0.4">
-        <animate attributeName="stroke-dashoffset" from="0" to="-20" dur="3s" repeatCount="indefinite"/>
-        <animate attributeName="opacity" values="0.4;0.7;0.4" dur="2.5s" repeatCount="indefinite"/>
-      </line>`;
+      svgContent+=`<line x1="${p.x}" y1="${p.y}" x2="${next.x}" y2="${next.y}" stroke="#5BE0C8" stroke-width="0.5" opacity="0.4"><animate attributeName="stroke-dashoffset" from="0" to="-20" dur="3s" repeatCount="indefinite"/><animate attributeName="opacity" values="0.4;0.7;0.4" dur="2.5s" repeatCount="indefinite"/></line>`;
     } else {
       svgContent+=`<line x1="${p.x}" y1="${p.y}" x2="${next.x}" y2="${next.y}" stroke="#1E3A50" stroke-width="1" opacity="0.6"/>`;
     }
   });
 
-  // draw nodes
+  // nodes
   points.forEach((p,i)=>{
     const id=SECS[i];
     const isActive=document.getElementById('ni-'+id)&&document.getElementById('ni-'+id).classList.contains('active');
     const sc=state[id].score;
     const r=isActive?7:5;
-    let fill=isActive?'#5BE0C8':sc==='pass'?'#3DDC8C':sc==='warn'?'#F0B429':sc==='fail'?'#E05A4A':'#08101A';
-    let stroke=isActive?'#5BE0C8':sc==='pass'?'#3DDC8C':sc==='warn'?'#F0B429':sc==='fail'?'#E05A4A':'#1E3A50';
-    let orbitColor=isActive?'#5BE0C8':sc==='pass'?'#3DDC8C':sc==='warn'?'#F0B429':sc==='fail'?'#E05A4A':'#1E3A50';
+    const fill=isActive?'#5BE0C8':sc==='pass'?'#3DDC8C':sc==='warn'?'#F0B429':sc==='fail'?'#E05A4A':'#08101A';
+    const stroke=isActive?'#5BE0C8':sc==='pass'?'#3DDC8C':sc==='warn'?'#F0B429':sc==='fail'?'#E05A4A':'#1E3A50';
+    const orbitColor=isActive?'#5BE0C8':sc==='pass'?'#3DDC8C':sc==='warn'?'#F0B429':sc==='fail'?'#E05A4A':'#1E3A50';
     const x=p.x, y=p.y;
     const gf=isActive?'filter="url(#ng)"':sc==='pass'?'filter="url(#ngg)"':'';
-
-    // ring helper
     const ring=(rad,sw,op,dash,dur,rev=false)=>`<circle cx="${x}" cy="${y}" r="${rad}" fill="none" stroke="${orbitColor}" stroke-width="${sw}" opacity="${op}" stroke-dasharray="${dash}"><animateTransform attributeName="transform" type="rotate" from="${rev?360:0} ${x} ${y}" to="${rev?0:360} ${x} ${y}" dur="${dur}" repeatCount="indefinite"/></circle>`;
-
-    // dot helper
     const dot=(rad,dotR,op,dur,rev=false,startAngle=0)=>`<g transform="translate(${x},${y})"><animateTransform attributeName="transform" type="rotate" from="${startAngle}" to="${startAngle+(rev?-360:360)}" dur="${dur}" repeatCount="indefinite" additive="sum"/><circle cx="0" cy="${-rad}" r="${dotR}" fill="${orbitColor}" opacity="${op}"/></g>`;
 
     svgContent+=`<circle cx="${x}" cy="${y}" r="${r}" fill="${fill}" stroke="${stroke}" stroke-width="2" ${gf}/>`;
-
     if(isActive){
       svgContent+=ring(15,1.2,0.5,'4,3','3.2s');
       svgContent+=ring(22,0.8,0.25,'3,5','6.5s',true);
@@ -849,10 +838,8 @@ function drawSidebarLine(){
       svgContent+=dot(15,2.8,0.85,'3.2s',false,0);
       svgContent+=dot(22,1.8,0.45,'6.5s',true,90);
       svgContent+=dot(29,1.2,0.22,'12s',false,45);
-      // extra satellite for active
       svgContent+=dot(22,1.2,0.3,'6.5s',false,270);
     } else if(sc==='pass'){
-      // synced satellites — faster, tighter
       svgContent+=ring(13,1.1,0.4,'4,4','5s');
       svgContent+=ring(20,0.6,0.18,'2,5','10s',true);
       svgContent+=dot(13,2.4,0.65,'5s',false,0);
@@ -870,7 +857,6 @@ function drawSidebarLine(){
       svgContent+=dot(10,1.3,0.18,'20s',false,0);
     }
   });
-
   svg.innerHTML=svgContent;
 }
 
@@ -901,19 +887,23 @@ function jumpTo(id){
   sec.classList.add('open');
   setActiveNav(id);
   if(window.innerWidth<=768) closeSidebar();
-  requestAnimationFrame(()=>{
-    requestAnimationFrame(()=>{
-      const mainEl=document.getElementById('main');
-      const mainRect=mainEl.getBoundingClientRect();
-      const secRect=sec.getBoundingClientRect();
-      const scrollTarget=mainEl.scrollTop+(secRect.top-mainRect.top)-16;
-      if(mainEl.scrollHeight>mainEl.clientHeight&&getComputedStyle(mainEl).overflowY!=='visible'){
-        mainEl.scrollTo({top:scrollTarget,behavior:'smooth'});
-      } else {
-        window.scrollTo({top:window.scrollY+(secRect.top-56)-16,behavior:'smooth'});
-      }
-    });
-  });
+  setTimeout(()=>{
+    const mainEl=document.getElementById('main');
+    const TOPBAR=56;
+    // Check if main panel itself scrolls (desktop) or window scrolls (mobile)
+    const mainScrolls=mainEl.scrollHeight>mainEl.clientHeight&&getComputedStyle(mainEl).overflowY==='auto'||getComputedStyle(mainEl).overflowY==='scroll';
+    if(mainScrolls){
+      const mainTop=mainEl.getBoundingClientRect().top;
+      const secTop=sec.getBoundingClientRect().top;
+      mainEl.scrollTo({top:mainEl.scrollTop+(secTop-mainTop)-16,behavior:'smooth'});
+    } else {
+      // window scroll — sec.offsetTop gives position relative to document
+      let offsetTop=0;
+      let el=sec;
+      while(el){ offsetTop+=el.offsetTop; el=el.offsetParent; }
+      window.scrollTo({top:offsetTop-TOPBAR-16,behavior:'smooth'});
+    }
+  },80);
 }
 
 // ── MOBILE ──
