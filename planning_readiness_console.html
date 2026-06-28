@@ -1,0 +1,1201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Planning Readiness Console</title>
+  <style>
+    :root {
+      --bg: #070b12;
+      --bg2: #0b1220;
+      --panel: rgba(13, 23, 38, .84);
+      --panel2: rgba(17, 30, 49, .92);
+      --ink: #e6edf7;
+      --muted: #91a4ba;
+      --faint: #57708b;
+      --line: rgba(129, 183, 255, .18);
+      --line2: rgba(120, 255, 214, .20);
+      --cyan: #78ffd6;
+      --blue: #82b6ff;
+      --violet: #a78bfa;
+      --amber: #ffd166;
+      --red: #ff6b6b;
+      --green: #44d19d;
+      --shadow: 0 24px 70px rgba(0, 0, 0, .38);
+      --radius: 22px;
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+      --sans: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      margin: 0;
+      color: var(--ink);
+      font-family: var(--sans);
+      line-height: 1.45;
+      background:
+        radial-gradient(circle at 18% 8%, rgba(120, 255, 214, .16), transparent 26rem),
+        radial-gradient(circle at 86% 4%, rgba(130, 182, 255, .18), transparent 28rem),
+        radial-gradient(circle at 54% 90%, rgba(167, 139, 250, .12), transparent 34rem),
+        linear-gradient(180deg, #050812, #0b1220 45%, #070b12);
+      overflow-x: hidden;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      background-image:
+        linear-gradient(rgba(120,255,214,.055) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(130,182,255,.045) 1px, transparent 1px);
+      background-size: 38px 38px;
+      mask-image: radial-gradient(circle at top, black 0%, transparent 72%);
+      opacity: .75;
+    }
+
+    body::after {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      background: linear-gradient(rgba(255,255,255,.025) 50%, rgba(0,0,0,.025) 50%);
+      background-size: 100% 4px;
+      opacity: .28;
+      mix-blend-mode: overlay;
+    }
+
+    header {
+      max-width: 1220px;
+      margin: 0 auto;
+      padding: 34px 20px 20px;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 360px;
+      gap: 28px;
+      align-items: stretch;
+      position: relative;
+      z-index: 1;
+    }
+
+    .kicker {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--cyan);
+      font-family: var(--mono);
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      font-size: .78rem;
+      margin-bottom: 12px;
+    }
+
+    .pulse {
+      width: 9px;
+      height: 9px;
+      background: var(--cyan);
+      border-radius: 50%;
+      box-shadow: 0 0 0 0 rgba(120,255,214,.5);
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0% { box-shadow: 0 0 0 0 rgba(120,255,214,.5); }
+      70% { box-shadow: 0 0 0 12px rgba(120,255,214,0); }
+      100% { box-shadow: 0 0 0 0 rgba(120,255,214,0); }
+    }
+
+    h1 {
+      margin: 0;
+      max-width: 870px;
+      font-size: clamp(2.15rem, 5.3vw, 4.55rem);
+      line-height: .96;
+      letter-spacing: -0.065em;
+    }
+
+    .subtitle {
+      max-width: 790px;
+      color: var(--muted);
+      font-size: 1.05rem;
+      margin: 18px 0 0;
+    }
+
+    .hero-actions {
+      margin-top: 18px;
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .chip {
+      border: 1px solid var(--line2);
+      color: var(--cyan);
+      border-radius: 999px;
+      padding: 8px 11px;
+      font-family: var(--mono);
+      font-size: .78rem;
+      background: rgba(120,255,214,.06);
+    }
+
+    .console {
+      background: linear-gradient(180deg, rgba(17,30,49,.88), rgba(8,15,27,.88));
+      border: 1px solid var(--line);
+      border-radius: 28px;
+      box-shadow: var(--shadow), inset 0 0 0 1px rgba(255,255,255,.035);
+      padding: 16px;
+      position: relative;
+      overflow: hidden;
+      min-height: 300px;
+    }
+
+    .console::before {
+      content: "";
+      position: absolute;
+      inset: -80px;
+      background: conic-gradient(from 180deg, transparent, rgba(120,255,214,.08), transparent, rgba(130,182,255,.08), transparent);
+      animation: rotate 16s linear infinite;
+      opacity: .8;
+    }
+
+    @keyframes rotate {
+      to { transform: rotate(360deg); }
+    }
+
+    .console-inner {
+      position: relative;
+      z-index: 1;
+      height: 100%;
+      min-height: 268px;
+      border-radius: 22px;
+      border: 1px solid rgba(120,255,214,.16);
+      background: rgba(3, 8, 16, .58);
+      padding: 16px 16px 56px;
+      overflow: hidden;
+    }
+
+    .radar {
+      position: absolute;
+      width: 190px;
+      height: 190px;
+      left: 50%;
+      top: 46%;
+      transform: translate(-50%, -50%);
+      border-radius: 50%;
+      border: 1px solid rgba(120,255,214,.28);
+      background:
+        radial-gradient(circle, transparent 0 27%, rgba(120,255,214,.08) 28% 29%, transparent 30% 50%, rgba(130,182,255,.08) 51% 52%, transparent 53%),
+        linear-gradient(90deg, transparent 49.5%, rgba(120,255,214,.15) 50%, transparent 50.5%),
+        linear-gradient(0deg, transparent 49.5%, rgba(120,255,214,.15) 50%, transparent 50.5%);
+    }
+
+    .radar::after {
+      content: "";
+      position: absolute;
+      inset: 50% 50% 0 50%;
+      width: 95px;
+      height: 95px;
+      transform-origin: 0 0;
+      background: linear-gradient(40deg, rgba(120,255,214,.32), transparent 62%);
+      animation: sweep 4.8s linear infinite;
+      border-radius: 0 0 95px 0;
+    }
+
+    @keyframes sweep {
+      to { transform: rotate(360deg); }
+    }
+
+    .core {
+      position: absolute;
+      left: 50%;
+      top: 46%;
+      transform: translate(-50%, -50%);
+      width: 58px;
+      height: 58px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      background: rgba(120,255,214,.10);
+      border: 1px solid rgba(120,255,214,.42);
+      color: var(--cyan);
+      font-family: var(--mono);
+      font-weight: 900;
+      box-shadow: 0 0 35px rgba(120,255,214,.16);
+    }
+
+    .radar-node {
+      position: absolute;
+      width: 42px;
+      height: 42px;
+      border-radius: 999px;
+      border: 1px solid rgba(130,182,255,.38);
+      background: rgba(17,30,49,.94);
+      color: var(--ink);
+      display: grid;
+      place-items: center;
+      font-family: var(--mono);
+      font-size: .78rem;
+      font-weight: 900;
+      cursor: pointer;
+      transition: .18s ease;
+      z-index: 2;
+    }
+
+    .radar-node:hover, .radar-node.active {
+      border-color: var(--cyan);
+      color: var(--cyan);
+      transform: scale(1.08);
+      box-shadow: 0 0 24px rgba(120,255,214,.22);
+    }
+
+    .radar-node.done {
+      background: rgba(68,209,157,.14);
+      border-color: rgba(68,209,157,.6);
+      color: var(--green);
+    }
+
+    .rn-goal { left: calc(50% - 21px); top: 14px; }
+    .rn-objective { right: 34px; top: 86px; }
+    .rn-keyresult { right: 70px; bottom: 54px; }
+    .rn-milestone { left: 70px; bottom: 54px; }
+    .rn-kpi { left: 34px; top: 86px; }
+
+    .console-readout {
+      position: absolute;
+      left: 14px;
+      right: 14px;
+      bottom: 14px;
+      border-top: 1px solid rgba(120,255,214,.14);
+      padding-top: 10px;
+      font-family: var(--mono);
+      color: var(--muted);
+      font-size: .74rem;
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .shell {
+      max-width: 1220px;
+      margin: 0 auto 60px;
+      padding: 0 20px;
+      display: grid;
+      grid-template-columns: 340px 1fr;
+      gap: 22px;
+      align-items: start;
+      position: relative;
+      z-index: 1;
+    }
+
+    .sidebar {
+      position: sticky;
+      top: 16px;
+      display: grid;
+      gap: 16px;
+    }
+
+    .card, .section, .review {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(10px);
+    }
+
+    .card { padding: 18px; }
+
+    .score {
+      display: grid;
+      gap: 12px;
+    }
+
+    .score-top {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .score-number {
+      font-size: 2.7rem;
+      font-weight: 900;
+      letter-spacing: -0.065em;
+      color: var(--cyan);
+      text-shadow: 0 0 20px rgba(120,255,214,.18);
+    }
+
+    .score-label {
+      color: var(--muted);
+      font-size: .86rem;
+      font-family: var(--mono);
+      text-transform: uppercase;
+      letter-spacing: .05em;
+    }
+
+    .bar {
+      height: 12px;
+      background: rgba(130,182,255,.11);
+      border: 1px solid rgba(130,182,255,.13);
+      border-radius: 999px;
+      overflow: hidden;
+    }
+
+    .bar > span {
+      display: block;
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, var(--blue), var(--cyan), var(--green));
+      border-radius: 999px;
+      transition: width .25s ease;
+      box-shadow: 0 0 18px rgba(120,255,214,.32);
+    }
+
+    .nav {
+      display: grid;
+      gap: 8px;
+      position: relative;
+    }
+
+    .nav::before {
+      content: "";
+      position: absolute;
+      left: 18px;
+      top: 20px;
+      bottom: 20px;
+      width: 1px;
+      background: linear-gradient(var(--blue), var(--cyan));
+      opacity: .34;
+    }
+
+    .nav button {
+      position: relative;
+      width: 100%;
+      border: 1px solid var(--line);
+      background: rgba(8, 15, 27, .62);
+      color: var(--ink);
+      border-radius: 16px;
+      padding: 12px 13px;
+      text-align: left;
+      cursor: pointer;
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      gap: 10px;
+      align-items: center;
+      font-weight: 800;
+    }
+
+    .nav button:hover, .nav button.active {
+      border-color: rgba(120,255,214,.5);
+      background: rgba(120,255,214,.08);
+    }
+
+    .dot {
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: rgba(130,182,255,.24);
+      border: 2px solid rgba(230,237,247,.16);
+      z-index: 1;
+    }
+
+    .dot.done {
+      background: var(--green);
+      box-shadow: 0 0 14px rgba(68,209,157,.42);
+    }
+
+    .tiny {
+      color: var(--muted);
+      font-size: .82rem;
+    }
+
+    .mono {
+      font-family: var(--mono);
+      letter-spacing: .03em;
+    }
+
+    .actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    button.primary, button.secondary {
+      border-radius: 15px;
+      padding: 12px 14px;
+      font-weight: 900;
+      cursor: pointer;
+      font-family: var(--sans);
+    }
+
+    button.primary {
+      border: 1px solid rgba(120,255,214,.36);
+      background: linear-gradient(135deg, rgba(120,255,214,.24), rgba(130,182,255,.18));
+      color: var(--ink);
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,.035);
+    }
+
+    button.secondary {
+      border: 1px solid var(--line);
+      background: rgba(130,182,255,.08);
+      color: var(--ink);
+    }
+
+    main {
+      display: grid;
+      gap: 18px;
+    }
+
+    .mission-card {
+      padding: 18px;
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 18px;
+      align-items: center;
+    }
+
+    .mission-card h2 {
+      margin: 0 0 8px;
+      letter-spacing: -.035em;
+    }
+
+    .mission-card p { margin: 0; color: var(--muted); }
+
+    .mode-tag {
+      border: 1px solid rgba(120,255,214,.25);
+      background: rgba(120,255,214,.07);
+      color: var(--cyan);
+      border-radius: 16px;
+      padding: 14px;
+      font-family: var(--mono);
+      font-size: .8rem;
+      min-width: 160px;
+      text-align: center;
+    }
+
+    .section {
+      overflow: hidden;
+    }
+
+    .section-head {
+      padding: 22px;
+      border-bottom: 1px solid var(--line);
+      display: grid;
+      gap: 12px;
+      background:
+        linear-gradient(135deg, rgba(130,182,255,.13), transparent 58%),
+        rgba(8,15,27,.55);
+    }
+
+    .section-title-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .section h2 {
+      margin: 0;
+      font-size: 1.72rem;
+      letter-spacing: -0.04em;
+    }
+
+    .badge {
+      border-radius: 999px;
+      padding: 7px 10px;
+      border: 1px solid rgba(120,255,214,.24);
+      background: rgba(120,255,214,.07);
+      color: var(--cyan);
+      font-size: .78rem;
+      font-weight: 900;
+      font-family: var(--mono);
+    }
+
+    .definition {
+      font-size: 1.02rem;
+      color: var(--muted);
+      max-width: 850px;
+      margin: 0;
+    }
+
+    .section-body {
+      padding: 22px;
+      display: grid;
+      gap: 18px;
+    }
+
+    .teach-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+    }
+
+    .teach-box, .notes-box, .diagnostic-panel {
+      border-radius: 20px;
+      border: 1px solid var(--line);
+      background: rgba(8,15,27,.54);
+      padding: 16px;
+    }
+
+    .teach-box h3, .notes-box h3, .diagnostic-panel h3 {
+      margin: 0 0 9px;
+      font-size: 1.03rem;
+    }
+
+    .teach-box ul {
+      margin: 0;
+      padding-left: 19px;
+      color: var(--muted);
+    }
+
+    .formula {
+      color: var(--cyan);
+      font-family: var(--mono);
+      font-size: .86rem;
+      border: 1px solid rgba(120,255,214,.18);
+      background: rgba(120,255,214,.055);
+      border-radius: 14px;
+      padding: 11px;
+      margin-top: 12px;
+    }
+
+    label {
+      display: block;
+      font-weight: 850;
+      margin-bottom: 7px;
+    }
+
+    textarea {
+      width: 100%;
+      border: 1px solid rgba(130,182,255,.22);
+      border-radius: 15px;
+      padding: 12px 13px;
+      font: inherit;
+      background: rgba(3,8,16,.66);
+      color: var(--ink);
+      outline: none;
+      min-height: 88px;
+      resize: vertical;
+    }
+
+    textarea:focus {
+      border-color: rgba(120,255,214,.5);
+      box-shadow: 0 0 0 4px rgba(120,255,214,.09);
+    }
+
+    .diagnostic-panel {
+      display: grid;
+      gap: 4px;
+    }
+
+    .q {
+      padding: 12px 0;
+      border-top: 1px solid rgba(130,182,255,.13);
+    }
+
+    .q:first-of-type { border-top: 0; }
+
+    .q p {
+      margin: 0 0 8px;
+      font-weight: 760;
+      color: #dbe7f5;
+    }
+
+    .choices {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .choices label {
+      margin: 0;
+      font-weight: 850;
+      font-size: .84rem;
+      color: var(--muted);
+      cursor: pointer;
+    }
+
+    .choices input { display: none; }
+
+    .choices span {
+      display: inline-block;
+      border: 1px solid var(--line);
+      background: rgba(130,182,255,.07);
+      border-radius: 999px;
+      padding: 7px 10px;
+    }
+
+    .choices input:checked + span {
+      background: rgba(120,255,214,.13);
+      border-color: rgba(120,255,214,.52);
+      color: var(--cyan);
+      box-shadow: 0 0 16px rgba(120,255,214,.12);
+    }
+
+    .feedback {
+      border-radius: 16px;
+      padding: 13px;
+      background: rgba(255,209,102,.10);
+      border: 1px solid rgba(255,209,102,.24);
+      color: #ffe4a3;
+      font-size: .92rem;
+      margin-top: 12px;
+    }
+
+    .feedback.good {
+      background: rgba(68,209,157,.10);
+      border-color: rgba(68,209,157,.28);
+      color: #a9f0d3;
+    }
+
+    .review {
+      background: rgba(3,8,16,.86);
+      color: var(--ink);
+      border-radius: 24px;
+      padding: 20px;
+    }
+
+    .review h2 { margin-top: 0; letter-spacing: -0.035em; }
+
+    .review pre {
+      white-space: pre-wrap;
+      word-break: break-word;
+      background: rgba(130,182,255,.06);
+      border: 1px solid rgba(130,182,255,.16);
+      border-radius: 16px;
+      padding: 16px;
+      color: #dceaff;
+      min-height: 170px;
+      font-family: var(--mono);
+      font-size: .84rem;
+    }
+
+    .review .actions { max-width: 420px; }
+
+    .toast {
+      position: fixed;
+      left: 50%;
+      bottom: 22px;
+      transform: translateX(-50%) translateY(30px);
+      background: #030816;
+      border: 1px solid rgba(120,255,214,.28);
+      color: var(--cyan);
+      padding: 12px 16px;
+      border-radius: 999px;
+      opacity: 0;
+      pointer-events: none;
+      transition: .2s ease;
+      box-shadow: var(--shadow);
+      z-index: 10;
+      font-family: var(--mono);
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    details {
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 13px 15px;
+      background: var(--panel);
+      box-shadow: var(--shadow);
+    }
+
+    summary {
+      cursor: pointer;
+      font-weight: 900;
+    }
+
+    @media (max-width: 1080px) {
+      header { grid-template-columns: 1fr; }
+      .console { max-width: 390px; }
+      .shell { grid-template-columns: 1fr; }
+      .sidebar { position: static; }
+      .mission-card { grid-template-columns: 1fr; }
+      .teach-grid { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 520px) {
+      header { padding-top: 24px; }
+      .console { min-height: 280px; }
+      .console-inner { min-height: 248px; }
+      .radar { width: 160px; height: 160px; }
+      .radar-node { width: 38px; height: 38px; font-size: .72rem; }
+      .rn-objective { right: 24px; }
+      .rn-keyresult { right: 54px; bottom: 52px; }
+      .rn-milestone { left: 54px; bottom: 52px; }
+      .rn-kpi { left: 24px; }
+    }
+
+    @media print {
+      body { background: white; color: black; }
+      body::before, body::after, .sidebar, .console, .hero-actions, .actions, .toast { display: none !important; }
+      header, .shell { display: block; }
+      .card, .section, .review, details { box-shadow: none; background: white; color: black; border: 1px solid #ccc; }
+      .definition, .subtitle, .tiny, .teach-box ul, .mission-card p { color: #333; }
+      .review pre, textarea { color: black; background: white; border: 1px solid #ccc; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div>
+      <div class="kicker"><span class="pulse"></span> Planning Readiness Console</div>
+      <h1>Understand the chain before building the plan.</h1>
+      <p class="subtitle">A teaching and readiness tool for Goal → Objective → Key Result → Milestone → KPI. Use it to learn the distinctions, assess whether the thinking is mature enough, and capture lightweight notes for the actual planning work later.</p>
+      <div class="hero-actions">
+        <span class="chip">TEACHING MODE</span>
+        <span class="chip">READINESS CHECK</span>
+        <span class="chip">NOTES ONLY</span>
+      </div>
+    </div>
+
+    <div class="console">
+      <div class="console-inner">
+        <div class="radar"></div>
+        <div class="core">OPS</div>
+        <button class="radar-node rn-goal" id="radar-goal" onclick="jumpTo('goal')" title="Goal">G</button>
+        <button class="radar-node rn-objective" id="radar-objective" onclick="jumpTo('objective')" title="Objective">O</button>
+        <button class="radar-node rn-keyresult" id="radar-keyresult" onclick="jumpTo('keyresult')" title="Key Result">KR</button>
+        <button class="radar-node rn-milestone" id="radar-milestone" onclick="jumpTo('milestone')" title="Milestone">M</button>
+        <button class="radar-node rn-kpi" id="radar-kpi" onclick="jumpTo('kpi')" title="KPI">KPI</button>
+        <div class="console-readout">
+          <span id="consoleFocus">FOCUS: GOAL</span>
+          <span id="consoleStatus">STATUS: INITIALIZING</span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <div class="shell">
+    <aside class="sidebar">
+      <section class="card score">
+        <div class="score-top">
+          <div>
+            <div class="score-label">Readiness signal</div>
+            <div class="score-number"><span id="score">0</span>%</div>
+          </div>
+          <div class="tiny mono" id="scoreText">ASSESS CONCEPTS</div>
+        </div>
+        <div class="bar"><span id="bar"></span></div>
+        <div class="tiny">Readiness is based on diagnostic understanding, not whether a full strategy has been written.</div>
+      </section>
+
+      <section class="card">
+        <div class="nav" id="nav"></div>
+      </section>
+
+      <section class="card">
+        <div class="actions">
+          <button class="secondary" onclick="clearAll()">Reset</button>
+          <button class="primary" onclick="buildReview()">Export Notes</button>
+        </div>
+        <p class="tiny">Standalone HTML. Autosaves locally in this browser. No backend.</p>
+      </section>
+    </aside>
+
+    <main>
+      <section class="card mission-card">
+        <div>
+          <h2>How to use this</h2>
+          <p>Do not try to build the whole plan here. Read each concept, answer the diagnostic questions based on your current planning idea, and jot down short notes, uncertainties, examples, or follow-up needs. The output is a readiness snapshot and notes package for later strategy development.</p>
+        </div>
+        <div class="mode-tag">OUTPUT:<br>READINESS + NOTES</div>
+      </section>
+
+      <section class="section" id="goal">
+        <div class="section-head">
+          <div class="section-title-row"><h2>1. Goal</h2><span class="badge">DESTINATION</span></div>
+          <p class="definition">A goal is the desired future state or strategic outcome. It explains the direction of travel without jumping into the work plan.</p>
+        </div>
+        <div class="section-body">
+          <div class="teach-grid">
+            <div class="teach-box">
+              <h3>Learn the distinction</h3>
+              <ul>
+                <li>Good goals are broad enough to matter.</li>
+                <li>They are clear enough to guide choices.</li>
+                <li>They are not tasks, meetings, products, or deliverables.</li>
+              </ul>
+              <div class="formula">Goal = desired future state + strategic reason</div>
+            </div>
+            <div class="notes-box">
+              <h3>Notes to carry forward</h3>
+              <label for="goalNotes">Capture rough notes, not a polished goal</label>
+              <textarea id="goalNotes" data-save placeholder="What future state are we aiming for? Why does it matter? What language or examples might help later?"></textarea>
+            </div>
+          </div>
+
+          <div class="diagnostic-panel">
+            <h3>Readiness diagnostic</h3>
+            <div class="q"><p>Can the team describe the desired future state in plain language?</p><div class="choices" data-q="goal"><label><input type="radio" name="goal1" value="1"><span>Yes</span></label><label><input type="radio" name="goal1" value=".5"><span>Partially</span></label><label><input type="radio" name="goal1" value="0"><span>No</span></label></div></div>
+            <div class="q"><p>Can the team explain why this matters strategically?</p><div class="choices" data-q="goal"><label><input type="radio" name="goal2" value="1"><span>Yes</span></label><label><input type="radio" name="goal2" value=".5"><span>Partially</span></label><label><input type="radio" name="goal2" value="0"><span>No</span></label></div></div>
+            <div class="q"><p>Is the statement free from task-list language?</p><div class="choices" data-q="goal"><label><input type="radio" name="goal3" value="1"><span>Yes</span></label><label><input type="radio" name="goal3" value=".5"><span>Partially</span></label><label><input type="radio" name="goal3" value="0"><span>No</span></label></div></div>
+            <div class="feedback" id="goalFeedback">Assess whether the team understands the goal layer.</div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="objective">
+        <div class="section-head">
+          <div class="section-title-row"><h2>2. Objective</h2><span class="badge">NEXT OUTCOME</span></div>
+          <p class="definition">An objective is a specific outcome that advances the goal. It is not merely a sub-goal, and it is not a task.</p>
+        </div>
+        <div class="section-body">
+          <div class="teach-grid">
+            <div class="teach-box">
+              <h3>Learn the distinction</h3>
+              <ul>
+                <li>Objectives narrow the goal into a specific outcome.</li>
+                <li>They should be scoped enough to plan against.</li>
+                <li>They should describe what will be different, not what people will do.</li>
+              </ul>
+              <div class="formula">Objective = specific outcome that advances the goal</div>
+            </div>
+            <div class="notes-box">
+              <h3>Notes to carry forward</h3>
+              <label for="objectiveNotes">Capture rough notes, not a polished objective</label>
+              <textarea id="objectiveNotes" data-save placeholder="What outcome seems most important next? What is in or out of scope? What would failure look like?"></textarea>
+            </div>
+          </div>
+
+          <div class="diagnostic-panel">
+            <h3>Readiness diagnostic</h3>
+            <div class="q"><p>Can the team name the specific outcome this effort should produce?</p><div class="choices" data-q="objective"><label><input type="radio" name="objective1" value="1"><span>Yes</span></label><label><input type="radio" name="objective1" value=".5"><span>Partially</span></label><label><input type="radio" name="objective1" value="0"><span>No</span></label></div></div>
+            <div class="q"><p>Can the team describe what NOT achieving it would look like?</p><div class="choices" data-q="objective"><label><input type="radio" name="objective2" value="1"><span>Yes</span></label><label><input type="radio" name="objective2" value=".5"><span>Partially</span></label><label><input type="radio" name="objective2" value="0"><span>No</span></label></div></div>
+            <div class="q"><p>Is it clearly different from a task, activity, or deliverable?</p><div class="choices" data-q="objective"><label><input type="radio" name="objective3" value="1"><span>Yes</span></label><label><input type="radio" name="objective3" value=".5"><span>Partially</span></label><label><input type="radio" name="objective3" value="0"><span>No</span></label></div></div>
+            <div class="feedback" id="objectiveFeedback">Assess whether the team understands the objective layer.</div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="keyresult">
+        <div class="section-head">
+          <div class="section-title-row"><h2>3. Key Result</h2><span class="badge">PROOF OF CHANGE</span></div>
+          <p class="definition">A key result is a measurable outcome proving the objective was met. It measures change, not activity, and can be scored on a spectrum.</p>
+        </div>
+        <div class="section-body">
+          <div class="teach-grid">
+            <div class="teach-box">
+              <h3>Learn the distinction</h3>
+              <ul>
+                <li>Key Results need a baseline and target.</li>
+                <li>They measure changed outcomes, not completed work.</li>
+                <li>A hard 70% may be better than an easy 100%.</li>
+              </ul>
+              <div class="formula">Key Result = baseline → target + time box</div>
+            </div>
+            <div class="notes-box">
+              <h3>Notes to carry forward</h3>
+              <label for="krNotes">Capture rough measurement notes</label>
+              <textarea id="krNotes" data-save placeholder="What could be measured? Do we know the baseline? What would prove meaningful change?"></textarea>
+            </div>
+          </div>
+
+          <div class="diagnostic-panel">
+            <h3>Readiness diagnostic</h3>
+            <div class="q"><p>Can the team identify a measurable change, not just an activity?</p><div class="choices" data-q="keyresult"><label><input type="radio" name="kr1" value="1"><span>Yes</span></label><label><input type="radio" name="kr1" value=".5"><span>Partially</span></label><label><input type="radio" name="kr1" value="0"><span>No</span></label></div></div>
+            <div class="q"><p>Does the team know or know how to find the baseline?</p><div class="choices" data-q="keyresult"><label><input type="radio" name="kr2" value="1"><span>Yes</span></label><label><input type="radio" name="kr2" value=".5"><span>Partially</span></label><label><input type="radio" name="kr2" value="0"><span>No</span></label></div></div>
+            <div class="q"><p>Would the target demonstrate meaningful progress rather than easy completion?</p><div class="choices" data-q="keyresult"><label><input type="radio" name="kr3" value="1"><span>Yes</span></label><label><input type="radio" name="kr3" value=".5"><span>Partially</span></label><label><input type="radio" name="kr3" value="0"><span>No</span></label></div></div>
+            <div class="feedback" id="krFeedback">Assess whether the team understands the Key Result layer.</div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="milestone">
+        <div class="section-head">
+          <div class="section-title-row"><h2>4. Milestone</h2><span class="badge">PROGRESS MARKER</span></div>
+          <p class="definition">A milestone is a binary event marking progress. It happened or it did not. It supports schedule awareness but does not prove the objective succeeded by itself.</p>
+        </div>
+        <div class="section-body">
+          <div class="teach-grid">
+            <div class="teach-box">
+              <h3>Learn the distinction</h3>
+              <ul>
+                <li>Milestones are observable events.</li>
+                <li>They should be binary, dated, or sequenced.</li>
+                <li>They are not percentages or health metrics.</li>
+              </ul>
+              <div class="formula">Milestone = binary event + date / sequence</div>
+            </div>
+            <div class="notes-box">
+              <h3>Notes to carry forward</h3>
+              <label for="milestoneNotes">Capture rough milestone notes</label>
+              <textarea id="milestoneNotes" data-save placeholder="What major checkpoints might matter? What approvals, reviews, or dependencies could block progress?"></textarea>
+            </div>
+          </div>
+
+          <div class="diagnostic-panel">
+            <h3>Readiness diagnostic</h3>
+            <div class="q"><p>Can the team tell whether each milestone happened without debating percentages?</p><div class="choices" data-q="milestone"><label><input type="radio" name="milestone1" value="1"><span>Yes</span></label><label><input type="radio" name="milestone1" value=".5"><span>Partially</span></label><label><input type="radio" name="milestone1" value="0"><span>No</span></label></div></div>
+            <div class="q"><p>Are the likely checkpoints tied to sequence, timing, or dependency?</p><div class="choices" data-q="milestone"><label><input type="radio" name="milestone2" value="1"><span>Yes</span></label><label><input type="radio" name="milestone2" value=".5"><span>Partially</span></label><label><input type="radio" name="milestone2" value="0"><span>No</span></label></div></div>
+            <div class="q"><p>Does the team understand milestones are progress markers, not success metrics?</p><div class="choices" data-q="milestone"><label><input type="radio" name="milestone3" value="1"><span>Yes</span></label><label><input type="radio" name="milestone3" value=".5"><span>Partially</span></label><label><input type="radio" name="milestone3" value="0"><span>No</span></label></div></div>
+            <div class="feedback" id="milestoneFeedback">Assess whether the team understands the Milestone layer.</div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="kpi">
+        <div class="section-head">
+          <div class="section-title-row"><h2>5. KPI</h2><span class="badge">HEALTH SIGNAL</span></div>
+          <p class="definition">A KPI monitors ongoing operational health. Key Results measure change; KPIs monitor whether the system stays healthy over time.</p>
+        </div>
+        <div class="section-body">
+          <div class="teach-grid">
+            <div class="teach-box">
+              <h3>Learn the distinction</h3>
+              <ul>
+                <li>KPIs are tracked continuously.</li>
+                <li>They signal health, risk, or degradation.</li>
+                <li>Someone should act if a KPI turns red.</li>
+              </ul>
+              <div class="formula">KPI = ongoing health signal + cadence + owner</div>
+            </div>
+            <div class="notes-box">
+              <h3>Notes to carry forward</h3>
+              <label for="kpiNotes">Capture rough KPI notes</label>
+              <textarea id="kpiNotes" data-save placeholder="What should be monitored after the change? Who would own it? What action would a bad signal trigger?"></textarea>
+            </div>
+          </div>
+
+          <div class="diagnostic-panel">
+            <h3>Readiness diagnostic</h3>
+            <div class="q"><p>Can the team distinguish the KPI from the Key Result?</p><div class="choices" data-q="kpi"><label><input type="radio" name="kpi1" value="1"><span>Yes</span></label><label><input type="radio" name="kpi1" value=".5"><span>Partially</span></label><label><input type="radio" name="kpi1" value="0"><span>No</span></label></div></div>
+            <div class="q"><p>Would this be monitored continuously after the KR period?</p><div class="choices" data-q="kpi"><label><input type="radio" name="kpi2" value="1"><span>Yes</span></label><label><input type="radio" name="kpi2" value=".5"><span>Partially</span></label><label><input type="radio" name="kpi2" value="0"><span>No</span></label></div></div>
+            <div class="q"><p>Can someone act if this turns red?</p><div class="choices" data-q="kpi"><label><input type="radio" name="kpi3" value="1"><span>Yes</span></label><label><input type="radio" name="kpi3" value=".5"><span>Partially</span></label><label><input type="radio" name="kpi3" value="0"><span>No</span></label></div></div>
+            <div class="feedback" id="kpiFeedback">Assess whether the team understands the KPI layer.</div>
+          </div>
+        </div>
+      </section>
+
+      <section class="review" id="review">
+        <h2>Readiness notes export</h2>
+        <p class="tiny">Use this as a lightweight handoff into actual planning, not as the plan itself.</p>
+        <pre id="reviewText">Click Export Notes to generate a readiness summary.</pre>
+        <div class="actions">
+          <button class="secondary" onclick="copyReview()">Copy</button>
+          <button class="primary" onclick="window.print()">Print / Save PDF</button>
+        </div>
+      </section>
+
+      <details>
+        <summary>Fast distinction guide</summary>
+        <p><strong>Goal:</strong> desired future state. <strong>Objective:</strong> specific outcome next. <strong>Key Result:</strong> measurable proof of change. <strong>Milestone:</strong> binary progress event. <strong>KPI:</strong> ongoing health signal.</p>
+      </details>
+    </main>
+  </div>
+
+  <div class="toast" id="toast">COPIED</div>
+
+  <script>
+    const sections = [
+      ["goal", "Goal", "G"],
+      ["objective", "Objective", "O"],
+      ["keyresult", "Key Result", "KR"],
+      ["milestone", "Milestone", "M"],
+      ["kpi", "KPI", "KPI"]
+    ];
+
+    const nav = document.getElementById("nav");
+
+    sections.forEach(([id, label, code], index) => {
+      const btn = document.createElement("button");
+      btn.innerHTML = `<span class="dot" id="dot-${id}"></span><span>${index + 1}. ${label}</span><span class="tiny mono" id="count-${id}">0/3</span>`;
+      btn.onclick = () => jumpTo(id);
+      nav.appendChild(btn);
+    });
+
+    function jumpTo(id) {
+      document.getElementById(id).scrollIntoView({ behavior: "smooth" });
+      setActive(id);
+    }
+
+    function save() {
+      document.querySelectorAll("[data-save]").forEach(el => {
+        localStorage.setItem("prc-" + el.id, el.value);
+      });
+      document.querySelectorAll("input[type='radio']").forEach(el => {
+        if (el.checked) localStorage.setItem("prc-radio-" + el.name, el.value);
+      });
+      updateScore();
+      updateFeedback();
+    }
+
+    function load() {
+      document.querySelectorAll("[data-save]").forEach(el => {
+        el.value = localStorage.getItem("prc-" + el.id) || "";
+        el.addEventListener("input", save);
+      });
+      document.querySelectorAll("input[type='radio']").forEach(el => {
+        el.checked = localStorage.getItem("prc-radio-" + el.name) === el.value;
+        el.addEventListener("change", save);
+      });
+      updateScore();
+      updateFeedback();
+      setActive("goal");
+    }
+
+    function sectionScore(id) {
+      const qs = [...document.querySelectorAll(`[data-q="${id}"]`)];
+      let score = 0, total = qs.length;
+      qs.forEach(group => {
+        const checked = group.querySelector("input:checked");
+        if (checked) score += parseFloat(checked.value);
+      });
+      return {score, total, pct: total ? score / total : 0};
+    }
+
+    function updateScore() {
+      let score = 0, total = 0;
+      sections.forEach(([id]) => {
+        const s = sectionScore(id);
+        score += s.score;
+        total += s.total;
+        const rounded = Math.round(s.score * 2) / 2;
+        document.getElementById(`count-${id}`).textContent = `${rounded}/${s.total}`;
+        const done = s.pct >= .84;
+        document.getElementById(`dot-${id}`).classList.toggle("done", done);
+        const radar = document.getElementById(`radar-${id}`);
+        if (radar) radar.classList.toggle("done", done);
+      });
+
+      const pct = total ? Math.round((score / total) * 100) : 0;
+      document.getElementById("score").textContent = pct;
+      document.getElementById("bar").style.width = pct + "%";
+
+      let text = "ASSESS CONCEPTS";
+      let status = "STATUS: INITIALIZING";
+      if (pct >= 35) { text = "STRUCTURE EMERGING"; status = "STATUS: PARTIAL SIGNAL"; }
+      if (pct >= 70) { text = "WORKSHOP READY"; status = "STATUS: STABLE SIGNAL"; }
+      if (pct >= 90) { text = "STRONG READINESS"; status = "STATUS: GREEN"; }
+      document.getElementById("scoreText").textContent = text;
+      document.getElementById("consoleStatus").textContent = status;
+    }
+
+    function setFeedback(id, pct, emptyText, partialText, goodText) {
+      const el = document.getElementById(id);
+      if (pct === 0) {
+        el.classList.remove("good");
+        el.textContent = emptyText;
+      } else if (pct < .84) {
+        el.classList.remove("good");
+        el.textContent = partialText;
+      } else {
+        el.classList.add("good");
+        el.textContent = goodText;
+      }
+    }
+
+    function updateFeedback() {
+      setFeedback("goalFeedback", sectionScore("goal").pct,
+        "Assess whether the team understands the goal layer.",
+        "Goal readiness is partial. Clarify the future state, strategic reason, or task-vs-outcome distinction.",
+        "Goal readiness looks strong. The team can likely explain the destination and why it matters.");
+
+      setFeedback("objectiveFeedback", sectionScore("objective").pct,
+        "Assess whether the team understands the objective layer.",
+        "Objective readiness is partial. Clarify the specific outcome, failure condition, or task-vs-outcome distinction.",
+        "Objective readiness looks strong. The team can likely name the next outcome and its boundary.");
+
+      setFeedback("krFeedback", sectionScore("keyresult").pct,
+        "Assess whether the team understands the Key Result layer.",
+        "Key Result readiness is partial. Clarify measurable change, baseline, target, or meaningful difficulty.",
+        "Key Result readiness looks strong. The team can likely identify meaningful proof of change.");
+
+      setFeedback("milestoneFeedback", sectionScore("milestone").pct,
+        "Assess whether the team understands the Milestone layer.",
+        "Milestone readiness is partial. Clarify binary events, timing, dependencies, or why milestones are not success metrics.",
+        "Milestone readiness looks strong. The team can likely identify clean progress checkpoints.");
+
+      setFeedback("kpiFeedback", sectionScore("kpi").pct,
+        "Assess whether the team understands the KPI layer.",
+        "KPI readiness is partial. Clarify ongoing monitoring, ownership, or actionability.",
+        "KPI readiness looks strong. The team can likely identify health signals to monitor over time.");
+    }
+
+    function setActive(id) {
+      const idx = sections.findIndex(([sid]) => sid === id);
+      [...nav.querySelectorAll("button")].forEach((b, i) => b.classList.toggle("active", i === idx));
+      sections.forEach(([sid]) => {
+        const radar = document.getElementById(`radar-${sid}`);
+        if (radar) radar.classList.toggle("active", sid === id);
+      });
+      const label = sections[idx] ? sections[idx][1].toUpperCase() : "GOAL";
+      document.getElementById("consoleFocus").textContent = "FOCUS: " + label;
+    }
+
+    function val(id) {
+      return document.getElementById(id).value.trim() || "No notes captured.";
+    }
+
+    function diagnosticLine(id) {
+      const s = sectionScore(id);
+      return `${Math.round(s.pct * 100)}% (${Math.round(s.score * 2) / 2}/${s.total})`;
+    }
+
+    function buildReview() {
+      const text =
+`PLANNING READINESS SUMMARY
+
+Overall readiness signal: ${document.getElementById("score").textContent}%
+
+GOAL READINESS: ${diagnosticLine("goal")}
+Notes:
+${val("goalNotes")}
+
+OBJECTIVE READINESS: ${diagnosticLine("objective")}
+Notes:
+${val("objectiveNotes")}
+
+KEY RESULT READINESS: ${diagnosticLine("keyresult")}
+Notes:
+${val("krNotes")}
+
+MILESTONE READINESS: ${diagnosticLine("milestone")}
+Notes:
+${val("milestoneNotes")}
+
+KPI READINESS: ${diagnosticLine("kpi")}
+Notes:
+${val("kpiNotes")}
+
+Recommended next use:
+Use these notes to develop the actual strategy or plan. This console is intended to assess conceptual readiness and capture planning inputs, not to replace the full strategy development process.`;
+      document.getElementById("reviewText").textContent = text;
+      document.getElementById("review").scrollIntoView({behavior: "smooth"});
+    }
+
+    function copyReview() {
+      buildReview();
+      navigator.clipboard.writeText(document.getElementById("reviewText").textContent);
+      const toast = document.getElementById("toast");
+      toast.classList.add("show");
+      setTimeout(() => toast.classList.remove("show"), 1400);
+    }
+
+    function clearAll() {
+      if (!confirm("Reset this console?")) return;
+      [...Object.keys(localStorage)].filter(k => k.startsWith("prc-")).forEach(k => localStorage.removeItem(k));
+      document.querySelectorAll("[data-save]").forEach(el => el.value = "");
+      document.querySelectorAll("input[type='radio']").forEach(el => el.checked = false);
+      document.getElementById("reviewText").textContent = "Click Export Notes to generate a readiness summary.";
+      updateScore();
+      updateFeedback();
+      setActive("goal");
+    }
+
+    const observer = new IntersectionObserver(entries => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) setActive(entry.target.id);
+      });
+    }, { rootMargin: "-25% 0px -62% 0px", threshold: 0 });
+
+    sections.forEach(([id]) => observer.observe(document.getElementById(id)));
+
+    load();
+  </script>
+</body>
+</html>
