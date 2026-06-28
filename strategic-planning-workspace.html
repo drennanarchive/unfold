@@ -266,12 +266,93 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
   .print-hd{display:block!important;font-size:1.4rem;font-family:Georgia,serif;margin-bottom:1.5rem;color:#111;border-bottom:1px solid #ddd;padding-bottom:0.75rem;}
 }
 .print-hd{display:none;}
+
+/* ── HAMBURGER BUTTON (mobile only) ── */
+.sb-hamburger{display:none;flex-direction:column;justify-content:center;gap:5px;width:36px;height:36px;cursor:pointer;padding:4px;flex-shrink:0;}
+.sb-hamburger span{display:block;height:2px;border-radius:1px;background:var(--teal);transition:all 0.25s;}
+.sb-hamburger.open span:nth-child(1){transform:translateY(7px) rotate(45deg);}
+.sb-hamburger.open span:nth-child(2){opacity:0;}
+.sb-hamburger.open span:nth-child(3){transform:translateY(-7px) rotate(-45deg);}
+
+/* ── SIDEBAR OVERLAY (mobile) ── */
+.sb-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:99;opacity:0;transition:opacity 0.25s;}
+.sb-overlay.visible{opacity:1;}
+
+/* ── ENHANCED ORBITAL ANIMATIONS (desktop) ── */
+@keyframes pulse-ring{0%,100%{opacity:0.15;r:20;}50%{opacity:0.35;r:24;}}
+@keyframes breathe{0%,100%{opacity:0.5;}50%{opacity:1;}}
+
+/* ── MOBILE RESPONSIVE ── */
+@media(max-width:768px){
+  body{font-size:15px;padding-top:52px;}
+
+  /* topbar */
+  .topbar{height:52px;padding:0 1rem;}
+  .tb-logo{font-size:0.68rem;}
+  .tb-title{font-size:0.88rem;}
+  .tb-div{display:none;}
+  .tb-score{font-size:0.72rem;}
+  .btn{padding:0.38rem 0.75rem;font-size:0.75rem;}
+
+  /* show hamburger */
+  .sb-hamburger{display:flex;}
+
+  /* sidebar becomes slide-in overlay */
+  .sidebar{
+    transform:translateX(-100%);
+    transition:transform 0.28s cubic-bezier(0.4,0,0.2,1);
+    top:52px;
+    height:calc(100vh - 52px);
+    z-index:150;
+    width:280px;
+  }
+  .sidebar.open{transform:translateX(0);}
+  .sb-overlay{display:block;}
+  .sb-overlay.visible{pointer-events:all;}
+
+  /* main fills full width on mobile */
+  .main{margin-left:0 !important;}
+  .main-inner{padding:1.25rem 1rem 5rem;}
+
+  /* sections */
+  .sec-toggle{padding:1rem 1rem;}
+  .sec-name{font-size:1.15rem;}
+  .sec-body{padding:1rem 0.9rem 1.25rem;}
+
+  /* questions */
+  .q-block{padding:0.85rem 0.85rem;}
+  .q-text{font-size:0.85rem;}
+  .mc-opt{font-size:0.82rem;padding:0.55rem 0.75rem;}
+
+  /* overview chain wrap nicely */
+  .ov-chain{gap:0.35rem;}
+  .ov-node{font-size:0.65rem;}
+
+  /* readiness */
+  .rd-bar{padding:0.75rem 0.9rem;}
+  .rd-title{font-size:0.84rem;}
+
+  /* notes */
+  .note-input{font-size:0.84rem;}
+
+  /* hide score from topbar on very small screens, it's in sidebar */
+  .tb-score{display:none;}
+}
+
+@media(max-width:420px){
+  .tb-title{font-size:0.78rem;letter-spacing:0;}
+  .sec-name{font-size:1rem;}
+  .main-inner{padding:1rem 0.75rem 5rem;}
+}
 </style>
 </head>
 <body>
 
 <div class="topbar">
   <div class="tb-left">
+    <div class="sb-hamburger" id="sb-hamburger" onclick="toggleSidebar()" aria-label="Toggle menu">
+      <span></span><span></span><span></span>
+    </div>
     <div class="tb-logo">StratPlan//</div>
     <div class="tb-div"></div>
     <div class="tb-title">Strategic Planning Workspace</div>
@@ -282,6 +363,8 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
     <button class="btn btn-gold" onclick="window.print()">Export</button>
   </div>
 </div>
+
+<div class="sb-overlay" id="sb-overlay" onclick="closeSidebar()"></div>
 
 <div class="workspace">
 
@@ -663,15 +746,7 @@ function setActiveNav(id){
   if(ni) ni.classList.add('active');
 }
 
-function jumpTo(id){
-  const sec=document.getElementById('sec-'+id);
-  if(!sec) return;
-  // open it
-  document.querySelectorAll('.section').forEach(s=>s.classList.remove('open'));
-  sec.classList.add('open');
-  setActiveNav(id);
-  setTimeout(()=>{ sec.scrollIntoView({behavior:'smooth',block:'start'}); },50);
-}
+function jumpTo_OLD_REPLACED(){}
 
 // ── OVERALL SCORE ──
 function updateOverall(){
@@ -724,7 +799,8 @@ function drawSidebarLine(){
     }
   }
 
-  // nodes
+  // nodes — orbital system, all rings anchored via group rotation
+  const isMobile=window.innerWidth<=768;
   SECS.forEach((id,i)=>{
     const y=pts[i];
     const sc=state[id].score;
@@ -734,31 +810,98 @@ function drawSidebarLine(){
     if(sc==='pass'){fill='#3DDC8C';stroke='#3DDC8C';orbitColor='#3DDC8C';}
     else if(sc==='warn'){fill='#F0B429';stroke='#F0B429';orbitColor='#F0B429';}
     else if(sc==='fail'){fill='#E05A4A';stroke='#E05A4A';orbitColor='#E05A4A';}
-    else if(isActive){fill='#5BE0C8';stroke='#5BE0C8';orbitColor='#5BE0C8';r=9;}
+    else if(isActive){fill='#5BE0C8';stroke='#5BE0C8';orbitColor='#5BE0C8';r=10;}
     else{fill='#0A1018';stroke='#1A3A4A';orbitColor='#1A4A6A';}
 
-    // core node
-    svgContent+=`<circle cx="${x}" cy="${y}" r="${r}" fill="${fill}" stroke="${stroke}" stroke-width="2"/>`;
+    // inject defs once
+    if(i===0){
+      svgContent+=`<defs>
+        <filter id="ng" x="-100%" y="-100%" width="300%" height="300%">
+          <feGaussianBlur stdDeviation="3.5" result="b"/>
+          <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+        </filter>
+        <filter id="ngg" x="-80%" y="-80%" width="260%" height="260%">
+          <feGaussianBlur stdDeviation="2" result="b"/>
+          <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+        </filter>
+      </defs>`;
+    }
 
-    // inner orbit — all nodes get this, speed varies by state
-    const speed1=isActive?'4s':sc==='pass'?'7s':'12s';
-    const op1=isActive?'0.45':sc==='pass'?'0.3':'0.15';
-    const r1=isActive?13:sc==='pass'?11:10;
-    svgContent+=`<circle cx="${x}" cy="${y}" r="${r1}" fill="none" stroke="${orbitColor}" stroke-width="1" opacity="${op1}" stroke-dasharray="3,3"><animateTransform attributeName="transform" type="rotate" from="0 ${x} ${y}" to="360 ${x} ${y}" dur="${speed1}" repeatCount="indefinite"/></circle>`;
+    const gf=isActive?'filter="url(#ng)"':sc==='pass'?'filter="url(#ngg)"':'';
 
-    // outer orbit — active and done nodes only
-    if(isActive||sc==='pass'){
-      const speed2=isActive?'8s':'14s';
-      const op2=isActive?'0.2':'0.12';
-      const r2=isActive?18:15;
-      svgContent+=`<circle cx="${x}" cy="${y}" r="${r2}" fill="none" stroke="${orbitColor}" stroke-width="0.5" opacity="${op2}" stroke-dasharray="2,5"><animateTransform attributeName="transform" type="rotate" from="360 ${x} ${y}" to="0 ${x} ${y}" dur="${speed2}" repeatCount="indefinite"/></circle>`;
+    // helper — ring with rotating dashes
+    const ring=(rad,sw,op,dash,dur,rev=false)=>`<circle cx="${x}" cy="${y}" r="${rad}" fill="none" stroke="${orbitColor}" stroke-width="${sw}" opacity="${op}" stroke-dasharray="${dash}"><animateTransform attributeName="transform" type="rotate" from="${rev?360:0} ${x} ${y}" to="${rev?0:360} ${x} ${y}" dur="${dur}" repeatCount="indefinite"/></circle>`;
+
+    // helper — orbiting dot: group centered on node, dot at offset, whole group rotates
+    const dot=(rad,dotR,op,dur,rev=false,startAngle=0)=>`<g><animateTransform attributeName="transform" type="rotate" from="${startAngle} ${x} ${y}" to="${startAngle+(rev?-360:360)} ${x} ${y}" dur="${dur}" repeatCount="indefinite"/><circle cx="${x}" cy="${y-rad}" r="${dotR}" fill="${orbitColor}" opacity="${op}"/></g>`;
+
+    if(isMobile){
+      // mobile: two simple rings, no dots
+      const spd=isActive?'5s':sc==='pass'?'8s':'18s';
+      const op=isActive?'0.45':sc==='pass'?'0.25':'0.1';
+      svgContent+=`<circle cx="${x}" cy="${y}" r="${r}" fill="${fill}" stroke="${stroke}" stroke-width="2" ${gf}/>`;
+      svgContent+=ring(isActive?15:10, 1, op, '4,3', spd);
+      if(isActive||sc==='pass'){
+        svgContent+=ring(isActive?22:16, 0.6, op*0.5, '2,5', isActive?'9s':'14s', true);
+      }
+    } else {
+      // desktop: rich multi-ring system, all states get something interesting
+      svgContent+=`<circle cx="${x}" cy="${y}" r="${r}" fill="${fill}" stroke="${stroke}" stroke-width="2" ${gf}/>`;
+
+      if(isActive){
+        svgContent+=ring(16, 1.3, 0.52, '4,3', '3.2s');
+        svgContent+=ring(23, 0.8, 0.26, '3,5', '6.5s', true);
+        svgContent+=ring(30, 0.5, 0.11, '2,7', '12s');
+        svgContent+=dot(16, 2.8, 0.8, '3.2s', false, 0);
+        svgContent+=dot(23, 1.8, 0.45, '6.5s', true, 90);
+        svgContent+=dot(30, 1.2, 0.25, '12s', false, 45);
+      } else if(sc==='pass'){
+        svgContent+=ring(13, 1.1, 0.38, '4,4', '7s');
+        svgContent+=ring(20, 0.6, 0.16, '2,5', '13s', true);
+        svgContent+=dot(13, 2.2, 0.6, '7s', false, 0);
+        svgContent+=dot(20, 1.4, 0.3, '13s', true, 120);
+      } else if(sc==='warn'||sc==='fail'){
+        svgContent+=ring(12, 1, 0.38, '3,4', '8s');
+        svgContent+=ring(18, 0.6, 0.16, '2,5', '14s', true);
+        svgContent+=dot(12, 2, 0.55, '8s', false, 0);
+      } else {
+        // not started — two dim rings + one faint dot so all nodes look alive
+        svgContent+=ring(11, 0.8, 0.14, '3,5', '18s');
+        svgContent+=ring(17, 0.5, 0.07, '2,6', '28s', true);
+        svgContent+=dot(11, 1.5, 0.2, '18s', false, 0);
+      }
     }
   });
 
   svg.innerHTML=svgContent;
 }
 
-// ── SCROLL SPY ──
+// ── SIDEBAR MOBILE TOGGLE ──
+function toggleSidebar(){
+  const sb=document.querySelector('.sidebar');
+  const ov=document.getElementById('sb-overlay');
+  const hb=document.getElementById('sb-hamburger');
+  const isOpen=sb.classList.contains('open');
+  sb.classList.toggle('open',!isOpen);
+  ov.classList.toggle('visible',!isOpen);
+  hb.classList.toggle('open',!isOpen);
+}
+function closeSidebar(){
+  document.querySelector('.sidebar').classList.remove('open');
+  document.getElementById('sb-overlay').classList.remove('visible');
+  document.getElementById('sb-hamburger').classList.remove('open');
+}
+
+// close sidebar when a nav item is clicked on mobile
+function jumpTo(id){
+  const sec=document.getElementById('sec-'+id);
+  if(!sec) return;
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('open'));
+  sec.classList.add('open');
+  setActiveNav(id);
+  if(window.innerWidth<=768) closeSidebar();
+  setTimeout(()=>{ sec.scrollIntoView({behavior:'smooth',block:'start'}); },window.innerWidth<=768?320:50);
+}
 const mainEl=document.getElementById('main');
 mainEl.addEventListener('scroll',()=>{
   let cur=SECS[0];
