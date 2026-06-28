@@ -1,0 +1,790 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Strategic Planning Workspace</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+
+:root{
+  --bg:#0D1520;
+  --panel:#0A1018;
+  --card:#0F1A28;
+  --card2:#131E2E;
+  --border:#0D2030;
+  --border2:#1A3448;
+  --teal:#5BE0C8;
+  --teal-dim:#0A3A3A;
+  --teal-bg:rgba(91,224,200,0.07);
+  --green:#3DDC8C;
+  --green-dim:#1A4028;
+  --green-bg:rgba(61,220,140,0.07);
+  --gold:#F0B429;
+  --gold-dim:#4A3A00;
+  --gold-bg:rgba(240,180,41,0.07);
+  --red:#E05A4A;
+  --red-dim:#4A1A14;
+  --red-bg:rgba(224,90,74,0.08);
+  --text:#C8DCF0;
+  --text2:#5A8AAA;
+  --text3:#1E3A50;
+  --white:#EEF6FF;
+  --mono:'JetBrains Mono',monospace;
+}
+
+body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-weight:300;min-height:100vh;display:flex;flex-direction:column;font-size:16px;padding-top:56px;}
+
+/* ── TOPBAR ── */
+.topbar{background:var(--panel);border-bottom:1px solid var(--border);padding:0 1.6rem;height:56px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;gap:1rem;position:fixed;top:0;left:0;right:0;z-index:200;}
+.tb-left{display:flex;align-items:center;gap:1rem;}
+.tb-logo{font-family:var(--mono);font-size:0.75rem;letter-spacing:0.18em;color:var(--teal);text-transform:uppercase;font-weight:500;}
+.tb-div{width:1px;height:20px;background:var(--border2);}
+.tb-title{font-size:1rem;color:var(--white);letter-spacing:-0.01em;font-weight:400;}
+.tb-right{display:flex;align-items:center;gap:0.75rem;}
+.tb-score{font-family:var(--mono);font-size:0.78rem;color:var(--text3);letter-spacing:0.05em;}
+.tb-score strong{color:var(--gold);font-size:0.9rem;font-weight:500;}
+.btn{padding:0.45rem 1rem;border-radius:3px;font-family:'Inter',sans-serif;font-size:0.82rem;font-weight:500;cursor:pointer;border:1px solid transparent;letter-spacing:0.04em;transition:all 0.15s;}
+.btn-ghost{background:transparent;border-color:var(--border2);color:var(--text2);}
+.btn-ghost:hover{background:var(--card);color:var(--white);}
+.btn-gold{background:var(--gold-bg);border-color:var(--gold-dim);color:var(--gold);font-weight:600;}
+.btn-gold:hover{background:rgba(240,180,41,0.14);}
+
+/* ── WORKSPACE ── */
+.workspace{display:flex;flex:1;min-height:calc(100vh - 56px);overflow:visible;}
+
+/* ── SIDEBAR ── */
+.sidebar{width:260px;flex-shrink:0;background:var(--panel);border-right:1px solid var(--border);display:flex;flex-direction:column;position:fixed;top:56px;left:0;height:calc(100vh - 56px);overflow:hidden;z-index:100;}
+
+.sb-logo-wrap{padding:1.4rem 1.2rem 1.1rem;border-bottom:1px solid var(--border);}
+.sb-eyebrow{font-family:var(--mono);font-size:0.7rem;letter-spacing:0.18em;text-transform:uppercase;color:var(--text3);margin-bottom:0.35rem;}
+.sb-title{font-family:var(--mono);font-size:0.9rem;color:var(--teal);letter-spacing:0.08em;font-weight:500;}
+
+/* nav list */
+.sb-nav{flex:1;position:relative;padding:0.5rem 0;overflow:hidden;display:flex;flex-direction:column;justify-content:space-evenly;}
+
+/* SVG line lives behind nav items */
+.sb-line-svg{position:absolute;left:0;top:0;width:56px;pointer-events:none;}
+
+.nav-item{display:flex;align-items:center;gap:0;padding:1rem 0.75rem 1rem 0;cursor:pointer;position:relative;transition:transform 0.22s ease;user-select:none;}
+.nav-item:hover{transform:translateX(4px);}
+.nav-item.active{transform:translateX(8px);}
+
+.nav-node-wrap{width:56px;flex-shrink:0;display:flex;align-items:center;justify-content:center;position:relative;z-index:2;padding:8px 0;}
+.nav-node{width:13px;height:13px;border-radius:50%;border:2px solid var(--border2);background:var(--panel);transition:all 0.25s;flex-shrink:0;}
+.nav-item.active .nav-node{width:17px;height:17px;border-color:var(--teal);background:var(--teal);box-shadow:0 0 10px rgba(91,224,200,0.55);}
+.nav-item.st-done .nav-node{border-color:var(--green);background:var(--green);}
+.nav-item.st-warn .nav-node{border-color:var(--gold);background:var(--gold);}
+.nav-item.st-fail .nav-node{border-color:var(--red);background:var(--red);}
+
+.nav-text{flex:1;text-align:right;padding-right:0.6rem;}
+.nav-label{font-family:var(--mono);font-size:0.88rem;color:var(--text3);letter-spacing:0.06em;text-transform:uppercase;line-height:1.2;transition:color 0.2s;}
+.nav-def{font-size:0.72rem;color:var(--text3);margin-top:0.2rem;opacity:0.6;font-family:var(--mono);letter-spacing:0.03em;transition:color 0.2s;}
+.nav-sub{font-size:0.72rem;color:var(--text3);margin-top:0.15rem;opacity:0;transition:opacity 0.2s;font-family:var(--mono);}
+.nav-item.active .nav-label{color:var(--teal);}
+.nav-item.active .nav-def{color:var(--teal);opacity:0.55;}
+.nav-item.active .nav-sub{opacity:1;color:#2A7A6A;}
+.nav-item.st-done .nav-label{color:var(--green);}
+.nav-item.st-done .nav-def{color:var(--green);opacity:0.45;}
+.nav-item.st-done .nav-sub{opacity:1;}
+.nav-item.st-warn .nav-label{color:var(--gold);}
+.nav-item.st-warn .nav-def{color:var(--gold);opacity:0.45;}
+.nav-item.st-fail .nav-label{color:var(--red);}
+.nav-item.st-fail .nav-def{color:var(--red);opacity:0.45;}
+.nav-item.deliverable .nav-label{color:#2ECC8A;}
+.nav-item.deliverable .nav-def{color:#2ECC8A;opacity:0.5;}
+
+.sb-footer{padding:1.1rem 1.2rem;border-top:1px solid var(--border);}
+.sb-footer-lbl{font-family:var(--mono);font-size:0.65rem;letter-spacing:0.14em;text-transform:uppercase;color:var(--text3);margin-bottom:0.4rem;}
+.sb-score-row{display:flex;align-items:baseline;gap:0.3rem;margin-bottom:0.5rem;}
+.sb-score-n{font-size:1.7rem;color:var(--gold);line-height:1;font-weight:300;}
+.sb-score-d{font-size:0.8rem;color:var(--text3);}
+.sb-pbar{display:flex;gap:3px;margin-bottom:0.9rem;}
+.sb-ps{height:3px;flex:1;border-radius:1px;background:var(--border2);transition:background 0.3s;}
+.sb-ps.lit{background:var(--teal);}
+.sb-hint{font-size:0.72rem;color:var(--text3);line-height:1.55;font-family:var(--mono);letter-spacing:0.02em;border-top:1px solid var(--border);padding-top:0.75rem;opacity:0.7;}
+
+/* ── MAIN ── */
+.main{flex:1;overflow-y:auto;background:var(--bg);margin-left:260px;}
+.main-inner{max-width:100%;padding:2rem 2.5rem 6rem;}
+
+/* overview strip */
+.overview{padding:0.5rem 0 1.5rem;margin-bottom:1.25rem;border-bottom:1px solid var(--border);}
+.ov-chain{display:flex;flex-wrap:wrap;align-items:center;gap:0.5rem;margin-bottom:0.5rem;}
+.ov-node{font-family:var(--mono);font-size:0.72rem;letter-spacing:0.1em;text-transform:uppercase;cursor:default;pointer-events:none;user-select:none;color:var(--text3);}
+.ov-blue{color:var(--text3);}
+.ov-green{color:#2ECC8A;}
+.ov-arr{color:var(--border2);font-size:0.72rem;}
+.ov-note{font-size:0.84rem;color:var(--text3);line-height:1.6;margin-top:0.65rem;}
+
+/* ── SECTION CARD ── */
+.section{scroll-margin-top:1.25rem;margin-bottom:0.6rem;border-radius:6px;overflow:hidden;border:1px solid var(--border);transition:border-color 0.2s;}
+.section.s-active{border-color:var(--teal-dim);}
+.section.s-done{border-color:var(--green-dim);}
+.section.s-warn{border-color:var(--gold-dim);}
+.section.s-fail{border-color:var(--red-dim);}
+
+.sec-toggle{display:flex;align-items:flex-start;gap:0.85rem;padding:1.3rem 1.4rem;cursor:pointer;background:var(--card);transition:background 0.15s;border-left:3px solid transparent;}
+.section.s-done .sec-toggle{border-left-color:var(--green);background:#080E08;}
+.section.s-active .sec-toggle{border-left-color:var(--teal);background:#060E18;}
+.section.s-warn .sec-toggle{border-left-color:var(--gold);background:#0C0A04;}
+.section.s-fail .sec-toggle{border-left-color:var(--red);background:#0C0806;}
+.section.s-locked .sec-toggle{border-left-color:var(--border2);}
+.sec-toggle:hover{filter:brightness(1.07);}
+
+.sec-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;margin-top:5px;border:1.5px solid var(--border2);background:transparent;transition:all 0.2s;}
+.section.s-done .sec-dot{background:var(--green);border-color:var(--green);}
+.section.s-active .sec-dot{background:var(--teal);border-color:var(--teal);box-shadow:0 0 7px rgba(91,224,200,0.55);}
+.section.s-warn .sec-dot{background:var(--gold);border-color:var(--gold);}
+.section.s-fail .sec-dot{background:var(--red);border-color:var(--red);}
+
+.sec-toggle-text{flex:1;min-width:0;}
+.sec-badge-wrap{display:flex;align-items:center;gap:0.5rem;margin-bottom:0.35rem;}
+.sec-badge{font-family:var(--mono);font-size:0.65rem;letter-spacing:0.12em;text-transform:uppercase;padding:0.22rem 0.65rem;border-radius:2px;border:1px solid;}
+.badge-blue{color:var(--teal);border-color:var(--teal-dim);background:var(--teal-bg);}
+.badge-green{color:#2ECC8A;border-color:#1A4A2E;background:rgba(46,204,138,0.07);}
+.sec-name{font-size:1.4rem;color:var(--white);font-weight:400;letter-spacing:-0.02em;margin-bottom:0.3rem;line-height:1.25;}
+.section.s-done .sec-name{color:var(--green);}
+.section.s-active .sec-name{color:var(--white);}
+.section.s-warn .sec-name{color:var(--gold);}
+.section.s-fail .sec-name{color:var(--red);}
+.sec-def{font-size:0.88rem;color:var(--text2);line-height:1.5;}
+.section.s-done .sec-def{color:#1A5A2A;}
+.section.s-locked .sec-def{color:var(--text3);}
+
+.sec-right{display:flex;flex-direction:column;align-items:flex-end;gap:0.4rem;flex-shrink:0;}
+.sec-status-badge{font-size:0.7rem;padding:0.25rem 0.7rem;border-radius:2px;border:1px solid;letter-spacing:0.06em;text-transform:uppercase;white-space:nowrap;font-family:var(--mono);}
+.ssb-done{color:var(--green);border-color:var(--green-dim);background:var(--green-bg);}
+.ssb-active{color:var(--teal);border-color:var(--teal-dim);background:var(--teal-bg);}
+.ssb-warn{color:var(--gold);border-color:var(--gold-dim);background:var(--gold-bg);}
+.ssb-fail{color:var(--red);border-color:var(--red-dim);background:var(--red-bg);}
+.ssb-locked{color:var(--text3);border-color:var(--border);}
+.sec-caret{font-size:0.85rem;color:var(--text3);transition:transform 0.22s;margin-top:0.2rem;}
+.section.open .sec-caret{transform:rotate(180deg);}
+.section.s-active .sec-caret{color:var(--teal);}
+.section.s-done .sec-caret{color:#1A5A2A;}
+
+/* body */
+.sec-body{display:none;background:var(--bg);padding:1.5rem 1.4rem 1.75rem;}
+.section.open .sec-body{display:block;}
+
+/* def block */
+.def-block{background:var(--panel);border:1px solid var(--border);border-left:3px solid var(--teal);border-radius:0 5px 5px 0;padding:1rem 1.2rem;font-size:0.92rem;line-height:1.7;color:var(--text2);margin-bottom:1.4rem;}
+.def-block.green{border-left-color:var(--green);}
+
+/* questions */
+.q-section-head{font-family:var(--mono);font-size:0.65rem;letter-spacing:0.14em;text-transform:uppercase;color:var(--text3);margin-bottom:0.85rem;display:flex;align-items:center;gap:0.5rem;}
+.q-section-head::after{content:'';flex:1;height:1px;background:var(--border);}
+
+.q-block{background:var(--panel);border:1px solid var(--border);border-radius:5px;padding:1rem 1.1rem;margin-bottom:0.65rem;transition:border-color 0.2s;}
+.q-block.answered{border-color:var(--border2);}
+.q-num{font-family:var(--mono);font-size:0.65rem;color:var(--text3);margin-bottom:0.4rem;letter-spacing:0.05em;}
+.q-text{font-size:0.92rem;color:var(--text);line-height:1.6;margin-bottom:0.75rem;font-weight:400;}
+
+.mc-opts{display:flex;flex-direction:column;gap:0.4rem;}
+.mc-opt{display:flex;align-items:flex-start;gap:0.7rem;padding:0.6rem 0.85rem;border-radius:4px;border:1px solid var(--border);background:var(--card2);cursor:pointer;font-size:0.88rem;color:var(--text2);line-height:1.5;transition:all 0.14s;}
+.mc-opt:hover{border-color:var(--border2);color:var(--text);}
+.mc-opt.sel-good{border-color:var(--green);background:var(--green-bg);color:var(--white);}
+.mc-opt.sel-warn{border-color:var(--gold);background:var(--gold-bg);color:var(--white);}
+.mc-opt.sel-bad{border-color:var(--red);background:var(--red-bg);color:var(--white);}
+.mc-radio{width:14px;height:14px;border-radius:50%;border:1.5px solid var(--border2);flex-shrink:0;margin-top:3px;display:flex;align-items:center;justify-content:center;transition:all 0.14s;}
+.sel-good .mc-radio{border-color:var(--green);background:var(--green);}
+.sel-warn .mc-radio{border-color:var(--gold);background:var(--gold);}
+.sel-bad .mc-radio{border-color:var(--red);background:var(--red);}
+.mc-radio::after{content:'';width:5px;height:5px;border-radius:50%;background:white;opacity:0;}
+.sel-good .mc-radio::after,.sel-warn .mc-radio::after,.sel-bad .mc-radio::after{opacity:1;}
+
+.q-fb{font-size:0.82rem;line-height:1.55;margin-top:0.55rem;padding:0.45rem 0.8rem;border-radius:3px;display:none;border-left:2px solid;}
+.q-fb.show{display:block;}
+.fb-good{background:var(--green-bg);color:#4ADD9A;border-left-color:var(--green);}
+.fb-warn{background:var(--gold-bg);color:#D4A030;border-left-color:var(--gold);}
+.fb-bad{background:var(--red-bg);color:#D46A58;border-left-color:var(--red);}
+
+/* readiness */
+.readiness{margin-top:1.1rem;border:1px solid var(--border);border-radius:5px;overflow:hidden;}
+.rd-bar{padding:0.85rem 1.1rem;display:flex;align-items:center;gap:0.75rem;cursor:pointer;transition:background 0.15s;}
+.rd-bar:hover{background:var(--card);}
+.rd-icon{font-size:1rem;flex-shrink:0;}
+.rd-text{flex:1;}
+.rd-title{font-size:0.9rem;font-weight:500;}
+.rd-sub{font-size:0.78rem;margin-top:0.12rem;opacity:0.75;}
+.rd-chev{font-size:0.8rem;color:var(--text3);transition:transform 0.2s;}
+.readiness.open .rd-chev{transform:rotate(180deg);}
+.rd-pending{background:var(--card);}
+.rd-pending .rd-title{color:var(--text3);}
+.rd-pending .rd-sub{color:var(--text3);}
+.rd-pass{background:var(--green-bg);border-color:var(--green-dim);}
+.rd-pass .rd-title{color:var(--green);}
+.rd-warn{background:var(--gold-bg);border-color:var(--gold-dim);}
+.rd-warn .rd-title{color:var(--gold);}
+.rd-fail{background:var(--red-bg);border-color:var(--red-dim);}
+.rd-fail .rd-title{color:var(--red);}
+.rd-detail{display:none;padding:0.9rem 1.1rem;background:var(--bg);border-top:1px solid var(--border);}
+.readiness.open .rd-detail{display:block;}
+.rd-items{display:flex;flex-direction:column;gap:0.5rem;}
+.rd-item{display:flex;align-items:flex-start;gap:0.6rem;font-size:0.85rem;line-height:1.55;}
+.rd-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;margin-top:5px;}
+.rd-dot-g{background:var(--green);}
+.rd-dot-w{background:var(--gold);}
+.rd-dot-r{background:var(--red);}
+.rd-item-text{color:var(--text2);}
+.rd-item-text strong{color:var(--text);font-weight:500;}
+
+/* notes */
+.notes-locked{margin-top:1.1rem;padding:1rem 1.2rem;background:var(--panel);border:1px solid var(--border);border-radius:5px;text-align:center;font-size:0.86rem;color:var(--text3);font-style:italic;}
+.notes-section{margin-top:1.1rem;display:none;}
+.notes-section.visible{display:block;}
+.notes-head{font-family:var(--mono);font-size:0.65rem;letter-spacing:0.14em;text-transform:uppercase;color:var(--text3);margin-bottom:0.75rem;display:flex;align-items:center;gap:0.5rem;}
+.notes-head::after{content:'';flex:1;height:1px;background:var(--border);}
+.note-prompt{background:var(--panel);border:1px solid var(--border);border-radius:5px;padding:0.85rem 1rem;margin-bottom:0.55rem;}
+.note-prompt-lbl{font-family:var(--mono);font-size:0.65rem;color:var(--text3);margin-bottom:0.35rem;letter-spacing:0.04em;}
+.note-prompt-q{font-size:0.88rem;color:var(--text2);margin-bottom:0.55rem;line-height:1.55;}
+.note-input{width:100%;background:var(--card2);border:1px solid var(--border);border-radius:4px;padding:0.6rem 0.85rem;font-family:'Inter',sans-serif;font-size:0.88rem;color:var(--white);font-weight:300;line-height:1.6;resize:vertical;min-height:64px;outline:none;transition:border-color 0.15s;}
+.note-input:focus{border-color:var(--border2);}
+.note-input::placeholder{color:var(--text3);font-style:italic;}
+
+.sec-divider{border:none;border-top:1px solid var(--border);margin:0.6rem 0;}
+
+/* ── PRINT ── */
+@media print{
+  .topbar,.sidebar,.mc-opts,.rd-bar,.rd-chev,.q-section-head{display:none!important;}
+  body,.main{background:white;color:#111;padding-top:0;margin-left:0;}
+  .workspace{display:block;height:auto;overflow:visible;}
+  .main{overflow:visible;margin-left:0;}
+  .main-inner{padding:1rem;max-width:100%;}
+  .sec-name,.sec-def,.sec-toggle-text{color:#111!important;}
+  .note-prompt{background:#f5f5f5;border-color:#ddd;}
+  .note-prompt-lbl,.note-prompt-q{color:#444!important;}
+  .note-input{background:white;border:1px solid #ccc;color:#111;min-height:44px;}
+  .notes-section{display:block!important;}
+  .rd-detail{display:block!important;}
+  .section{border-color:#ddd!important;}
+  .sec-toggle{background:#f9f9f9!important;border-left-color:#ccc!important;}
+  .def-block{background:#f5f5f5;border-color:#ddd;color:#333;}
+  .sec-body{display:block!important;}
+  .print-hd{display:block!important;font-size:1.4rem;font-family:Georgia,serif;margin-bottom:1.5rem;color:#111;border-bottom:1px solid #ddd;padding-bottom:0.75rem;}
+}
+.print-hd{display:none;}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="tb-left">
+    <div class="tb-logo">StratPlan//</div>
+    <div class="tb-div"></div>
+    <div class="tb-title">Strategic Planning Workspace</div>
+  </div>
+  <div class="tb-right">
+    <div class="tb-score">ready: <strong id="tb-score">0/6</strong></div>
+    <button class="btn btn-ghost" onclick="confirmClear()">Clear</button>
+    <button class="btn btn-gold" onclick="window.print()">Export</button>
+  </div>
+</div>
+
+<div class="workspace">
+
+<!-- ── SIDEBAR ── -->
+<aside class="sidebar">
+  <div class="sb-logo-wrap">
+    <div class="sb-eyebrow">Framework map</div>
+    <div class="sb-title">STRATPLAN//</div>
+  </div>
+
+  <nav class="sb-nav" id="sb-nav">
+    <svg class="sb-line-svg" id="sb-svg" style="position:absolute;left:0;top:0;pointer-events:none;"></svg>
+
+    <div class="nav-item active" id="ni-goal" onclick="jumpTo('goal')">
+      <div class="nav-node-wrap"><div class="nav-node"></div></div>
+      <div class="nav-text">
+        <div class="nav-label">Goal</div>
+        <div class="nav-def">Desired end state</div>
+        <div class="nav-sub" id="ns-goal">not started</div>
+      </div>
+    </div>
+    <div class="nav-item" id="ni-objective" onclick="jumpTo('objective')">
+      <div class="nav-node-wrap"><div class="nav-node"></div></div>
+      <div class="nav-text">
+        <div class="nav-label">Objective</div>
+        <div class="nav-def">Specific outcome</div>
+        <div class="nav-sub" id="ns-objective">not started</div>
+      </div>
+    </div>
+    <div class="nav-item" id="ni-keyresult" onclick="jumpTo('keyresult')">
+      <div class="nav-node-wrap"><div class="nav-node"></div></div>
+      <div class="nav-text">
+        <div class="nav-label">Key Result</div>
+        <div class="nav-def">Success metric</div>
+        <div class="nav-sub" id="ns-keyresult">not started</div>
+      </div>
+    </div>
+    <div class="nav-item deliverable" id="ni-deliverable" onclick="jumpTo('deliverable')">
+      <div class="nav-node-wrap"><div class="nav-node"></div></div>
+      <div class="nav-text">
+        <div class="nav-label">Deliverable</div>
+        <div class="nav-def">Contractual output</div>
+        <div class="nav-sub" id="ns-deliverable">not started</div>
+      </div>
+    </div>
+    <div class="nav-item" id="ni-kpi" onclick="jumpTo('kpi')">
+      <div class="nav-node-wrap"><div class="nav-node"></div></div>
+      <div class="nav-text">
+        <div class="nav-label">KPI</div>
+        <div class="nav-def">Health indicator</div>
+        <div class="nav-sub" id="ns-kpi">not started</div>
+      </div>
+    </div>
+    <div class="nav-item" id="ni-milestone" onclick="jumpTo('milestone')">
+      <div class="nav-node-wrap"><div class="nav-node"></div></div>
+      <div class="nav-text">
+        <div class="nav-label">Milestone</div>
+        <div class="nav-def">Schedule checkpoint</div>
+        <div class="nav-sub" id="ns-milestone">not started</div>
+      </div>
+    </div>
+  </nav>
+
+  <div class="sb-footer">
+    <div class="sb-footer-lbl">Overall readiness</div>
+    <div class="sb-score-row">
+      <div class="sb-score-n" id="sb-count">0</div>
+      <div class="sb-score-d">/ 6 sections ready</div>
+    </div>
+    <div class="sb-pbar" id="sb-pbar">
+      <div class="sb-ps"></div><div class="sb-ps"></div><div class="sb-ps"></div>
+      <div class="sb-ps"></div><div class="sb-ps"></div><div class="sb-ps"></div>
+    </div>
+    <div class="sb-hint">Click any section to open it and begin the diagnostic.</div>
+  </div>
+</aside>
+
+<!-- ── MAIN ── -->
+<main class="main" id="main">
+<div class="main-inner">
+
+  <div class="print-hd">Strategic Planning Workspace — Notes Export</div>
+
+  <!-- overview -->
+  <div class="overview">
+    <div class="ov-chain">
+      <span class="ov-node ov-blue">Goal</span>
+      <span class="ov-arr">→</span>
+      <span class="ov-node ov-blue">Objective</span>
+      <span class="ov-arr">→</span>
+      <span class="ov-node ov-blue">Key Result</span>
+      <span class="ov-arr">→</span>
+      <span class="ov-node ov-green">Deliverable</span>
+      <span class="ov-arr">→</span>
+      <span class="ov-node ov-blue">Milestone</span>
+      <span class="ov-arr">+</span>
+      <span class="ov-node ov-blue">KPI</span>
+    </div>
+    <div class="ov-note">Work in any order using the left panel. Answer each section's diagnostic questions to unlock your readiness score and guided notes. <strong style="color:var(--text2)">Deliverable</strong> is highlighted — most frameworks omit it, but in services contract environments it's first-class.</div>
+  </div>
+
+  <!-- sections injected by JS -->
+  <div id="sections-wrap"></div>
+
+</div>
+</main>
+</div>
+
+<script>
+const SECS=['goal','objective','keyresult','deliverable','kpi','milestone'];
+
+const META={
+  goal:{name:'Goal',q:'Where are we ultimately trying to go?',def:'A goal is the broad, long-horizon destination — aspirational, often qualitative. It describes a future state, not a task. A well-written goal lets you describe what NOT achieving it looks like. If it can\'t, it may be a values statement in disguise.',badge:'blue',qs:4},
+  objective:{name:'Objective',q:'What outcome must we accomplish next?',def:'An objective is a concrete, actionable outcome that advances the goal. Not a sub-goal, not a task — a defined destination with its own success criteria. Specific enough to create focus, broad enough to allow multiple paths.',badge:'blue',qs:5},
+  keyresult:{name:'Key Result',q:'How will we know we actually got there?',def:'A Key Result is a measurable outcome proving the objective was met. It measures change, not activity. Scored on a spectrum — 70% of a hard KR beats 100% of an easy one. Key Results measure change; KPIs monitor health.',badge:'blue',qs:4},
+  deliverable:{name:'Deliverable',q:'What tangible artifacts must exist when work is done?',def:'A deliverable is a concrete artifact — document, framework, dashboard, SOP — that must be produced. In services contract environments, deliverables are first-class citizens, not incidental outputs. They are binary: they exist or they don\'t.',badge:'green',qs:4},
+  kpi:{name:'KPI',q:'Is the organization staying healthy while we do this?',def:'A KPI monitors ongoing operational health — not progress toward a goal. It runs continuously without a finish line. Key distinction: Key Results measure change. KPIs monitor health. Once a KR is achieved, the KPI keeps watching.',badge:'blue',qs:4},
+  milestone:{name:'Milestone',q:'What significant events mark that the plan is intact?',def:'A milestone is a specific, time-bound event — done or not done, no partial credit. Milestones are schedule integrity tools, not progress measures. "Milestone achieved" means the plan is on track — not that the work is good.',badge:'blue',qs:4}
+};
+
+const QS={
+  goal:[
+    {t:'How would you describe your goal right now?',opts:[{l:'We have a clear future state — we can describe success and failure.',v:'good'},{l:'We have a general direction but it\'s not specific enough to test.',v:'warn'},{l:'We have a mission statement or values — but not a defined destination.',v:'bad'}],fb:{good:'Strong foundation. A goal you can test against is one that actually drives decisions.',warn:'Try asking: what does the organization look like in 2–3 years if this succeeds — and if it doesn\'t?',bad:'Mission statements aren\'t goals. A goal needs a future state you can point at. Keep digging.'}},
+    {t:'If asked "did we achieve our goal?" in two years — could you answer clearly?',opts:[{l:'Yes — we\'d know. The goal has a clear enough shape that success is recognizable.',v:'good'},{l:'Probably — but we\'d have some debate about interpretation.',v:'warn'},{l:'No — the goal is broad enough that anything could count.',v:'bad'}],fb:{good:'This is the right test. Goals that are answerable in retrospect tend to be useful prospectively.',warn:'That debate is worth having now. What specifically would be contested? Clarify it before writing objectives.',bad:'If anything counts as success, nothing is being aimed at. Find at least one concrete anchor.'}},
+    {t:'Does your goal require multiple objectives to achieve it?',opts:[{l:'Yes — several distinct outcomes would need to happen to get there.',v:'good'},{l:'Maybe — not sure how many objectives it would take.',v:'warn'},{l:'No — one action or output pretty much achieves it.',v:'bad'}],fb:{good:'Good. A goal that needs multiple objectives is at the right altitude — a destination, not a task.',warn:'Working through objectives will help clarify the scope. That\'s fine at this stage.',bad:'If one action achieves it, you may be looking at an objective, not a goal. Consider whether there\'s a larger destination this feeds into.'}},
+    {t:'Who owns this goal — and does leadership agree on what it means?',opts:[{l:'Clear owner and shared understanding at leadership level.',v:'good'},{l:'Ownership is clear but alignment on meaning is still being built.',v:'warn'},{l:'Neither is fully settled yet.',v:'bad'}],fb:{good:'Ownership and alignment is the foundation everything else rests on.',warn:'Invest in alignment before writing objectives. Objectives built on a contested goal will drift.',bad:'This is the most important thing to resolve first. Without an owner and shared meaning, the framework becomes decoration.'}}
+  ],
+  objective:[
+    {t:'Does your objective describe an outcome or an activity?',opts:[{l:'Outcome — describes a changed state. e.g. "Governance standardized across all portfolios."',v:'good'},{l:'Somewhere between — implies actions but points toward a changed state.',v:'warn'},{l:'Activity — describes what we\'ll do. e.g. "Conduct governance training."',v:'bad'}],fb:{good:'Right shape. Outcome-framed objectives keep focus on what changes, not just what gets done.',warn:'Try removing all action verbs and see what\'s left. That remainder is often the real objective.',bad:'Activities belong in your work plan. Ask: if we do all these activities and nothing changes, did we succeed?'}},
+    {t:'Does your objective have a timeframe?',opts:[{l:'Yes — a clear deadline or target period. e.g. "by Q3" or "within FY26."',v:'good'},{l:'Roughly — general sense of timeframe but not pinned down.',v:'warn'},{l:'No — open-ended with no time anchor.',v:'bad'}],fb:{good:'A timeframe makes an objective real — it creates accountability and shapes resource decisions.',warn:'Pin it down before finalizing. Even a rough fiscal quarter gives people something to plan against.',bad:'Without a timeframe, objectives drift indefinitely. Add a time anchor.'}},
+    {t:'Is there more than one path to achieving this objective?',opts:[{l:'Yes — the outcome is defined; teams have flexibility in how to get there.',v:'good'},{l:'Somewhat — primary approach exists but there\'s some flexibility.',v:'warn'},{l:'No — it essentially prescribes a specific action or method.',v:'bad'}],fb:{good:'Good altitude. Objectives that allow multiple paths give teams agency and adaptability.',warn:'Make sure the primary approach isn\'t embedded in the objective itself — the how belongs in the work plan.',bad:'If only one path works, you may be writing a task. Lift the language one level — describe the destination, not the route.'}},
+    {t:'If you hit this objective but the goal still isn\'t met — does something seem misaligned?',opts:[{l:'No — achieving this clearly advances the goal in a meaningful way.',v:'good'},{l:'Possibly — the connection is there but not immediately obvious.',v:'warn'},{l:'Yes — hitting this wouldn\'t necessarily move the needle on the goal.',v:'bad'}],fb:{good:'Strong vertical alignment. This is what makes strategy coherent rather than just busy.',warn:'Articulate that connection explicitly — it matters for communicating why this work is prioritized.',bad:'Significant flag. Either the objective needs to connect more directly, or the goal needs revisiting.'}},
+    {t:'How would you characterize the altitude of your objective?',opts:[{l:'Right — specific enough to create focus, not so specific it\'s a task list.',v:'good'},{l:'Too high — feels like a restatement of the goal.',v:'warn'},{l:'Too low — really a list of tasks bundled together.',v:'bad'}],fb:{good:'Altitude confirmed. You\'re working with a real objective.',warn:'Ask: what would I need to accomplish to get to this? That answer is your objective. What you have now is the goal.',bad:'Pull the camera back. What single outcome would make all these tasks worth doing? That\'s the objective.'}}
+  ],
+  keyresult:[
+    {t:'Can you put a number on your key result with a starting point and end point?',opts:[{l:'Yes — baseline and target defined. e.g. "Review cycle 28 → 14 days."',v:'good'},{l:'We have a target but no confirmed baseline yet.',v:'warn'},{l:'No — too qualitative to measure precisely.',v:'bad'}],fb:{good:'Baseline + target is the gold standard. You can score progress and have honest conversations.',warn:'Prioritize establishing the baseline — you can\'t measure change without knowing where you started.',bad:'Without measurability, this is a hope, not a key result. Find the metric — or a close-enough proxy.'}},
+    {t:'Does this key result measure an outcome or an output?',opts:[{l:'Outcome — measures something that changed in the world as a result of the work.',v:'good'},{l:'Between — measures a deliverable that strongly implies the outcome.',v:'warn'},{l:'Output — measures whether something was produced, not whether anything changed.',v:'bad'}],fb:{good:'Outcome focus is right. Outputs can be checked off while the objective quietly fails.',warn:'Acceptable in contract contexts — just track whether the deliverable actually moved the needle.',bad:'A completed output is not an achieved outcome. Reframe around what the output is supposed to cause.'}},
+    {t:'Is the target ambitious enough to create real accountability?',opts:[{l:'Yes — hitting it would require real effort and represent genuine progress.',v:'good'},{l:'Somewhat — achievable but not a stretch.',v:'warn'},{l:'No — we\'re already confident we\'ll hit it.',v:'bad'}],fb:{good:'Good calibration. Key results should feel like they require something.',warn:'Consider pushing the target. 70% of a harder KR is worth more than 100% of an easy one.',bad:'This is sandbagging. Raise the target or find a metric that actually captures what you\'re moving.'}},
+    {t:'If you hit this key result but didn\'t achieve the objective — would that be possible?',opts:[{l:'No — hitting this metric would mean the objective was genuinely achieved.',v:'good'},{l:'Unlikely but possible — edge cases where the metric could be hit without real outcome.',v:'warn'},{l:'Yes — this is a proxy that could be achieved without real progress.',v:'bad'}],fb:{good:'Tight alignment between metric and objective. This is what good key results look like.',warn:'Name those edge cases and consider a second KR that covers the gap.',bad:'Gaming risk is real, especially in government contexts. Find a metric that\'s harder to hit without the underlying outcome improving.'}}
+  ],
+  deliverable:[
+    {t:'Have you identified and listed all concrete artifacts this work must produce?',opts:[{l:'Yes — complete list with descriptions. e.g. Governance Framework, Decision Playbook, Dashboard.',v:'good'},{l:'Partially — we know the main ones but the list isn\'t finalized.',v:'warn'},{l:'No — they\'re implied by the work, not explicitly listed.',v:'bad'}],fb:{good:'Explicit lists matter — deliverables that are "implied" tend to become disputed at review time.',warn:'Finalize the list before work begins. Scope creep almost always enters through undefined deliverables.',bad:'Make the list now. Even a rough draft creates clarity. Implied deliverables are a primary source of misalignment.'}},
+    {t:'Are the deliverables contractually specified (in a PWS, SOW, or equivalent)?',opts:[{l:'Yes — formally documented with acceptance criteria and deadlines.',v:'good'},{l:'Partially — some are documented, others are understood but not formalized.',v:'warn'},{l:'No — agreed informally but not in writing.',v:'bad'}],fb:{good:'Formal specification protects both parties. Acceptance criteria prevent "done" from being contested.',warn:'Get the informal ones documented — even a brief addendum creates a shared record.',bad:'Informal agreements are a liability. Get this in writing before significant work proceeds.'}},
+    {t:'Do you know who receives and accepts each deliverable?',opts:[{l:'Yes — each has a named customer and acceptance process.',v:'good'},{l:'We know the general customer but the acceptance process isn\'t fully defined.',v:'warn'},{l:'No — unclear who reviews and accepts the work.',v:'bad'}],fb:{good:'Named owners + defined acceptance = far fewer end-of-project surprises.',warn:'Define the acceptance process before you deliver — "customer review" without a defined process becomes a long ambiguous loop.',bad:'Without a named acceptor, deliverables get delivered into a void. Resolve this early.'}},
+    {t:'Are you tracking deliverables separately from milestones and key results?',opts:[{l:'Yes — we distinguish artifact (deliverable), acceptance event (milestone), and outcome (key result).',v:'good'},{l:'Somewhat — we track them together but could be clearer.',v:'warn'},{l:'No — we use these terms interchangeably.',v:'bad'}],fb:{good:'The distinction matters most at reporting time. Being clear now prevents confusion later.',warn:'Start making the distinction explicit. Deliverable completion ≠ milestone achieved ≠ outcome reached.',bad:'Using these interchangeably creates accountability gaps. Each needs its own tracking lane.'}}
+  ],
+  kpi:[
+    {t:'Do your KPIs measure ongoing health or one-time change?',opts:[{l:'Ongoing health — metrics we\'d track indefinitely, not tied to an initiative finish line.',v:'good'},{l:'Mixed — some are health monitors, some are tied to the current initiative.',v:'warn'},{l:'One-time — tracking them to measure this initiative, not as ongoing health indicators.',v:'bad'}],fb:{good:'Right understanding. KPIs without a finish line distinguish health monitoring from progress tracking.',warn:'Separate them — initiative-specific ones are probably Key Results. Keep only the genuinely ongoing ones as KPIs.',bad:'What you\'re describing sounds like Key Results. KPIs don\'t end when the initiative does.'}},
+    {t:'How many KPIs are you currently tracking?',opts:[{l:'Fewer than 8 — disciplined about what goes on the dashboard.',v:'good'},{l:'8 to 15 — track a lot but they all feel important.',v:'warn'},{l:'More than 15 — the dashboard has accumulated and hasn\'t been pruned.',v:'bad'}],fb:{good:'Discipline in KPI count is a sign of mature measurement thinking.',warn:'Challenge each one: if this metric moved significantly, would it change a decision? If not, it\'s noise.',bad:'A dashboard with 20+ KPIs is a reporting exercise, not a management tool. It needs a pruning session.'}},
+    {t:'If a KPI moved significantly in the wrong direction — would someone take action within a week?',opts:[{l:'Yes — these metrics are owned, reviewed regularly, and trigger real responses.',v:'good'},{l:'Probably — we review them but the response chain isn\'t always fast or clear.',v:'warn'},{l:'No — they get reported in status updates but don\'t reliably drive action.',v:'bad'}],fb:{good:'Action-linked KPIs are what make measurement worthwhile.',warn:'Define the response chain explicitly — who owns it, what threshold triggers escalation, what the expected response is.',bad:'Metrics that don\'t drive action are decoration. Measuring something you won\'t act on creates false oversight.'}},
+    {t:'Are your KPIs distinct from your Key Results?',opts:[{l:'Distinct — Key Results have a finish line tied to the objective; KPIs run continuously.',v:'good'},{l:'Mostly distinct — some overlap but we understand the difference in intent.',v:'warn'},{l:'The same — we use KPIs and Key Results to mean the same thing.',v:'bad'}],fb:{good:'Clean separation. The distinction matters most when an initiative ends — KRs close out, KPIs keep running.',warn:'Good enough for now. Worth formalizing before initiatives close.',bad:'Key Results answer "did we get there?" then close. KPIs answer "are we staying healthy?" and never close.'}}
+  ],
+  milestone:[
+    {t:'Are your milestones events — or are they measures of progress?',opts:[{l:'Events — each is a specific point where something is complete, approved, or handed off.',v:'good'},{l:'Mixed — some are clean events, others are progress thresholds like "80% complete."',v:'warn'},{l:'Progress measures — percentages or stages rather than discrete events.',v:'bad'}],fb:{good:'Clean milestone definition. Events are unambiguous — either the approval happened or it didn\'t.',warn:'Convert progress-based ones to events. "80% complete" → "first draft reviewed by customer" is a real milestone.',bad:'Milestones as percentages create ambiguity. Convert each to a named event with a binary outcome.'}},
+    {t:'Does each milestone have a specific date and a named owner?',opts:[{l:'Yes — each has a date, an owner, and a clear definition of done.',v:'good'},{l:'Dates are set, but ownership or done-criteria are fuzzy on some.',v:'warn'},{l:'Not yet — milestones are identified but not formally assigned or dated.',v:'bad'}],fb:{good:'Date + owner + definition of done = a real checkpoint that will hold up under scrutiny.',warn:'Nail down the fuzzy ones before work starts. Ownership gaps almost always surface as accountability gaps later.',bad:'Undated, unowned milestones are wishful thinking. Assign them before the plan goes live.'}},
+    {t:'Are your milestones spaced to give early warning — or clustered near the end?',opts:[{l:'Spaced throughout — meaningful checkpoints early enough to course-correct.',v:'good'},{l:'Somewhat — a few early ones but most are in the back half.',v:'warn'},{l:'Clustered at the end — most milestones are near the delivery date.',v:'bad'}],fb:{good:'Good cadence. Early milestones give you lead time to adjust when something slips — which it will.',warn:'Add at least one substantive early checkpoint that would reveal scope or approach problems.',bad:'End-loaded milestones mean you discover problems when it\'s too late to fix them. Restructure.'}},
+    {t:'Do you understand the difference between a milestone being hit and the work being good?',opts:[{l:'Yes — milestones are schedule integrity signals. We have separate quality checks.',v:'good'},{l:'Mostly — we know the difference but quality checks aren\'t fully formalized alongside milestones.',v:'warn'},{l:'We tend to treat milestone completion as evidence the work is on track and good.',v:'bad'}],fb:{good:'This distinction is one of the most underappreciated in project management.',warn:'Formalize the quality checks — even a brief structured review at each milestone keeps signals distinct.',bad:'"On schedule" and "on track" are not the same thing. A milestone tells you the plan is intact, not that it\'s heading somewhere right.'}}
+  ]
+};
+
+const Q_LABELS={
+  goal:['Goal clarity','Two-year answer test','Multiple objectives needed?','Owner and alignment'],
+  objective:['Outcome vs. activity','Timeframe defined?','Multiple paths?','Goal alignment check','Altitude check'],
+  keyresult:['Measurable baseline + target?','Outcome vs. output?','Ambition level','Metric integrity'],
+  deliverable:['Artifact list complete?','Contractually specified?','Named customer and acceptance?','Separate tracking?'],
+  kpi:['Ongoing health vs. one-time?','Volume check','Action-linked?','Distinct from KRs?'],
+  milestone:['Events vs. progress?','Date + owner + done criteria?','Spacing for early warning?','Schedule vs. quality']
+};
+
+const NOTE_PROMPTS={
+  goal:{
+    always:[{lbl:'your goal statement',q:'Write your goal in one or two sentences. Describe the future state — not the work to get there.'},{lbl:'what failure looks like',q:'Describe what it looks like if this goal is NOT achieved. If you can\'t answer this, the goal may need sharpening.'}],
+    warn:[{lbl:'what still needs clarifying',q:'Note what\'s still vague or contested — and who needs to be involved to resolve it.'}],
+    bad:[{lbl:'the real goal underneath',q:'You may have a mission statement or activity plan. What\'s the actual desired future state underneath? Try writing it here.'}]
+  },
+  objective:{
+    always:[{lbl:'your objective statement',q:'Write your objective as a specific, time-bound outcome. Format: [what changes] by [when].'},{lbl:'how it connects to the goal',q:'In one sentence: why does achieving this objective matter to the larger goal?'}],
+    warn:[{lbl:'what to tighten',q:'Note which aspects still need sharper definition — altitude, timeframe, or outcome framing.'}],
+    bad:[{lbl:'the outcome you\'re actually driving',q:'Strip out the activities. What single outcome would make all the work worthwhile? That\'s the objective.'}]
+  },
+  keyresult:{
+    always:[{lbl:'your key result(s)',q:'Write each Key Result with a baseline and target. Format: [metric] from [X] to [Y] by [date].'},{lbl:'why this metric proves the objective',q:'If this number moves, why does that mean the objective was genuinely achieved?'}],
+    warn:[{lbl:'what\'s still unresolved',q:'Note gaps — missing baseline, proxy risk, sandbagging concern — and what it would take to resolve them.'}],
+    bad:[{lbl:'a closer metric to consider',q:'The current metric may be gameable or output-focused. What would be harder to hit without the underlying outcome actually improving?'}]
+  },
+  deliverable:{
+    always:[{lbl:'full deliverable list',q:'List every artifact this work must produce. For each: name it, describe it in one sentence, note who receives it.'},{lbl:'acceptance criteria',q:'For each deliverable, what does "accepted" mean? Who approves, and what do they need to see?'}],
+    warn:[{lbl:'what needs formalizing',q:'Note which deliverables are still informal — and what step it would take to get them in writing.'}],
+    bad:[{lbl:'deliverables you haven\'t named yet',q:'Start listing them here, even roughly. What would someone be holding in their hands when this work is done?'}]
+  },
+  kpi:{
+    always:[{lbl:'your KPI list',q:'List each KPI. For each: the metric, who owns it, how often it\'s reviewed, what threshold triggers action.'},{lbl:'what you\'d cut',q:'Which KPIs would you remove if you had to cut to the 5 most decision-driving ones?'}],
+    warn:[{lbl:'response chain gaps',q:'Note which KPIs still need a clearer owner or response protocol — and what it would take to define them.'}],
+    bad:[{lbl:'KPIs that should be Key Results',q:'List metrics tied to this initiative\'s finish line. Those belong in the KR section, not here.'}]
+  },
+  milestone:{
+    always:[{lbl:'your milestone list',q:'List each milestone as an event. Format: [what happens] — [date] — [owner].'},{lbl:'your earliest checkpoint',q:'What\'s the first milestone that would reveal a problem early enough to fix it? Is it real and well-defined?'}],
+    warn:[{lbl:'milestones to add',q:'Identify gaps in your timeline — especially in the first third. What events would give early warning if something is off?'}],
+    bad:[{lbl:'converting to event-based milestones',q:'Take progress-based milestones and rewrite as named events. e.g. "80% complete" → "Customer review complete."'}]
+  }
+};
+
+// ── STATE ──
+const state={};
+SECS.forEach(s=>{ state[s]={answers:{},score:null}; });
+
+// ── BUILD SECTIONS ──
+function buildSections(){
+  const wrap=document.getElementById('sections-wrap');
+  wrap.innerHTML='';
+  SECS.forEach((id,i)=>{
+    const m=META[id];
+    const qs=QS[id];
+    const badgeCls=m.badge==='green'?'badge-green':'badge-blue';
+
+    let qHtml='';
+    qs.forEach((q,qi)=>{
+      let optsHtml=q.opts.map(o=>`<div class="mc-opt" onclick="selectOpt(this,'${id}',${qi},'${o.v}')"><div class="mc-radio"></div>${o.l}</div>`).join('');
+      qHtml+=`
+      <div class="q-block" id="qb-${id}-${qi}">
+        <div class="q-num">0${qi+1} / 0${qs.length}</div>
+        <div class="q-text">${q.t}</div>
+        <div class="mc-opts">${optsHtml}</div>
+        <div class="q-fb fb-good" id="qf-${id}-${qi}-good">${q.fb.good}</div>
+        <div class="q-fb fb-warn" id="qf-${id}-${qi}-warn">${q.fb.warn}</div>
+        <div class="q-fb fb-bad"  id="qf-${id}-${qi}-bad">${q.fb.bad}</div>
+      </div>`;
+    });
+
+    const html=`
+    <div class="section s-locked" id="sec-${id}">
+      <div class="sec-toggle" onclick="toggleSection('${id}')">
+        <div class="sec-dot"></div>
+        <div class="sec-toggle-text">
+          <div class="sec-badge-wrap">
+            <span class="sec-badge ${badgeCls}">${m.name}</span>
+          </div>
+          <div class="sec-name">${m.name} — ${m.q.replace('—','')}</div>
+          <div class="sec-def">${m.def.substring(0,90)}…</div>
+        </div>
+        <div class="sec-right">
+          <div class="sec-status-badge ssb-locked" id="ssb-${id}">Not started</div>
+          <div class="sec-caret">▼</div>
+        </div>
+      </div>
+      <div class="sec-body">
+        <div class="def-block ${m.badge==='green'?'green':''}">${m.def}</div>
+        <div class="q-section-head">Diagnostic questions</div>
+        ${qHtml}
+        <div class="readiness rd-pending" id="rd-${id}">
+          <div class="rd-bar" onclick="toggleRd('${id}')">
+            <div class="rd-icon" id="rdi-${id}">◎</div>
+            <div class="rd-text">
+              <div class="rd-title" id="rdt-${id}">Answer all questions to see your readiness check</div>
+              <div class="rd-sub" id="rds-${id}">0 of ${qs.length} answered</div>
+            </div>
+            <div class="rd-chev">▼</div>
+          </div>
+          <div class="rd-detail"><div class="rd-items" id="rdi-items-${id}"></div></div>
+        </div>
+        <div class="notes-locked" id="nl-${id}">Complete the diagnostic above to unlock your guided notes.</div>
+        <div class="notes-section" id="ns-wrap-${id}">
+          <div class="notes-head">Your notes</div>
+          <div id="np-${id}"></div>
+        </div>
+      </div>
+    </div>
+    ${i<SECS.length-1?'<div class="sec-divider"></div>':''}`;
+    wrap.insertAdjacentHTML('beforeend',html);
+  });
+}
+
+// ── TOGGLE SECTION ──
+function toggleSection(id){
+  const sec=document.getElementById('sec-'+id);
+  const wasOpen=sec.classList.contains('open');
+  // close all
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('open'));
+  if(!wasOpen){ sec.classList.add('open'); setActiveNav(id); }
+}
+
+// ── MC SELECTION ──
+function selectOpt(el,id,qi,v){
+  const block=document.getElementById('qb-'+id+'-'+qi);
+  block.querySelectorAll('.mc-opt').forEach(o=>o.classList.remove('sel-good','sel-warn','sel-bad'));
+  el.classList.add('sel-'+v);
+  block.querySelectorAll('.q-fb').forEach(f=>f.classList.remove('show'));
+  const fb=document.getElementById('qf-'+id+'-'+qi+'-'+v);
+  if(fb) fb.classList.add('show');
+  block.classList.add('answered');
+  state[id].answers[qi]=v;
+  evaluateSec(id);
+}
+
+// ── EVALUATE ──
+function evaluateSec(id){
+  const ans=state[id].answers;
+  const total=META[id].qs;
+  const answered=Object.keys(ans).length;
+  document.getElementById('rds-'+id).textContent=answered+' of '+total+' answered';
+  document.getElementById('ns-'+id).textContent=answered+'/'+total+' answered';
+  if(answered<total){
+    setSecStatus(id,'active');
+    updateOverall();
+    return;
+  }
+  const bads=Object.values(ans).filter(a=>a==='bad').length;
+  const warns=Object.values(ans).filter(a=>a==='warn').length;
+  let score,rdCls,icon,title,navSub,secSt,ssbCls;
+  if(bads===0&&warns<=1){
+    score='pass';rdCls='rd-pass';icon='✓';title='Ready — this section is well defined.';navSub='ready';secSt='s-done';ssbCls='ssb-done';
+  } else if(bads===0){
+    score='warn';rdCls='rd-warn';icon='◐';title='Nearly ready — a few things to tighten.';navSub='needs work';secSt='s-warn';ssbCls='ssb-warn';
+  } else if(bads<=1){
+    score='warn';rdCls='rd-warn';icon='◐';title='Needs attention — one area to resolve before moving forward.';navSub='needs work';secSt='s-warn';ssbCls='ssb-warn';
+  } else {
+    score='fail';rdCls='rd-fail';icon='✗';title='Not ready — foundational gaps need addressing.';navSub='gaps found';secSt='s-fail';ssbCls='ssb-fail';
+  }
+  state[id].score=score;
+  const rd=document.getElementById('rd-'+id);
+  rd.className='readiness '+rdCls+' open';
+  document.getElementById('rdi-'+id).textContent=icon;
+  document.getElementById('rdt-'+id).textContent=title;
+  const labels=Q_LABELS[id];
+  let itemsHtml='';
+  Object.keys(ans).sort().forEach(i=>{
+    const q=ans[i];
+    const dot=q==='good'?'rd-dot-g':q==='warn'?'rd-dot-w':'rd-dot-r';
+    const msg=q==='good'?'Looks good':q==='warn'?'Worth refining':'Needs work';
+    itemsHtml+=`<div class="rd-item"><div class="rd-dot ${dot}"></div><div class="rd-item-text"><strong>${labels[i]||'Q'+(parseInt(i)+1)}:</strong> ${msg}</div></div>`;
+  });
+  document.getElementById('rdi-items-'+id).innerHTML=itemsHtml;
+  setSecStatus(id,secSt);
+  document.getElementById('ssb-'+id).className='sec-status-badge '+ssbCls;
+  document.getElementById('ssb-'+id).textContent=score==='pass'?'Ready':score==='warn'?'Needs work':'Gaps found';
+  const niEl=document.getElementById('ni-'+id);
+  niEl.className='nav-item st-'+(score==='pass'?'done':score==='warn'?'warn':'fail');
+  if(id==='deliverable') niEl.classList.add('deliverable');
+  document.getElementById('ns-'+id).textContent=navSub;
+  unlockNotes(id,ans);
+  updateOverall();
+}
+
+function setSecStatus(id,cls){
+  const sec=document.getElementById('sec-'+id);
+  sec.className='section '+cls+(sec.classList.contains('open')?' open':'');
+}
+
+function unlockNotes(id,ans){
+  document.getElementById('nl-'+id).style.display='none';
+  const ns=document.getElementById('ns-wrap-'+id);
+  ns.classList.add('visible');
+  const np=document.getElementById('np-'+id);
+  if(np.innerHTML) return;
+  const hasBad=Object.values(ans).some(a=>a==='bad');
+  const hasWarn=Object.values(ans).some(a=>a==='warn');
+  const prompts=NOTE_PROMPTS[id];
+  let toShow=[...prompts.always];
+  if(hasWarn&&prompts.warn) toShow=toShow.concat(prompts.warn);
+  if(hasBad&&prompts.bad) toShow=toShow.concat(prompts.bad);
+  let html='';
+  toShow.forEach((p,i)=>{
+    const saved=sessionStorage.getItem('note-'+id+'-'+i)||'';
+    html+=`<div class="note-prompt"><div class="note-prompt-lbl">${p.lbl}</div><div class="note-prompt-q">${p.q}</div><textarea class="note-input" placeholder="Your notes here..." oninput="saveNote('${id}',${i},this.value)">${saved}</textarea></div>`;
+  });
+  np.innerHTML=html;
+}
+
+function saveNote(id,i,v){sessionStorage.setItem('note-'+id+'-'+i,v);}
+
+function toggleRd(id){document.getElementById('rd-'+id).classList.toggle('open');}
+
+// ── NAV ──
+function setActiveNav(id){
+  document.querySelectorAll('.nav-item').forEach(n=>{
+    n.classList.remove('active');
+  });
+  const ni=document.getElementById('ni-'+id);
+  if(ni) ni.classList.add('active');
+}
+
+function jumpTo(id){
+  const sec=document.getElementById('sec-'+id);
+  if(!sec) return;
+  // open it
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('open'));
+  sec.classList.add('open');
+  setActiveNav(id);
+  setTimeout(()=>{ sec.scrollIntoView({behavior:'smooth',block:'start'}); },50);
+}
+
+// ── OVERALL SCORE ──
+function updateOverall(){
+  const passed=SECS.filter(s=>state[s].score==='pass').length;
+  document.getElementById('tb-score').textContent=passed+'/6';
+  document.getElementById('sb-count').textContent=passed;
+  const segs=document.querySelectorAll('.sb-ps');
+  segs.forEach((s,i)=>s.classList.toggle('lit',i<passed));
+  drawSidebarLine();
+}
+
+// ── SIDEBAR SVG LINE ──
+function drawSidebarLine(){
+  const nav=document.getElementById('sb-nav');
+  const svg=document.getElementById('sb-svg');
+  const items=nav.querySelectorAll('.nav-item');
+  if(!items.length) return;
+  const navRect=nav.getBoundingClientRect();
+  const pts=[];
+  items.forEach(item=>{
+    const nw=item.querySelector('.nav-node-wrap');
+    const r=nw.getBoundingClientRect();
+    const y=r.top-navRect.top+r.height/2;
+    pts.push(y);
+  });
+  const x=28;
+  const h=navRect.height;
+  svg.setAttribute('width','56');
+  svg.setAttribute('height',h);
+  svg.setAttribute('viewBox',`0 0 56 ${h}`);
+
+  // find how many are done
+  const doneCount=SECS.filter((s,i)=>state[s].score==='pass').length;
+
+  let svgContent='';
+
+  // draw segments between nodes
+  for(let i=0;i<pts.length-1;i++){
+    const y1=pts[i], y2=pts[i+1];
+    const isDone=i<doneCount;
+    if(isDone){
+      const segLen=y2-y1;
+      svgContent+=`
+        <line x1="${x}" y1="${y1}" x2="${x}" y2="${y2}" stroke="#1A4A2A" stroke-width="3"/>
+        <line x1="${x}" y1="${y1}" x2="${x}" y2="${y2}" stroke="#3DDC8C" stroke-width="1.5" stroke-dasharray="6,${segLen}">
+          <animate attributeName="stroke-dashoffset" from="${segLen}" to="0" dur="1.8s" repeatCount="indefinite"/>
+        </line>`;
+    } else {
+      svgContent+=`<line x1="${x}" y1="${y1}" x2="${x}" y2="${y2}" stroke="#0D2030" stroke-width="2" stroke-dasharray="5,5"/>`;
+    }
+  }
+
+  // nodes
+  SECS.forEach((id,i)=>{
+    const y=pts[i];
+    const sc=state[id].score;
+    const isActive=document.getElementById('ni-'+id).classList.contains('active');
+    let fill,stroke,orbitColor,r=6;
+
+    if(sc==='pass'){fill='#3DDC8C';stroke='#3DDC8C';orbitColor='#3DDC8C';}
+    else if(sc==='warn'){fill='#F0B429';stroke='#F0B429';orbitColor='#F0B429';}
+    else if(sc==='fail'){fill='#E05A4A';stroke='#E05A4A';orbitColor='#E05A4A';}
+    else if(isActive){fill='#5BE0C8';stroke='#5BE0C8';orbitColor='#5BE0C8';r=9;}
+    else{fill='#0A1018';stroke='#1A3A4A';orbitColor='#1A4A6A';}
+
+    // core node
+    svgContent+=`<circle cx="${x}" cy="${y}" r="${r}" fill="${fill}" stroke="${stroke}" stroke-width="2"/>`;
+
+    // inner orbit — all nodes get this, speed varies by state
+    const speed1=isActive?'4s':sc==='pass'?'7s':'12s';
+    const op1=isActive?'0.45':sc==='pass'?'0.3':'0.15';
+    const r1=isActive?13:sc==='pass'?11:10;
+    svgContent+=`<circle cx="${x}" cy="${y}" r="${r1}" fill="none" stroke="${orbitColor}" stroke-width="1" opacity="${op1}" stroke-dasharray="3,3"><animateTransform attributeName="transform" type="rotate" from="0 ${x} ${y}" to="360 ${x} ${y}" dur="${speed1}" repeatCount="indefinite"/></circle>`;
+
+    // outer orbit — active and done nodes only
+    if(isActive||sc==='pass'){
+      const speed2=isActive?'8s':'14s';
+      const op2=isActive?'0.2':'0.12';
+      const r2=isActive?18:15;
+      svgContent+=`<circle cx="${x}" cy="${y}" r="${r2}" fill="none" stroke="${orbitColor}" stroke-width="0.5" opacity="${op2}" stroke-dasharray="2,5"><animateTransform attributeName="transform" type="rotate" from="360 ${x} ${y}" to="0 ${x} ${y}" dur="${speed2}" repeatCount="indefinite"/></circle>`;
+    }
+  });
+
+  svg.innerHTML=svgContent;
+}
+
+// ── SCROLL SPY ──
+const mainEl=document.getElementById('main');
+mainEl.addEventListener('scroll',()=>{
+  let cur=SECS[0];
+  SECS.forEach(id=>{
+    const el=document.getElementById('sec-'+id);
+    if(!el) return;
+    if(el.getBoundingClientRect().top-mainEl.getBoundingClientRect().top<140) cur=id;
+  });
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  const ni=document.getElementById('ni-'+cur);
+  if(ni){ni.classList.add('active');drawSidebarLine();}
+});
+
+// ── CLEAR ──
+function confirmClear(){
+  if(!confirm('Clear all answers and notes? This cannot be undone.')) return;
+  sessionStorage.clear();
+  location.reload();
+}
+
+// ── INIT ──
+buildSections();
+// open first section by default
+document.getElementById('sec-goal').classList.add('open');
+setActiveNav('goal');
+drawSidebarLine();
+</script>
+</body>
+</html>
