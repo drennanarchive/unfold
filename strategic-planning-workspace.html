@@ -166,8 +166,9 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
 .section.s-done .sec-caret{color:#1A5A2A;}
 
 /* body */
-.sec-body{max-height:0;overflow:hidden;background:var(--bg);padding:0 1.4rem;transition:max-height 0.38s cubic-bezier(0.4,0,0.2,1), padding 0.25s ease;}
-.section.open .sec-body{max-height:4000px;padding:1.5rem 1.4rem 1.75rem;}
+.sec-body{display:none;background:var(--bg);padding:1.5rem 1.4rem 1.75rem;}
+.section.open .sec-body{display:block;animation:secOpen 0.28s ease;}
+@keyframes secOpen{from{opacity:0;transform:translateY(-6px);}to{opacity:1;transform:translateY(0);}}
 
 /* def block */
 .def-block{background:var(--panel);border:1px solid var(--border);border-left:3px solid var(--teal);border-radius:0 5px 5px 0;padding:1rem 1.2rem;font-size:0.92rem;line-height:1.7;color:var(--text2);margin-bottom:1.4rem;}
