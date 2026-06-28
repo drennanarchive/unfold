@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Strategic Alignment Console</title>
+<style>
+:root{
+  --bg:#050812;
+  --bg2:#07111f;
+  --panel:#0a1424;
+  --panel2:#0e1b2e;
+  --panel3:#111f34;
+  --line:#17304b;
+  --line2:#23506f;
+  --text:#d8e7f5;
+  --muted:#7e98b2;
+  --dim:#456078;
+  --cyan:#72f7dc;
+  --blue:#80b8ff;
+  --violet:#b69cff;
+  --gold:#f4c95d;
+  --green:#4ee39b;
+  --red:#ff7474;
+  --shadow:0 28px 80px rgba(0,0,0,.42);
+  --mono:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono",monospace;
+  --sans:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  margin:0;background:var(--bg);color:var(--text);font-family:var(--sans);line-height:1.45;
+  background:
+    radial-gradient(circle at 14% -5%,rgba(114,247,220,.18),transparent 28rem),
+    radial-gradient(circle at 82% 4%,rgba(128,184,255,.18),transparent 30rem),
+    radial-gradient(circle at 50% 105%,rgba(182,156,255,.12),transparent 35rem),
+    linear-gradient(180deg,#040711,#08111e 48%,#050812);
+  min-height:100vh;overflow-x:hidden;
+}
+body:before{
+  content:"";position:fixed;inset:0;pointer-events:none;opacity:.55;
+  background-image:linear-gradient(rgba(114,247,220,.045) 1px,transparent 1px),linear-gradient(90deg,rgba(128,184,255,.04) 1px,transparent 1px);
+  background-size:44px 44px;mask-image:radial-gradient(circle at top,black 0%,transparent 74%);
+}
+body:after{
+  content:"";position:fixed;inset:0;pointer-events:none;opacity:.18;
+  background:linear-gradient(rgba(255,255,255,.035) 50%,rgba(0,0,0,.035) 50%);background-size:100% 4px;
+}
+button,input,textarea{font:inherit}
+button{cursor:pointer}
+.app{position:relative;z-index:1;display:grid;grid-template-columns:320px 1fr;min-height:100vh}
+.sidebar{
+  position:sticky;top:0;height:100vh;background:rgba(5,10,18,.86);border-right:1px solid var(--line);
+  backdrop-filter:blur(12px);padding:18px;display:flex;flex-direction:column;gap:16px;box-shadow:var(--shadow)
+}
+.brand{border:1px solid var(--line);background:linear-gradient(180deg,rgba(14,27,46,.82),rgba(5,10,18,.82));border-radius:22px;padding:18px;overflow:hidden;position:relative}
+.brand:before{content:"";position:absolute;inset:-40px;background:conic-gradient(from 180deg,transparent,rgba(114,247,220,.10),transparent,rgba(128,184,255,.10),transparent);animation:spin 18s linear infinite}
+.brand>*{position:relative}
+.kicker{font-family:var(--mono);font-size:.72rem;letter-spacing:.16em;text-transform:uppercase;color:var(--cyan);display:flex;gap:8px;align-items:center}
+.pulse{width:8px;height:8px;border-radius:50%;background:var(--cyan);box-shadow:0 0 18px rgba(114,247,220,.75);animation:pulse 2s infinite}
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(114,247,220,.45)}70%{box-shadow:0 0 0 12px rgba(114,247,220,0)}100%{box-shadow:0 0 0 0 rgba(114,247,220,0)}}
+@keyframes spin{to{transform:rotate(360deg)}}
+.brand h1{font-size:1.38rem;letter-spacing:-.04em;line-height:1.08;margin:12px 0 8px}
+.brand p{color:var(--muted);font-size:.86rem;margin:0}
+.integrity{border:1px solid var(--line);background:rgba(10,20,36,.78);border-radius:22px;padding:16px}
+.integrity-head{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin-bottom:14px}
+.integrity-title{font-family:var(--mono);font-size:.72rem;letter-spacing:.13em;text-transform:uppercase;color:var(--muted)}
+.integrity-score{font-family:var(--mono);font-size:1.8rem;color:var(--cyan);letter-spacing:-.06em;text-shadow:0 0 20px rgba(114,247,220,.22)}
+.meter{height:10px;border-radius:999px;background:rgba(128,184,255,.10);border:1px solid rgba(128,184,255,.16);overflow:hidden;margin-bottom:12px}
+.meter span{display:block;height:100%;width:0%;background:linear-gradient(90deg,var(--blue),var(--cyan),var(--green));box-shadow:0 0 18px rgba(114,247,220,.34);transition:width .25s}
+.dimrow{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center;margin:8px 0}
+.dimrow label{font-family:var(--mono);font-size:.7rem;color:var(--muted);letter-spacing:.06em;text-transform:uppercase}
+.dimrow strong{font-family:var(--mono);font-size:.76rem;color:var(--text);font-weight:500}
+.mini-meter{grid-column:1/-1;height:4px;background:rgba(128,184,255,.10);border-radius:999px;overflow:hidden}
+.mini-meter span{display:block;height:100%;width:0%;background:var(--cyan);transition:width .25s}
+.nav{border:1px solid var(--line);background:rgba(10,20,36,.6);border-radius:22px;padding:10px;display:grid;gap:8px}
+.nav button{border:1px solid transparent;background:transparent;color:var(--muted);border-radius:15px;padding:11px;display:grid;grid-template-columns:auto 1fr auto;gap:10px;text-align:left;align-items:center}
+.nav button:hover,.nav button.active{background:rgba(114,247,220,.07);border-color:rgba(114,247,220,.25);color:var(--text)}
+.nav-dot{width:11px;height:11px;border-radius:50%;background:rgba(128,184,255,.18);border:1px solid var(--line2)}
+.nav button.ready .nav-dot{background:var(--green);border-color:var(--green);box-shadow:0 0 12px rgba(78,227,155,.44)}
+.nav button.warn .nav-dot{background:var(--gold);border-color:var(--gold)}
+.nav button.fail .nav-dot{background:var(--red);border-color:var(--red)}
+.nav-title{font-weight:750}
+.nav-sub{font-family:var(--mono);font-size:.68rem;color:var(--dim);text-transform:uppercase}
+.side-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:auto}
+.btn{border-radius:14px;padding:11px 12px;font-weight:850;border:1px solid var(--line);background:rgba(128,184,255,.08);color:var(--text)}
+.btn.primary{border-color:rgba(114,247,220,.34);background:linear-gradient(135deg,rgba(114,247,220,.18),rgba(128,184,255,.12))}
+.btn:hover{filter:brightness(1.14)}
+.main{min-width:0;padding:26px 26px 70px}
+.hero{display:grid;grid-template-columns:minmax(0,1fr) 460px;gap:24px;align-items:stretch;margin-bottom:22px}
+.hero-card,.radar-card,.panel{border:1px solid var(--line);background:rgba(10,20,36,.72);border-radius:28px;box-shadow:var(--shadow);backdrop-filter:blur(10px)}
+.hero-card{padding:26px}
+.hero-card h2{font-size:clamp(2rem,4.5vw,4.7rem);line-height:.95;letter-spacing:-.075em;margin:0 0 18px}
+.hero-card p{color:var(--muted);font-size:1.04rem;max-width:830px;margin:0 0 18px}
+.mode-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:20px}
+.mode{border:1px solid var(--line);background:rgba(5,10,18,.46);border-radius:18px;padding:14px;cursor:pointer}
+.mode.active{border-color:rgba(114,247,220,.45);background:rgba(114,247,220,.08)}
+.mode h3{margin:0 0 6px;font-size:.92rem;color:var(--text)}
+.mode p{font-size:.78rem;margin:0;color:var(--muted)}
+.radar-card{position:relative;min-height:440px;overflow:hidden;padding:18px}
+.radar-card:before{content:"";position:absolute;inset:-70px;background:conic-gradient(from 0deg,transparent,rgba(114,247,220,.08),transparent,rgba(182,156,255,.08),transparent);animation:spin 22s linear infinite}
+.radar-inner{position:relative;z-index:1;height:100%;min-height:404px;border:1px solid rgba(114,247,220,.16);border-radius:24px;background:rgba(3,8,16,.62);overflow:hidden}
+.radar-grid{position:absolute;inset:0;background-image:linear-gradient(rgba(114,247,220,.045) 1px,transparent 1px),linear-gradient(90deg,rgba(128,184,255,.04) 1px,transparent 1px);background-size:26px 26px;mask-image:radial-gradient(circle at center,black,transparent 82%)}
+.rings{position:absolute;left:50%;top:49%;width:320px;height:320px;transform:translate(-50%,-50%);border-radius:50%;border:1px solid rgba(114,247,220,.22);background:
+ radial-gradient(circle,transparent 0 20%,rgba(114,247,220,.06) 21% 21.6%,transparent 22% 43%,rgba(128,184,255,.06) 44% 44.7%,transparent 45% 68%,rgba(182,156,255,.055) 69% 69.5%,transparent 70%),
+ linear-gradient(90deg,transparent 49.7%,rgba(114,247,220,.16) 50%,transparent 50.3%),
+ linear-gradient(0deg,transparent 49.7%,rgba(114,247,220,.16) 50%,transparent 50.3%)}
+.rings:after{content:"";position:absolute;left:50%;top:50%;width:160px;height:160px;transform-origin:0 0;background:linear-gradient(40deg,rgba(114,247,220,.28),transparent 62%);border-radius:0 0 160px 0;animation:sweep 5s linear infinite}
+@keyframes sweep{to{transform:rotate(360deg)}}
+.link{position:absolute;height:2px;background:linear-gradient(90deg,transparent,rgba(114,247,220,.32),transparent);transform-origin:left center;opacity:.4}
+.link.strong{background:linear-gradient(90deg,transparent,var(--green),transparent);opacity:.9;box-shadow:0 0 12px rgba(78,227,155,.4)}
+.core{position:absolute;left:50%;top:49%;transform:translate(-50%,-50%);width:74px;height:74px;border-radius:50%;display:grid;place-items:center;background:rgba(114,247,220,.10);border:1px solid rgba(114,247,220,.46);color:var(--cyan);font-family:var(--mono);font-weight:900;box-shadow:0 0 36px rgba(114,247,220,.18)}
+.node{position:absolute;width:88px;min-height:68px;border-radius:22px;border:1px solid rgba(128,184,255,.28);background:rgba(14,27,46,.92);display:grid;place-items:center;text-align:center;padding:10px;color:var(--text);transition:.2s;z-index:3}
+.node:hover,.node.active{transform:scale(1.06);border-color:rgba(114,247,220,.6);box-shadow:0 0 28px rgba(114,247,220,.2)}
+.node.ready{border-color:rgba(78,227,155,.68);background:rgba(78,227,155,.11)}
+.node.warn{border-color:rgba(244,201,93,.68);background:rgba(244,201,93,.10)}
+.node.fail{border-color:rgba(255,116,116,.68);background:rgba(255,116,116,.10)}
+.node b{font-family:var(--mono);font-size:.82rem;color:var(--cyan)}
+.node span{font-size:.68rem;color:var(--muted);margin-top:4px}
+.n-goal{left:50%;top:28px;transform:translateX(-50%)}
+.n-objective{left:50%;top:126px;transform:translateX(-50%)}
+.n-keyresult{right:35px;top:242px}
+.n-milestone{left:35px;top:242px}
+.n-kpi{left:50%;bottom:22px;transform:translateX(-50%)}
+.node.n-goal:hover,.node.n-goal.active,.node.n-objective:hover,.node.n-objective.active,.node.n-kpi:hover,.node.n-kpi.active{transform:translateX(-50%) scale(1.06)}
+.readout{position:absolute;left:14px;right:14px;bottom:14px;border-top:1px solid rgba(114,247,220,.16);padding-top:10px;font-family:var(--mono);font-size:.72rem;color:var(--muted);display:flex;justify-content:space-between;gap:12px}
+.workspace{display:grid;grid-template-columns:1fr 390px;gap:18px;align-items:start}
+.panel{padding:20px}
+.panel h2{margin:0 0 10px;font-size:1.6rem;letter-spacing:-.04em}
+.panel p{color:var(--muted);margin:0 0 12px}
+.section-card{border:1px solid var(--line);background:rgba(5,10,18,.45);border-radius:22px;padding:18px;display:none}
+.section-card.active{display:block;animation:fade .22s ease}
+@keyframes fade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
+.badge{display:inline-flex;border:1px solid rgba(114,247,220,.26);background:rgba(114,247,220,.07);color:var(--cyan);border-radius:999px;padding:6px 10px;font-family:var(--mono);font-size:.7rem;letter-spacing:.08em;text-transform:uppercase;margin-bottom:12px}
+.learn{border-left:3px solid var(--cyan);background:rgba(114,247,220,.055);padding:14px;border-radius:0 16px 16px 0;margin:14px 0;color:var(--muted)}
+.learn strong{color:var(--text)}
+.formula{font-family:var(--mono);font-size:.82rem;color:var(--cyan);border:1px solid rgba(114,247,220,.18);background:rgba(114,247,220,.055);border-radius:14px;padding:11px;margin:12px 0}
+.question{border:1px solid var(--line);background:rgba(14,27,46,.64);border-radius:18px;padding:14px;margin:12px 0}
+.question h4{margin:0 0 10px;font-size:.95rem;color:var(--text)}
+.choices{display:grid;gap:8px}
+.choice{border:1px solid var(--line);background:rgba(5,10,18,.42);border-radius:14px;padding:10px 12px;color:var(--muted);text-align:left}
+.choice:hover{border-color:var(--line2);color:var(--text)}
+.choice.selected.good{border-color:var(--green);color:#c9ffe6;background:rgba(78,227,155,.09)}
+.choice.selected.warn{border-color:var(--gold);color:#ffe8a8;background:rgba(244,201,93,.09)}
+.choice.selected.bad{border-color:var(--red);color:#ffc7c7;background:rgba(255,116,116,.09)}
+.feedback{display:none;margin-top:10px;padding:10px;border-radius:12px;font-size:.88rem;border-left:3px solid}
+.feedback.show{display:block}
+.feedback.good{background:rgba(78,227,155,.08);border-color:var(--green);color:#aef5d3}
+.feedback.warn{background:rgba(244,201,93,.08);border-color:var(--gold);color:#ffe2a0}
+.feedback.bad{background:rgba(255,116,116,.08);border-color:var(--red);color:#ffc4c4}
+.coach{border:1px solid rgba(182,156,255,.24);background:rgba(182,156,255,.07);border-radius:18px;padding:14px;margin:14px 0;display:none}
+.coach.show{display:block}
+.coach h4{margin:0 0 8px;color:#d8ccff}
+.coach p{font-size:.9rem;margin:0;color:var(--muted)}
+textarea{width:100%;min-height:98px;resize:vertical;border:1px solid rgba(128,184,255,.22);background:rgba(3,8,16,.66);border-radius:16px;padding:12px;color:var(--text);outline:none}
+textarea:focus{border-color:rgba(114,247,220,.55);box-shadow:0 0 0 4px rgba(114,247,220,.08)}
+.scratch-title{font-family:var(--mono);font-size:.72rem;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;margin:16px 0 8px}
+.crosscheck{border:1px solid rgba(244,201,93,.22);background:rgba(244,201,93,.055);border-radius:20px;padding:16px;margin-bottom:14px}
+.crosscheck h3{margin:0 0 8px;font-size:1rem;color:var(--gold)}
+.crosscheck p{font-size:.88rem;margin:0 0 10px}
+.crosscheck .choices{grid-template-columns:repeat(3,1fr)}
+.export{display:none}
+.export.active{display:block}
+pre{white-space:pre-wrap;word-break:break-word;background:rgba(3,8,16,.7);border:1px solid var(--line);border-radius:18px;padding:16px;color:#dcecff;font-family:var(--mono);font-size:.82rem;min-height:200px}
+.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%) translateY(30px);opacity:0;transition:.2s;z-index:10;background:#030816;border:1px solid rgba(114,247,220,.36);color:var(--cyan);border-radius:999px;padding:12px 16px;font-family:var(--mono);box-shadow:var(--shadow)}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.mobilebar{display:none;position:sticky;top:0;z-index:20;background:rgba(5,10,18,.92);backdrop-filter:blur(12px);border-bottom:1px solid var(--line);padding:10px}
+@media(max-width:1100px){
+  .app{grid-template-columns:1fr}.sidebar{display:none}.mobilebar{display:flex;justify-content:space-between;align-items:center}
+  .main{padding:16px}.hero{grid-template-columns:1fr}.workspace{grid-template-columns:1fr}.radar-card{min-height:380px}.radar-inner{min-height:344px}
+}
+@media(max-width:560px){
+  .mode-grid{grid-template-columns:1fr}.crosscheck .choices{grid-template-columns:1fr}
+  .radar-card{display:none}.hero-card h2{font-size:2.4rem}.main{padding:12px}.panel{padding:14px}
+}
+@media print{
+  body{background:white;color:black}body:before,body:after,.sidebar,.mobilebar,.radar-card,.hero-card,.btn,.choices,.toast{display:none!important}
+  .app,.main,.workspace{display:block;padding:0}.panel,.section-card,.crosscheck{box-shadow:none;border:1px solid #ccc;background:white;color:black}
+  .section-card{display:block!important;page-break-inside:avoid}.panel p,.learn,.question,.muted{color:#333}pre,textarea{background:white;color:black;border:1px solid #ccc}
+}
+</style>
+</head>
+<body>
+<div class="mobilebar">
+  <strong>Strategic Alignment Console</strong>
+  <button class="btn primary" onclick="showExport()">Export</button>
+</div>
+<div class="app">
+  <aside class="sidebar">
+    <section class="brand">
+      <div class="kicker"><span class="pulse"></span> StratAlign//Console</div>
+      <h1>Strategic Alignment Console</h1>
+      <p>Teach the concepts, assess readiness, capture notes, and test whether the planning chain holds together.</p>
+    </section>
+    <section class="integrity">
+      <div class="integrity-head"><div class="integrity-title">Planning integrity</div><div class="integrity-score" id="overallScore">0</div></div>
+      <div class="meter"><span id="overallMeter"></span></div>
+      <div id="dimensionRows"></div>
+    </section>
+    <nav class="nav" id="nav"></nav>
+    <div class="side-actions">
+      <button class="btn" onclick="resetAll()">Reset</button>
+      <button class="btn primary" onclick="showExport()">Export</button>
+    </div>
+  </aside>
+
+  <main class="main">
+    <section class="hero">
+      <div class="hero-card">
+        <div class="kicker"><span class="pulse"></span> Mission planning readiness</div>
+        <h2>Calibrate the planning architecture.</h2>
+        <p>This is not a full strategy builder. It is a readiness console: learn each planning layer, diagnose conceptual maturity, capture rough notes, and run relationship checks before turning the idea into a real plan.</p>
+        <div class="mode-grid">
+          <div class="mode active" onclick="setMode('learn',this)"><h3>Learn</h3><p>Understand the five planning concepts.</p></div>
+          <div class="mode" onclick="setMode('assess',this)"><h3>Assess</h3><p>Check whether an existing idea is ready.</p></div>
+          <div class="mode" onclick="setMode('plan',this)"><h3>Prepare</h3><p>Capture inputs for later strategy work.</p></div>
+        </div>
+      </div>
+
+      <div class="radar-card">
+        <div class="radar-inner">
+          <div class="radar-grid"></div>
+          <div class="rings"></div>
+          <div id="links"></div>
+          <div class="core">ALIGN</div>
+          <button class="node n-goal" id="node-goal" onclick="openSection('goal')"><b>GOAL</b><span>destination</span></button>
+          <button class="node n-objective" id="node-objective" onclick="openSection('objective')"><b>OBJECTIVE</b><span>outcome</span></button>
+          <button class="node n-keyresult" id="node-keyresult" onclick="openSection('keyresult')"><b>KR</b><span>proof</span></button>
+          <button class="node n-milestone" id="node-milestone" onclick="openSection('milestone')"><b>MILESTONE</b><span>marker</span></button>
+          <button class="node n-kpi" id="node-kpi" onclick="openSection('kpi')"><b>KPI</b><span>health</span></button>
+          <div class="readout"><span id="focusReadout">FOCUS: GOAL</span><span id="statusReadout">STATUS: CALIBRATING</span></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="workspace">
+      <div class="panel">
+        <h2 id="panelTitle">Goal</h2>
+        <p id="panelIntro">Select a planning node to learn, diagnose, and capture notes.</p>
+        <div id="sections"></div>
+      </div>
+      <aside class="panel">
+        <h2>Relationship checks</h2>
+        <p>These checks test whether the pieces connect. A plan can have good parts and still fail structurally.</p>
+        <div id="crosschecks"></div>
+      </aside>
+    </section>
+
+    <section class="panel export" id="exportPanel">
+      <h2>Readiness export</h2>
+      <p>Copy this into notes, Confluence, a repo README, or planning handoff.</p>
+      <pre id="exportText">Generate an export to see the readiness summary.</pre>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:12px">
+        <button class="btn primary" onclick="copyExport()">Copy</button>
+        <button class="btn" onclick="window.print()">Print / Save PDF</button>
+      </div>
+    </section>
+  </main>
+</div>
+<div class="toast" id="toast">COPIED</div>
+
+<script>
+const DATA={
+ goal:{
+  title:"Goal",tag:"Destination",definition:"A goal is the desired future state or strategic outcome. It explains the direction of travel without becoming the work plan.",
+  formula:"Goal = desired future state + strategic reason",
+  learn:["Broad enough to matter, clear enough to guide choices.","Answers why the organization is moving in this direction.","Not a task, deliverable, meeting, or activity list."],
+  note:"Rough notes: desired future state, why it matters, what failure would look like, who needs to align.",
+  questions:[
+   ["Can the team describe the desired future state in plain language?",["Yes — success and failure are recognizable.","Partially — direction is clear but success is fuzzy.","No — it is mostly a mission/value statement."],["good","warn","bad"]],
+   ["Can the team explain why this matters strategically?",["Yes — the strategic reason is clear.","Partially — the reason exists but needs sharper framing.","No — it sounds important but not strategically anchored."],["good","warn","bad"]],
+   ["Is it free from task-list language?",["Yes — it describes a destination.","Partially — it mixes destination and activity.","No — it mostly describes work to do."],["good","warn","bad"]]
+  ],
+  feedback:{
+   good:["Strong. The goal is behaving like a destination rather than a task.","Good signal. This can guide prioritization."],
+   warn:["Tighten the altitude: clarify the future state and remove activity language.","Ask what would be visibly different if this succeeded."],
+   bad:["This layer is not ready. Find the future state underneath the mission statement or activity list.","Do not build objectives until the destination is clearer."]
+  }
+ },
+ objective:{
+  title:"Objective",tag:"Next outcome",definition:"An objective is a specific outcome that advances the goal. It is not merely a sub-goal, and it is not a task.",
+  formula:"Objective = specific outcome that advances the goal",
+  learn:["Specific enough to create focus.","Outcome-oriented: what changes, not what people do.","Scoped enough to know what is in and out."],
+  note:"Rough notes: likely outcome, boundary, timeframe, what not achieving it would look like.",
+  questions:[
+   ["Can the team name the specific outcome this effort should produce?",["Yes — the outcome is clear.","Partially — there is a theme but not a clean outcome.","No — it is mostly activity or intent."],["good","warn","bad"]],
+   ["Can the team describe what not achieving this would look like?",["Yes — failure is recognizable.","Partially — failure is somewhat describable.","No — almost anything could count."],["good","warn","bad"]],
+   ["Is it clearly different from a task, activity, or deliverable?",["Yes — it describes changed state.","Partially — it still includes some how-language.","No — it is basically work to perform."],["good","warn","bad"]]
+  ],
+  feedback:{
+   good:["Strong. The objective has the right altitude and can drive planning.","This is likely ready for measurement design."],
+   warn:["Refine the outcome and boundary. Remove how-language where possible.","Try the pattern: change X for Y by Z."],
+   bad:["This layer is not ready. Pull the camera back from tasks to the outcome they are meant to cause.","A task cannot carry the strategy by itself."]
+  }
+ },
+ keyresult:{
+  title:"Key Result",tag:"Proof of change",definition:"A Key Result is a measurable outcome proving the objective was met. It measures change, not effort, and can be scored on a spectrum.",
+  formula:"Key Result = baseline → target + time box",
+  learn:["Measures outcome change, not activity completed.","Needs baseline, target, and scoring period.","A hard 70% can be better than an easy 100%."],
+  note:"Rough notes: possible metrics, baseline availability, target options, data source, risk of gaming.",
+  questions:[
+   ["Can the team identify a measurable change, not just an activity?",["Yes — outcome change is measurable.","Partially — there is a proxy but it may be weak.","No — we are measuring work completed."],["good","warn","bad"]],
+   ["Does the team know or know how to find the baseline?",["Yes — baseline is known or accessible.","Partially — source is likely but not confirmed.","No — baseline is unknown."],["good","warn","bad"]],
+   ["Would the target demonstrate meaningful progress rather than easy completion?",["Yes — it is ambitious and meaningful.","Partially — it may be too safe.","No — it is easy or already assured."],["good","warn","bad"]]
+  ],
+  feedback:{
+   good:["Strong. The KR is behaving like proof of change.","This can support honest scoring rather than status theater."],
+   warn:["Refine baseline, target, or metric integrity before relying on this KR.","Name where the metric could be gamed."],
+   bad:["This layer is not ready. Outputs and activities are not Key Results.","Find what would change because the work succeeded."]
+  }
+ },
+ milestone:{
+  title:"Milestone",tag:"Progress marker",definition:"A milestone is a binary event marking progress. It happened or it did not. It supports schedule awareness but does not prove success by itself.",
+  formula:"Milestone = binary event + date / sequence",
+  learn:["Observable event, not a percentage.","Useful for schedule integrity and early warning.","Separate from quality or outcome proof."],
+  note:"Rough notes: likely checkpoints, dates/sequences, owners, approvals, early-warning points.",
+  questions:[
+   ["Could two people agree whether the milestone happened?",["Yes — it is binary and observable.","Partially — some milestones are fuzzy.","No — it relies on subjective progress."],["good","warn","bad"]],
+   ["Are checkpoints tied to sequence, timing, or dependency?",["Yes — timing/dependency is clear.","Partially — some sequencing is known.","No — checkpoints are just loose ideas."],["good","warn","bad"]],
+   ["Does the team understand milestones are not success metrics?",["Yes — progress marker only.","Partially — this distinction needs reinforcement.","No — milestone completion is being treated as success."],["good","warn","bad"]]
+  ],
+  feedback:{
+   good:["Strong. Milestones are clean progress markers.","This supports schedule visibility without confusing it for success."],
+   warn:["Tighten completion criteria and timing. Convert percentages into events.","Add early warning milestones, not just end-loaded checkpoints."],
+   bad:["This layer is not ready. Milestones need to be observable events.","On schedule and successful are not the same thing."]
+  }
+ },
+ kpi:{
+  title:"KPI",tag:"Health signal",definition:"A KPI monitors ongoing operational health. Key Results measure change; KPIs monitor whether the system stays healthy over time.",
+  formula:"KPI = ongoing health signal + cadence + owner",
+  learn:["Tracked continuously, not only during the initiative.","Signals health, risk, or degradation.","Someone should act when it turns red."],
+  note:"Rough notes: health metrics, owner, cadence, threshold, action/escalation path.",
+  questions:[
+   ["Can the team distinguish the KPI from the Key Result?",["Yes — KR closes, KPI continues.","Partially — overlap exists but intent is understood.","No — the terms are used interchangeably."],["good","warn","bad"]],
+   ["Would this be monitored continuously after the KR period?",["Yes — it is ongoing health monitoring.","Partially — some metrics would continue.","No — it ends with the initiative."],["good","warn","bad"]],
+   ["Can someone act if this turns red?",["Yes — owner and response are clear.","Partially — owner exists but response is fuzzy.","No — it is reported but not acted on."],["good","warn","bad"]]
+  ],
+  feedback:{
+   good:["Strong. KPIs are serving as health signals, not disguised KRs.","This can support operational sustainment."],
+   warn:["Clarify cadence, owner, and what action a bad signal triggers.","Separate initiative metrics from ongoing health metrics."],
+   bad:["This layer is not ready. A KPI that no one acts on is dashboard decoration.","Define the response chain or remove the metric."]
+  }
+ }
+};
+const ORDER=["goal","objective","keyresult","milestone","kpi"];
+const CHECKS=[
+ ["goal","objective","Vertical Alignment","Does the Objective clearly advance the Goal?"],
+ ["objective","keyresult","Measurement Integrity","Would the Key Result prove the Objective was achieved?"],
+ ["keyresult","kpi","Sustainment Logic","After the Key Result closes, does the KPI keep watch over the right health signal?"],
+ ["objective","milestone","Execution Trace","Do the Milestones mark progress toward the Objective without pretending to prove success?"]
+];
+let state={mode:"learn",active:"goal",answers:{},notes:{},checks:{}};
+ORDER.forEach(k=>{state.answers[k]=[];state.notes[k]=""});
+function init(){
+ buildNav();buildSections();buildChecks();drawLinks();load();openSection(state.active);updateAll();
+}
+function buildNav(){
+ const nav=document.getElementById("nav");nav.innerHTML="";
+ ORDER.forEach(k=>{
+  let d=DATA[k];let b=document.createElement("button");b.id="nav-"+k;b.onclick=()=>openSection(k);
+  b.innerHTML=`<span class="nav-dot"></span><span><span class="nav-title">${d.title}</span><br><span class="nav-sub">${d.tag}</span></span><span class="nav-sub" id="navscore-${k}">0/3</span>`;
+  nav.appendChild(b);
+ });
+}
+function buildSections(){
+ const wrap=document.getElementById("sections");wrap.innerHTML="";
+ ORDER.forEach(k=>{
+  const d=DATA[k], el=document.createElement("section");el.className="section-card";el.id="section-"+k;
+  let qs=d.questions.map((q,qi)=>{
+   let opts=q[1].map((o,oi)=>`<button class="choice" id="choice-${k}-${qi}-${oi}" onclick="answer('${k}',${qi},${oi})">${o}</button>`).join("");
+   return `<div class="question"><h4>${q[0]}</h4><div class="choices">${opts}</div><div class="feedback" id="fb-${k}-${qi}"></div></div>`;
+  }).join("");
+  el.innerHTML=`
+   <span class="badge">${d.tag}</span>
+   <h2>${d.title}</h2>
+   <p>${d.definition}</p>
+   <div class="learn"><strong>What to remember:</strong><ul>${d.learn.map(x=>`<li>${x}</li>`).join("")}</ul></div>
+   <div class="formula">${d.formula}</div>
+   <div class="coach" id="coach-${k}"><h4>Adaptive coaching</h4><p id="coachtext-${k}"></p></div>
+   ${qs}
+   <div class="scratch-title">Scratchpad / notes for later planning</div>
+   <p class="muted" style="color:var(--muted);font-size:.88rem">${d.note}</p>
+   <textarea id="notes-${k}" oninput="saveNote('${k}',this.value)" placeholder="Capture lightweight notes. Do not try to write the whole strategy here."></textarea>`;
+  wrap.appendChild(el);
+ });
+}
+function buildChecks(){
+ const wrap=document.getElementById("crosschecks");wrap.innerHTML="";
+ CHECKS.forEach((c,i)=>{
+  let id=`${c[0]}_${c[1]}`;
+  let el=document.createElement("div");el.className="crosscheck";el.id="check-"+id;
+  el.innerHTML=`<h3>${c[2]}</h3><p>${c[3]}</p><div class="choices">
+   <button class="choice" onclick="answerCheck('${id}','good',this)">Strong</button>
+   <button class="choice" onclick="answerCheck('${id}','warn',this)">Partial</button>
+   <button class="choice" onclick="answerCheck('${id}','bad',this)">Weak</button>
+  </div><textarea id="checknotes-${id}" oninput="saveCheckNote('${id}',this.value)" placeholder="Notes about this relationship..."></textarea>`;
+  wrap.appendChild(el);
+ });
+}
+function drawLinks(){
+ const coords={goal:[230,72],objective:[230,170],keyresult:[365,276],milestone:[95,276],kpi:[230,372]};
+ const pairs=[["goal","objective"],["objective","keyresult"],["objective","milestone"],["keyresult","kpi"]];
+ const wrap=document.getElementById("links");wrap.innerHTML="";
+ pairs.forEach((p,idx)=>{
+  let [x1,y1]=coords[p[0]],[x2,y2]=coords[p[1]];
+  let dx=x2-x1,dy=y2-y1,len=Math.sqrt(dx*dx+dy*dy),ang=Math.atan2(dy,dx)*180/Math.PI;
+  let l=document.createElement("div");l.className="link";l.id="link-"+idx;
+  l.style.width=len+"px";l.style.left=x1+"px";l.style.top=y1+"px";l.style.transform=`rotate(${ang}deg)`;
+  wrap.appendChild(l);
+ });
+}
+function answer(k,qi,oi){
+ state.answers[k][qi]=oi;save();
+ renderSection(k);updateAll();
+}
+function answerCheck(id,val,btn){
+ state.checks[id]=state.checks[id]||{};state.checks[id].value=val;
+ [...btn.parentElement.children].forEach(b=>b.className="choice");
+ btn.className="choice selected "+val;save();updateAll();
+}
+function saveNote(k,v){state.notes[k]=v;save()}
+function saveCheckNote(id,v){state.checks[id]=state.checks[id]||{};state.checks[id].note=v;save()}
+function sectionScore(k){
+ let d=DATA[k], ans=state.answers[k], total=d.questions.length, sum=0, answered=0, bad=0, warn=0;
+ ans.forEach((oi,qi)=>{if(oi!==undefined){answered++;let v=d.questions[qi][2][oi]; if(v==="good")sum+=1; if(v==="warn"){sum+=.5;warn++} if(v==="bad")bad++;}});
+ return {pct:total?sum/total:0,answered,total,bad,warn,status: answered<total?"new": bad>1?"fail":(bad||warn>1)?"warn":"ready"};
+}
+function checkScore(id){let v=state.checks[id]?.value;return v==="good"?1:v==="warn"?.5:v==="bad"?0:null}
+function dimensions(){
+ let concept=ORDER.reduce((a,k)=>a+sectionScore(k).pct,0)/ORDER.length;
+ let align=(checkScore("goal_objective")??0 + checkScore("objective_keyresult")??0)/2;
+ let measurement=(sectionScore("keyresult").pct + (checkScore("objective_keyresult")??0))/2;
+ let sustain=(sectionScore("kpi").pct + (checkScore("keyresult_kpi")??0))/2;
+ let execution=(sectionScore("milestone").pct + (checkScore("objective_milestone")??0))/2;
+ return {concept,align,measurement,sustain,execution};
+}
+function updateAll(){
+ ORDER.forEach(renderSection);renderNav();renderDimensions();renderLinks();save();
+}
+function renderSection(k){
+ let d=DATA[k], s=sectionScore(k);
+ d.questions.forEach((q,qi)=>{
+  q[1].forEach((_,oi)=>{let b=document.getElementById(`choice-${k}-${qi}-${oi}`); if(b)b.className="choice";});
+  let oi=state.answers[k][qi];
+  let fb=document.getElementById(`fb-${k}-${qi}`);
+  if(oi!==undefined){
+   let val=q[2][oi];let b=document.getElementById(`choice-${k}-${qi}-${oi}`); if(b)b.className="choice selected "+val;
+   fb.className="feedback show "+val;
+   fb.textContent=d.feedback[val][Math.min(qi,d.feedback[val].length-1)]||d.feedback[val][0];
+  } else {fb.className="feedback";fb.textContent="";}
+ });
+ let coach=document.getElementById("coach-"+k), ct=document.getElementById("coachtext-"+k);
+ if(s.bad>0){coach.classList.add("show");ct.textContent=d.feedback.bad[0]+" Suggested next step: capture uncertainties in the scratchpad before moving forward."}
+ else if(s.warn>0){coach.classList.add("show");ct.textContent=d.feedback.warn[0]+" Suggested next step: sharpen this layer before treating it as stable."}
+ else if(s.answered===s.total){coach.classList.add("show");ct.textContent=d.feedback.good[0]+" Suggested next step: run the relationship checks."}
+ else coach.classList.remove("show");
+ let n=document.getElementById("notes-"+k); if(n && n.value!==state.notes[k]) n.value=state.notes[k]||"";
+}
+function renderNav(){
+ ORDER.forEach(k=>{
+  let s=sectionScore(k), btn=document.getElementById("nav-"+k), node=document.getElementById("node-"+k);
+  btn.classList.toggle("active",state.active===k); node.classList.toggle("active",state.active===k);
+  ["ready","warn","fail"].forEach(c=>{btn.classList.remove(c);node.classList.remove(c)});
+  if(s.status!=="new"){btn.classList.add(s.status);node.classList.add(s.status)}
+  document.getElementById("navscore-"+k).textContent=`${s.answered}/${s.total}`;
+ });
+ document.getElementById("focusReadout").textContent="FOCUS: "+DATA[state.active].title.toUpperCase();
+}
+function renderDimensions(){
+ let d=dimensions();
+ const labels={concept:"Concept Clarity",align:"Vertical Alignment",measurement:"Measurement Integrity",sustain:"Operational Sustainability",execution:"Execution Trace"};
+ let wrap=document.getElementById("dimensionRows");wrap.innerHTML="";
+ Object.entries(d).forEach(([k,v])=>{
+  let pct=Math.round((isNaN(v)?0:v)*100);
+  wrap.insertAdjacentHTML("beforeend",`<div class="dimrow"><label>${labels[k]}</label><strong>${pct}%</strong><div class="mini-meter"><span style="width:${pct}%"></span></div></div>`);
+ });
+ let overall=Math.round(Object.values(d).reduce((a,v)=>a+(isNaN(v)?0:v),0)/Object.values(d).length*100);
+ document.getElementById("overallScore").textContent=overall;
+ document.getElementById("overallMeter").style.width=overall+"%";
+ document.getElementById("statusReadout").textContent=overall>=85?"STATUS: GREEN":overall>=60?"STATUS: PARTIAL SIGNAL":"STATUS: CALIBRATING";
+}
+function renderLinks(){
+ const strong=[
+  checkScore("goal_objective")===1,
+  checkScore("objective_keyresult")===1,
+  checkScore("objective_milestone")===1,
+  checkScore("keyresult_kpi")===1
+ ];
+ [0,1,2,3].forEach(i=>document.getElementById("link-"+i)?.classList.toggle("strong",strong[i]));
+}
+function openSection(k){
+ state.active=k;
+ document.querySelectorAll(".section-card").forEach(x=>x.classList.remove("active"));
+ document.getElementById("section-"+k).classList.add("active");
+ document.getElementById("panelTitle").textContent=DATA[k].title;
+ document.getElementById("panelIntro").textContent=DATA[k].definition;
+ updateAll();
+}
+function setMode(m,el){
+ state.mode=m;document.querySelectorAll(".mode").forEach(x=>x.classList.remove("active"));el.classList.add("active");save();
+}
+function showExport(){
+ const text=makeExport();document.getElementById("exportText").textContent=text;document.getElementById("exportPanel").classList.add("active");document.getElementById("exportPanel").scrollIntoView({behavior:"smooth"});
+}
+function makeExport(){
+ let d=dimensions(), overall=Math.round(Object.values(d).reduce((a,v)=>a+(isNaN(v)?0:v),0)/Object.values(d).length*100);
+ let out=`STRATEGIC ALIGNMENT CONSOLE — READINESS EXPORT\n\nOverall Planning Integrity: ${overall}%\n\nDIMENSIONS\n- Concept Clarity: ${Math.round(d.concept*100)}%\n- Vertical Alignment: ${Math.round(d.align*100)}%\n- Measurement Integrity: ${Math.round(d.measurement*100)}%\n- Operational Sustainability: ${Math.round(d.sustain*100)}%\n- Execution Trace: ${Math.round(d.execution*100)}%\n\nCONCEPT NOTES\n`;
+ ORDER.forEach(k=>{let s=sectionScore(k);out+=`\n${DATA[k].title.toUpperCase()} — ${Math.round(s.pct*100)}% (${s.answered}/${s.total} answered)\n${state.notes[k]||"No notes captured."}\n`});
+ out+=`\nRELATIONSHIP CHECKS\n`;
+ CHECKS.forEach(c=>{let id=`${c[0]}_${c[1]}`, cs=state.checks[id];out+=`\n${c[2]}: ${cs?.value||"Not assessed"}\n${cs?.note||"No notes captured."}\n`});
+ out+=`\nRecommended use: Treat this as a readiness snapshot and planning handoff. The console is meant to improve strategic thinking before the full plan is written.`;
+ return out;
+}
+function copyExport(){showExport();navigator.clipboard.writeText(document.getElementById("exportText").textContent);let t=document.getElementById("toast");t.classList.add("show");setTimeout(()=>t.classList.remove("show"),1400)}
+function resetAll(){if(!confirm("Reset the console?"))return;localStorage.removeItem("strat-align-console-v1");state={mode:"learn",active:"goal",answers:{},notes:{},checks:{}};ORDER.forEach(k=>{state.answers[k]=[];state.notes[k]=""});document.querySelectorAll("textarea").forEach(t=>t.value="");openSection("goal");updateAll()}
+function save(){localStorage.setItem("strat-align-console-v1",JSON.stringify(state))}
+function load(){try{let raw=localStorage.getItem("strat-align-console-v1");if(raw){let s=JSON.parse(raw);state={...state,...s};ORDER.forEach(k=>{state.answers[k]=state.answers[k]||[];state.notes[k]=state.notes[k]||""})}}catch(e){}}
+init();
+</script>
+</body>
+</html>
