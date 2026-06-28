@@ -92,8 +92,7 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
 .nav-item.st-warn .nav-def{color:var(--gold);opacity:0.45;}
 .nav-item.st-fail .nav-label{color:var(--red);}
 .nav-item.st-fail .nav-def{color:var(--red);opacity:0.45;}
-.nav-item.deliverable .nav-label{color:#2ECC8A;}
-.nav-item.deliverable .nav-def{color:#2ECC8A;opacity:0.5;}
+
 
 .sb-footer{padding:1.1rem 1.2rem;border-top:1px solid var(--border);}
 .sb-footer-lbl{font-family:var(--mono);font-size:0.65rem;letter-spacing:0.14em;text-transform:uppercase;color:var(--text3);margin-bottom:0.4rem;}
@@ -471,7 +470,6 @@ const META={
   goal:{name:'Goal',q:'Where are we ultimately trying to go?',def:'A goal is the broad, long-horizon destination — aspirational, often qualitative. It describes a future state, not a task. A well-written goal lets you describe what NOT achieving it looks like. If it can\'t, it may be a values statement in disguise.',badge:'blue',qs:4},
   objective:{name:'Objective',q:'What outcome must we accomplish next?',def:'An objective is a concrete, actionable outcome that advances the goal. Not a sub-goal, not a task — a defined destination with its own success criteria. Specific enough to create focus, broad enough to allow multiple paths.',badge:'blue',qs:5},
   keyresult:{name:'Key Result',q:'How will we know we actually got there?',def:'A Key Result is a measurable outcome proving the objective was met. It measures change, not activity. Scored on a spectrum — 70% of a hard KR beats 100% of an easy one. Key Results measure change; KPIs monitor health.',badge:'blue',qs:4},
-  deliverable:{name:'Deliverable',q:'What tangible artifacts must exist when work is done?',def:'A deliverable is a concrete artifact — document, framework, dashboard, SOP — that must be produced. In services contract environments, deliverables are first-class citizens, not incidental outputs. They are binary: they exist or they don\'t.',badge:'green',qs:4},
   kpi:{name:'KPI',q:'Is the organization staying healthy while we do this?',def:'A KPI monitors ongoing operational health — not progress toward a goal. It runs continuously without a finish line. Key distinction: Key Results measure change. KPIs monitor health. Once a KR is achieved, the KPI keeps watching.',badge:'blue',qs:4},
   milestone:{name:'Milestone',q:'What significant events mark that the plan is intact?',def:'A milestone is a specific, time-bound event — done or not done, no partial credit. Milestones are schedule integrity tools, not progress measures. "Milestone achieved" means the plan is on track — not that the work is good.',badge:'blue',qs:4}
 };
@@ -496,12 +494,6 @@ const QS={
     {t:'Is the target ambitious enough to create real accountability?',opts:[{l:'Yes — hitting it would require real effort and represent genuine progress.',v:'good'},{l:'Somewhat — achievable but not a stretch.',v:'warn'},{l:'No — we\'re already confident we\'ll hit it.',v:'bad'}],fb:{good:'Good calibration. Key results should feel like they require something.',warn:'Consider pushing the target. 70% of a harder KR is worth more than 100% of an easy one.',bad:'This is sandbagging. Raise the target or find a metric that actually captures what you\'re moving.'}},
     {t:'If you hit this key result but didn\'t achieve the objective — would that be possible?',opts:[{l:'No — hitting this metric would mean the objective was genuinely achieved.',v:'good'},{l:'Unlikely but possible — edge cases where the metric could be hit without real outcome.',v:'warn'},{l:'Yes — this is a proxy that could be achieved without real progress.',v:'bad'}],fb:{good:'Tight alignment between metric and objective. This is what good key results look like.',warn:'Name those edge cases and consider a second KR that covers the gap.',bad:'Gaming risk is real, especially in government contexts. Find a metric that\'s harder to hit without the underlying outcome improving.'}}
   ],
-  deliverable:[
-    {t:'Have you identified and listed all concrete artifacts this work must produce?',opts:[{l:'Yes — complete list with descriptions. e.g. Governance Framework, Decision Playbook, Dashboard.',v:'good'},{l:'Partially — we know the main ones but the list isn\'t finalized.',v:'warn'},{l:'No — they\'re implied by the work, not explicitly listed.',v:'bad'}],fb:{good:'Explicit lists matter — deliverables that are "implied" tend to become disputed at review time.',warn:'Finalize the list before work begins. Scope creep almost always enters through undefined deliverables.',bad:'Make the list now. Even a rough draft creates clarity. Implied deliverables are a primary source of misalignment.'}},
-    {t:'Are the deliverables contractually specified (in a PWS, SOW, or equivalent)?',opts:[{l:'Yes — formally documented with acceptance criteria and deadlines.',v:'good'},{l:'Partially — some are documented, others are understood but not formalized.',v:'warn'},{l:'No — agreed informally but not in writing.',v:'bad'}],fb:{good:'Formal specification protects both parties. Acceptance criteria prevent "done" from being contested.',warn:'Get the informal ones documented — even a brief addendum creates a shared record.',bad:'Informal agreements are a liability. Get this in writing before significant work proceeds.'}},
-    {t:'Do you know who receives and accepts each deliverable?',opts:[{l:'Yes — each has a named customer and acceptance process.',v:'good'},{l:'We know the general customer but the acceptance process isn\'t fully defined.',v:'warn'},{l:'No — unclear who reviews and accepts the work.',v:'bad'}],fb:{good:'Named owners + defined acceptance = far fewer end-of-project surprises.',warn:'Define the acceptance process before you deliver — "customer review" without a defined process becomes a long ambiguous loop.',bad:'Without a named acceptor, deliverables get delivered into a void. Resolve this early.'}},
-    {t:'Are you tracking deliverables separately from milestones and key results?',opts:[{l:'Yes — we distinguish artifact (deliverable), acceptance event (milestone), and outcome (key result).',v:'good'},{l:'Somewhat — we track them together but could be clearer.',v:'warn'},{l:'No — we use these terms interchangeably.',v:'bad'}],fb:{good:'The distinction matters most at reporting time. Being clear now prevents confusion later.',warn:'Start making the distinction explicit. Deliverable completion ≠ milestone achieved ≠ outcome reached.',bad:'Using these interchangeably creates accountability gaps. Each needs its own tracking lane.'}}
-  ],
   kpi:[
     {t:'Do your KPIs measure ongoing health or one-time change?',opts:[{l:'Ongoing health — metrics we\'d track indefinitely, not tied to an initiative finish line.',v:'good'},{l:'Mixed — some are health monitors, some are tied to the current initiative.',v:'warn'},{l:'One-time — tracking them to measure this initiative, not as ongoing health indicators.',v:'bad'}],fb:{good:'Right understanding. KPIs without a finish line distinguish health monitoring from progress tracking.',warn:'Separate them — initiative-specific ones are probably Key Results. Keep only the genuinely ongoing ones as KPIs.',bad:'What you\'re describing sounds like Key Results. KPIs don\'t end when the initiative does.'}},
     {t:'How many KPIs are you currently tracking?',opts:[{l:'Fewer than 8 — disciplined about what goes on the dashboard.',v:'good'},{l:'8 to 15 — track a lot but they all feel important.',v:'warn'},{l:'More than 15 — the dashboard has accumulated and hasn\'t been pruned.',v:'bad'}],fb:{good:'Discipline in KPI count is a sign of mature measurement thinking.',warn:'Challenge each one: if this metric moved significantly, would it change a decision? If not, it\'s noise.',bad:'A dashboard with 20+ KPIs is a reporting exercise, not a management tool. It needs a pruning session.'}},
@@ -520,7 +512,6 @@ const Q_LABELS={
   goal:['Goal clarity','Two-year answer test','Multiple objectives needed?','Owner and alignment'],
   objective:['Outcome vs. activity','Timeframe defined?','Multiple paths?','Goal alignment check','Altitude check'],
   keyresult:['Measurable baseline + target?','Outcome vs. output?','Ambition level','Metric integrity'],
-  deliverable:['Artifact list complete?','Contractually specified?','Named customer and acceptance?','Separate tracking?'],
   kpi:['Ongoing health vs. one-time?','Volume check','Action-linked?','Distinct from KRs?'],
   milestone:['Events vs. progress?','Date + owner + done criteria?','Spacing for early warning?','Schedule vs. quality']
 };
@@ -540,11 +531,6 @@ const NOTE_PROMPTS={
     always:[{lbl:'your key result(s)',q:'Write each Key Result with a baseline and target. Format: [metric] from [X] to [Y] by [date].'},{lbl:'why this metric proves the objective',q:'If this number moves, why does that mean the objective was genuinely achieved?'}],
     warn:[{lbl:'what\'s still unresolved',q:'Note gaps — missing baseline, proxy risk, sandbagging concern — and what it would take to resolve them.'}],
     bad:[{lbl:'a closer metric to consider',q:'The current metric may be gameable or output-focused. What would be harder to hit without the underlying outcome actually improving?'}]
-  },
-  deliverable:{
-    always:[{lbl:'full deliverable list',q:'List every artifact this work must produce. For each: name it, describe it in one sentence, note who receives it.'},{lbl:'acceptance criteria',q:'For each deliverable, what does "accepted" mean? Who approves, and what do they need to see?'}],
-    warn:[{lbl:'what needs formalizing',q:'Note which deliverables are still informal — and what step it would take to get them in writing.'}],
-    bad:[{lbl:'deliverables you haven\'t named yet',q:'Start listing them here, even roughly. What would someone be holding in their hands when this work is done?'}]
   },
   kpi:{
     always:[{lbl:'your KPI list',q:'List each KPI. For each: the metric, who owns it, how often it\'s reviewed, what threshold triggers action.'},{lbl:'what you\'d cut',q:'Which KPIs would you remove if you had to cut to the 5 most decision-driving ones?'}],
