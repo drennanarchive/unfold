@@ -307,7 +307,7 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
     width:280px;
   }
   .sidebar.open{transform:translateX(0);}
-  .sb-overlay{display:block;}
+  .sb-overlay{display:block;pointer-events:none;}
   .sb-overlay.visible{pointer-events:all;}
 
   /* main fills full width on mobile */
@@ -872,19 +872,24 @@ function closeSidebar(){
 function jumpTo(id){
   const sec=document.getElementById('sec-'+id);
   if(!sec) return;
-  // Close all, open target
   document.querySelectorAll('.section').forEach(s=>s.classList.remove('open'));
   sec.classList.add('open');
   setActiveNav(id);
   if(window.innerWidth<=768) closeSidebar();
-  // Wait for open animation to begin, then scroll so section header is at top
-  setTimeout(()=>{
-    const mainEl=document.getElementById('main');
-    const mainRect=mainEl.getBoundingClientRect();
-    const secRect=sec.getBoundingClientRect();
-    const scrollTarget=mainEl.scrollTop + (secRect.top - mainRect.top) - 16;
-    mainEl.scrollTo({top:scrollTarget, behavior:'smooth'});
-  }, window.innerWidth<=768 ? 320 : 60);
+  requestAnimationFrame(()=>{
+    requestAnimationFrame(()=>{
+      const topbarH=56;
+      const secTop=sec.getBoundingClientRect().top;
+      const mainEl=document.getElementById('main');
+      // Check if main is scrollable or if window is
+      if(mainEl.scrollHeight>mainEl.clientHeight && getComputedStyle(mainEl).overflowY!=='visible'){
+        const mainTop=mainEl.getBoundingClientRect().top;
+        mainEl.scrollTo({top: mainEl.scrollTop+(secTop-mainTop)-16, behavior:'smooth'});
+      } else {
+        window.scrollTo({top: window.scrollY+(secTop-topbarH)-16, behavior:'smooth'});
+      }
+    });
+  });
 }
 const mainEl=document.getElementById('main');
 mainEl.addEventListener('scroll',()=>{
