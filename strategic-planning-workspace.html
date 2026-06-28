@@ -166,8 +166,8 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
 .section.s-done .sec-caret{color:#1A5A2A;}
 
 /* body */
-.sec-body{display:none;background:var(--bg);padding:1.5rem 1.4rem 1.75rem;}
-.section.open .sec-body{display:block;}
+.sec-body{max-height:0;overflow:hidden;background:var(--bg);padding:0 1.4rem;transition:max-height 0.38s cubic-bezier(0.4,0,0.2,1), padding 0.25s ease;}
+.section.open .sec-body{max-height:4000px;padding:1.5rem 1.4rem 1.75rem;}
 
 /* def block */
 .def-block{background:var(--panel);border:1px solid var(--border);border-left:3px solid var(--teal);border-radius:0 5px 5px 0;padding:1rem 1.2rem;font-size:0.92rem;line-height:1.7;color:var(--text2);margin-bottom:1.4rem;}
@@ -358,7 +358,7 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
     <div class="tb-title">Strategic Planning Workspace</div>
   </div>
   <div class="tb-right">
-    <div class="tb-score">ready: <strong id="tb-score">0/6</strong></div>
+    <div class="tb-score">ready: <strong id="tb-score">0/5</strong></div>
     <button class="btn btn-ghost" onclick="confirmClear()">Clear</button>
     <button class="btn btn-gold" onclick="window.print()">Export</button>
   </div>
@@ -402,14 +402,6 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
         <div class="nav-sub" id="ns-keyresult">not started</div>
       </div>
     </div>
-    <div class="nav-item deliverable" id="ni-deliverable" onclick="jumpTo('deliverable')">
-      <div class="nav-node-wrap"><div class="nav-node"></div></div>
-      <div class="nav-text">
-        <div class="nav-label">Deliverable</div>
-        <div class="nav-def">Contractual output</div>
-        <div class="nav-sub" id="ns-deliverable">not started</div>
-      </div>
-    </div>
     <div class="nav-item" id="ni-kpi" onclick="jumpTo('kpi')">
       <div class="nav-node-wrap"><div class="nav-node"></div></div>
       <div class="nav-text">
@@ -432,11 +424,11 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
     <div class="sb-footer-lbl">Overall readiness</div>
     <div class="sb-score-row">
       <div class="sb-score-n" id="sb-count">0</div>
-      <div class="sb-score-d">/ 6 sections ready</div>
+      <div class="sb-score-d">/ 5 sections ready</div>
     </div>
     <div class="sb-pbar" id="sb-pbar">
       <div class="sb-ps"></div><div class="sb-ps"></div><div class="sb-ps"></div>
-      <div class="sb-ps"></div><div class="sb-ps"></div><div class="sb-ps"></div>
+      <div class="sb-ps"></div><div class="sb-ps"></div>
     </div>
     <div class="sb-hint">Click any section to open it and begin the diagnostic.</div>
   </div>
@@ -457,13 +449,11 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
       <span class="ov-arr">→</span>
       <span class="ov-node ov-blue">Key Result</span>
       <span class="ov-arr">→</span>
-      <span class="ov-node ov-green">Deliverable</span>
-      <span class="ov-arr">→</span>
       <span class="ov-node ov-blue">Milestone</span>
       <span class="ov-arr">+</span>
       <span class="ov-node ov-blue">KPI</span>
     </div>
-    <div class="ov-note">Work in any order using the left panel. Answer each section's diagnostic questions to unlock your readiness score and guided notes. <strong style="color:var(--text2)">Deliverable</strong> is highlighted — most frameworks omit it, but in services contract environments it's first-class.</div>
+    <div class="ov-note">Work in any order using the left panel. Answer each section's diagnostic questions to unlock your readiness score and guided notes.</div>
   </div>
 
   <!-- sections injected by JS -->
@@ -474,7 +464,7 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
 </div>
 
 <script>
-const SECS=['goal','objective','keyresult','deliverable','kpi','milestone'];
+const SECS=['goal','objective','keyresult','kpi','milestone'];
 
 const META={
   goal:{name:'Goal',q:'Where are we ultimately trying to go?',def:'A goal is the broad, long-horizon destination — aspirational, often qualitative. It describes a future state, not a task. A well-written goal lets you describe what NOT achieving it looks like. If it can\'t, it may be a values statement in disguise.',badge:'blue',qs:4},
@@ -702,7 +692,6 @@ function evaluateSec(id){
   document.getElementById('ssb-'+id).textContent=score==='pass'?'Ready':score==='warn'?'Needs work':'Gaps found';
   const niEl=document.getElementById('ni-'+id);
   niEl.className='nav-item st-'+(score==='pass'?'done':score==='warn'?'warn':'fail');
-  if(id==='deliverable') niEl.classList.add('deliverable');
   document.getElementById('ns-'+id).textContent=navSub;
   unlockNotes(id,ans);
   updateOverall();
@@ -751,7 +740,7 @@ function jumpTo_OLD_REPLACED(){}
 // ── OVERALL SCORE ──
 function updateOverall(){
   const passed=SECS.filter(s=>state[s].score==='pass').length;
-  document.getElementById('tb-score').textContent=passed+'/6';
+  document.getElementById('tb-score').textContent=passed+'/5';
   document.getElementById('sb-count').textContent=passed;
   const segs=document.querySelectorAll('.sb-ps');
   segs.forEach((s,i)=>s.classList.toggle('lit',i<passed));
@@ -832,8 +821,8 @@ function drawSidebarLine(){
     // helper — ring with rotating dashes
     const ring=(rad,sw,op,dash,dur,rev=false)=>`<circle cx="${x}" cy="${y}" r="${rad}" fill="none" stroke="${orbitColor}" stroke-width="${sw}" opacity="${op}" stroke-dasharray="${dash}"><animateTransform attributeName="transform" type="rotate" from="${rev?360:0} ${x} ${y}" to="${rev?0:360} ${x} ${y}" dur="${dur}" repeatCount="indefinite"/></circle>`;
 
-    // helper — orbiting dot: group centered on node, dot at offset, whole group rotates
-    const dot=(rad,dotR,op,dur,rev=false,startAngle=0)=>`<g><animateTransform attributeName="transform" type="rotate" from="${startAngle} ${x} ${y}" to="${startAngle+(rev?-360:360)} ${x} ${y}" dur="${dur}" repeatCount="indefinite"/><circle cx="${x}" cy="${y-rad}" r="${dotR}" fill="${orbitColor}" opacity="${op}"/></g>`;
+    // helper — orbiting dot: group centered on node via translate, dot placed at (0,-rad) within group, group rotates
+    const dot=(rad,dotR,op,dur,rev=false,startAngle=0)=>`<g transform="translate(${x},${y})"><animateTransform attributeName="transform" type="rotate" from="${startAngle}" to="${startAngle+(rev?-360:360)}" dur="${dur}" repeatCount="indefinite" additive="sum"/><circle cx="0" cy="${-rad}" r="${dotR}" fill="${orbitColor}" opacity="${op}"/></g>`;
 
     if(isMobile){
       // mobile: two simple rings, no dots
@@ -896,11 +885,19 @@ function closeSidebar(){
 function jumpTo(id){
   const sec=document.getElementById('sec-'+id);
   if(!sec) return;
+  // Close all, open target
   document.querySelectorAll('.section').forEach(s=>s.classList.remove('open'));
   sec.classList.add('open');
   setActiveNav(id);
   if(window.innerWidth<=768) closeSidebar();
-  setTimeout(()=>{ sec.scrollIntoView({behavior:'smooth',block:'start'}); },window.innerWidth<=768?320:50);
+  // Wait for open animation to begin, then scroll so section header is at top
+  setTimeout(()=>{
+    const mainEl=document.getElementById('main');
+    const mainRect=mainEl.getBoundingClientRect();
+    const secRect=sec.getBoundingClientRect();
+    const scrollTarget=mainEl.scrollTop + (secRect.top - mainRect.top) - 16;
+    mainEl.scrollTo({top:scrollTarget, behavior:'smooth'});
+  }, window.innerWidth<=768 ? 320 : 60);
 }
 const mainEl=document.getElementById('main');
 mainEl.addEventListener('scroll',()=>{
