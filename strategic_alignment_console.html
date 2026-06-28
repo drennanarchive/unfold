@@ -107,23 +107,34 @@ button{cursor:pointer}
  linear-gradient(0deg,transparent 49.7%,rgba(114,247,220,.16) 50%,transparent 50.3%)}
 .rings:after{content:"";position:absolute;left:50%;top:50%;width:160px;height:160px;transform-origin:0 0;background:linear-gradient(40deg,rgba(114,247,220,.28),transparent 62%);border-radius:0 0 160px 0;animation:sweep 5s linear infinite}
 @keyframes sweep{to{transform:rotate(360deg)}}
-.link{position:absolute;height:2px;background:linear-gradient(90deg,transparent,rgba(114,247,220,.32),transparent);transform-origin:left center;opacity:.4}
-.link.strong{background:linear-gradient(90deg,transparent,var(--green),transparent);opacity:.9;box-shadow:0 0 12px rgba(78,227,155,.4)}
-.core{position:absolute;left:50%;top:49%;transform:translate(-50%,-50%);width:74px;height:74px;border-radius:50%;display:grid;place-items:center;background:rgba(114,247,220,.10);border:1px solid rgba(114,247,220,.46);color:var(--cyan);font-family:var(--mono);font-weight:900;box-shadow:0 0 36px rgba(114,247,220,.18)}
-.node{position:absolute;width:88px;min-height:68px;border-radius:22px;border:1px solid rgba(128,184,255,.28);background:rgba(14,27,46,.92);display:grid;place-items:center;text-align:center;padding:10px;color:var(--text);transition:.2s;z-index:3}
-.node:hover,.node.active{transform:scale(1.06);border-color:rgba(114,247,220,.6);box-shadow:0 0 28px rgba(114,247,220,.2)}
+.map-svg{position:absolute;inset:0;width:100%;height:100%;z-index:1}
+.map-line{stroke:rgba(114,247,220,.26);stroke-width:2;fill:none;stroke-linecap:round;stroke-dasharray:6 7}
+.map-line.strong{stroke:var(--green);stroke-width:3;filter:drop-shadow(0 0 7px rgba(78,227,155,.55));stroke-dasharray:0}
+.map-arrow{fill:rgba(114,247,220,.44)}
+.map-arrow.strong{fill:var(--green)}
+.map-label{font-family:var(--mono);font-size:10px;letter-spacing:.08em;fill:var(--dim);text-transform:uppercase}
+.map-label.strong{fill:var(--green)}
+.core{position:absolute;left:50%;top:51%;transform:translate(-50%,-50%);width:82px;height:82px;border-radius:50%;display:grid;place-items:center;background:rgba(114,247,220,.08);border:1px solid rgba(114,247,220,.32);color:var(--cyan);font-family:var(--mono);font-weight:900;box-shadow:0 0 36px rgba(114,247,220,.14);z-index:2}
+.core:after{content:"SYSTEM";position:absolute;top:92px;color:var(--dim);font-size:.62rem;letter-spacing:.12em}
+.node{position:absolute;width:116px;min-height:66px;border-radius:20px;border:1px solid rgba(128,184,255,.28);background:rgba(14,27,46,.94);display:grid;place-items:center;text-align:center;padding:10px;color:var(--text);transition:.2s;z-index:3}
+.node:hover,.node.active{border-color:rgba(114,247,220,.6);box-shadow:0 0 28px rgba(114,247,220,.2)}
 .node.ready{border-color:rgba(78,227,155,.68);background:rgba(78,227,155,.11)}
 .node.warn{border-color:rgba(244,201,93,.68);background:rgba(244,201,93,.10)}
 .node.fail{border-color:rgba(255,116,116,.68);background:rgba(255,116,116,.10)}
 .node b{font-family:var(--mono);font-size:.82rem;color:var(--cyan)}
 .node span{font-size:.68rem;color:var(--muted);margin-top:4px}
-.n-goal{left:50%;top:28px;transform:translateX(-50%)}
-.n-objective{left:50%;top:126px;transform:translateX(-50%)}
-.n-keyresult{right:35px;top:242px}
-.n-milestone{left:35px;top:242px}
-.n-kpi{left:50%;bottom:22px;transform:translateX(-50%)}
-.node.n-goal:hover,.node.n-goal.active,.node.n-objective:hover,.node.n-objective.active,.node.n-kpi:hover,.node.n-kpi.active{transform:translateX(-50%) scale(1.06)}
-.readout{position:absolute;left:14px;right:14px;bottom:14px;border-top:1px solid rgba(114,247,220,.16);padding-top:10px;font-family:var(--mono);font-size:.72rem;color:var(--muted);display:flex;justify-content:space-between;gap:12px}
+.n-goal{left:50%;top:30px;transform:translateX(-50%)}
+.n-objective{left:50%;top:122px;transform:translateX(-50%)}
+.n-keyresult{right:42px;top:238px}
+.n-milestone{left:42px;top:238px}
+.n-kpi{right:42px;bottom:42px}
+.node.n-goal:hover,.node.n-goal.active,.node.n-objective:hover,.node.n-objective.active{transform:translateX(-50%) scale(1.06)}
+.node.n-keyresult:hover,.node.n-keyresult.active,.node.n-milestone:hover,.node.n-milestone.active,.node.n-kpi:hover,.node.n-kpi.active{transform:scale(1.06)}
+.legend-box{position:absolute;left:18px;bottom:18px;right:18px;border-top:1px solid rgba(114,247,220,.16);padding-top:10px;display:grid;grid-template-columns:1fr 1fr;gap:8px;z-index:4}
+.legend-item{font-family:var(--mono);font-size:.64rem;color:var(--muted);display:flex;gap:7px;align-items:center}
+.legend-swatch{width:18px;height:2px;background:rgba(114,247,220,.45)}
+.legend-swatch.dash{background:transparent;border-top:2px dashed rgba(114,247,220,.38)}
+.readout{position:absolute;left:18px;right:18px;top:14px;font-family:var(--mono);font-size:.68rem;color:var(--muted);display:flex;justify-content:space-between;gap:12px;z-index:4}
 .workspace{display:grid;grid-template-columns:1fr 390px;gap:18px;align-items:start}
 .panel{padding:20px}
 .panel h2{margin:0 0 10px;font-size:1.6rem;letter-spacing:-.04em}
@@ -221,14 +232,33 @@ pre{white-space:pre-wrap;word-break:break-word;background:rgba(3,8,16,.7);border
         <div class="radar-inner">
           <div class="radar-grid"></div>
           <div class="rings"></div>
-          <div id="links"></div>
+          <svg class="map-svg" viewBox="0 0 460 404" preserveAspectRatio="none" aria-hidden="true">
+            <defs>
+              <marker id="arrow" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto">
+                <path class="map-arrow" id="arrow-path" d="M0,0 L9,4.5 L0,9 Z"></path>
+              </marker>
+            </defs>
+            <path id="path-goal-objective" class="map-line" marker-end="url(#arrow)" d="M230 88 L230 122"></path>
+            <path id="path-objective-keyresult" class="map-line" marker-end="url(#arrow)" d="M230 188 C270 220, 320 235, 360 254"></path>
+            <path id="path-objective-milestone" class="map-line" marker-end="url(#arrow)" d="M230 188 C190 220, 140 235, 100 254"></path>
+            <path id="path-keyresult-kpi" class="map-line" marker-end="url(#arrow)" d="M360 304 L360 332"></path>
+            <path id="path-milestone-keyresult" class="map-line" d="M120 286 C190 334, 286 334, 340 286"></path>
+            <text x="242" y="108" class="map-label">advances</text>
+            <text x="282" y="224" class="map-label">proves</text>
+            <text x="74" y="224" class="map-label">tracks execution</text>
+            <text x="372" y="324" class="map-label">sustains</text>
+          </svg>
           <div class="core">ALIGN</div>
-          <button class="node n-goal" id="node-goal" onclick="openSection('goal')"><b>GOAL</b><span>destination</span></button>
-          <button class="node n-objective" id="node-objective" onclick="openSection('objective')"><b>OBJECTIVE</b><span>outcome</span></button>
-          <button class="node n-keyresult" id="node-keyresult" onclick="openSection('keyresult')"><b>KR</b><span>proof</span></button>
-          <button class="node n-milestone" id="node-milestone" onclick="openSection('milestone')"><b>MILESTONE</b><span>marker</span></button>
-          <button class="node n-kpi" id="node-kpi" onclick="openSection('kpi')"><b>KPI</b><span>health</span></button>
+          <button class="node n-goal" id="node-goal" onclick="openSection('goal')"><b>GOAL</b><span>desired future state</span></button>
+          <button class="node n-objective" id="node-objective" onclick="openSection('objective')"><b>OBJECTIVE</b><span>specific outcome</span></button>
+          <button class="node n-keyresult" id="node-keyresult" onclick="openSection('keyresult')"><b>KEY RESULT</b><span>measurable proof</span></button>
+          <button class="node n-milestone" id="node-milestone" onclick="openSection('milestone')"><b>MILESTONE</b><span>progress event</span></button>
+          <button class="node n-kpi" id="node-kpi" onclick="openSection('kpi')"><b>KPI</b><span>ongoing health</span></button>
           <div class="readout"><span id="focusReadout">FOCUS: GOAL</span><span id="statusReadout">STATUS: CALIBRATING</span></div>
+          <div class="legend-box">
+            <div class="legend-item"><span class="legend-swatch"></span> solid glow = relationship checked strong</div>
+            <div class="legend-item"><span class="legend-swatch dash"></span> dashed line = relationship to assess</div>
+          </div>
         </div>
       </div>
     </section>
@@ -398,16 +428,8 @@ function buildChecks(){
  });
 }
 function drawLinks(){
- const coords={goal:[230,72],objective:[230,170],keyresult:[365,276],milestone:[95,276],kpi:[230,372]};
- const pairs=[["goal","objective"],["objective","keyresult"],["objective","milestone"],["keyresult","kpi"]];
- const wrap=document.getElementById("links");wrap.innerHTML="";
- pairs.forEach((p,idx)=>{
-  let [x1,y1]=coords[p[0]],[x2,y2]=coords[p[1]];
-  let dx=x2-x1,dy=y2-y1,len=Math.sqrt(dx*dx+dy*dy),ang=Math.atan2(dy,dx)*180/Math.PI;
-  let l=document.createElement("div");l.className="link";l.id="link-"+idx;
-  l.style.width=len+"px";l.style.left=x1+"px";l.style.top=y1+"px";l.style.transform=`rotate(${ang}deg)`;
-  wrap.appendChild(l);
- });
+ // Map is now an explicit architecture diagram in SVG.
+ // This function remains as a harmless compatibility hook for initialization.
 }
 function answer(k,qi,oi){
  state.answers[k][qi]=oi;save();
@@ -480,13 +502,17 @@ function renderDimensions(){
  document.getElementById("statusReadout").textContent=overall>=85?"STATUS: GREEN":overall>=60?"STATUS: PARTIAL SIGNAL":"STATUS: CALIBRATING";
 }
 function renderLinks(){
- const strong=[
-  checkScore("goal_objective")===1,
-  checkScore("objective_keyresult")===1,
-  checkScore("objective_milestone")===1,
-  checkScore("keyresult_kpi")===1
- ];
- [0,1,2,3].forEach(i=>document.getElementById("link-"+i)?.classList.toggle("strong",strong[i]));
+ const mapping={
+  "path-goal-objective": checkScore("goal_objective")===1,
+  "path-objective-keyresult": checkScore("objective_keyresult")===1,
+  "path-objective-milestone": checkScore("objective_milestone")===1,
+  "path-keyresult-kpi": checkScore("keyresult_kpi")===1,
+  "path-milestone-keyresult": checkScore("objective_milestone")===1 && checkScore("objective_keyresult")===1
+ };
+ Object.entries(mapping).forEach(([id,strong])=>{
+  const el=document.getElementById(id);
+  if(el) el.classList.toggle("strong",strong);
+ });
 }
 function openSection(k){
  state.active=k;
