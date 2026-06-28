@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Strategic Alignment Console</title>
+<title>Strategic Alignment Console v2.6</title>
 <style>
 :root{
   --bg:#050812;
@@ -107,33 +107,32 @@ button{cursor:pointer}
  linear-gradient(0deg,transparent 49.7%,rgba(114,247,220,.16) 50%,transparent 50.3%)}
 .rings:after{content:"";position:absolute;left:50%;top:50%;width:160px;height:160px;transform-origin:0 0;background:linear-gradient(40deg,rgba(114,247,220,.28),transparent 62%);border-radius:0 0 160px 0;animation:sweep 5s linear infinite}
 @keyframes sweep{to{transform:rotate(360deg)}}
-.map-svg{position:absolute;inset:0;width:100%;height:100%;z-index:1}
-.map-line{stroke:rgba(114,247,220,.26);stroke-width:2;fill:none;stroke-linecap:round;stroke-dasharray:6 7}
-.map-line.strong{stroke:var(--green);stroke-width:3;filter:drop-shadow(0 0 7px rgba(78,227,155,.55));stroke-dasharray:0}
-.map-arrow{fill:rgba(114,247,220,.44)}
-.map-arrow.strong{fill:var(--green)}
-.map-label{font-family:var(--mono);font-size:10px;letter-spacing:.08em;fill:var(--dim);text-transform:uppercase}
-.map-label.strong{fill:var(--green)}
-.core{position:absolute;left:50%;top:51%;transform:translate(-50%,-50%);width:82px;height:82px;border-radius:50%;display:grid;place-items:center;background:rgba(114,247,220,.08);border:1px solid rgba(114,247,220,.32);color:var(--cyan);font-family:var(--mono);font-weight:900;box-shadow:0 0 36px rgba(114,247,220,.14);z-index:2}
-.core:after{content:"SYSTEM";position:absolute;top:92px;color:var(--dim);font-size:.62rem;letter-spacing:.12em}
-.node{position:absolute;width:116px;min-height:66px;border-radius:20px;border:1px solid rgba(128,184,255,.28);background:rgba(14,27,46,.94);display:grid;place-items:center;text-align:center;padding:10px;color:var(--text);transition:.2s;z-index:3}
-.node:hover,.node.active{border-color:rgba(114,247,220,.6);box-shadow:0 0 28px rgba(114,247,220,.2)}
-.node.ready{border-color:rgba(78,227,155,.68);background:rgba(78,227,155,.11)}
-.node.warn{border-color:rgba(244,201,93,.68);background:rgba(244,201,93,.10)}
-.node.fail{border-color:rgba(255,116,116,.68);background:rgba(255,116,116,.10)}
-.node b{font-family:var(--mono);font-size:.82rem;color:var(--cyan)}
-.node span{font-size:.68rem;color:var(--muted);margin-top:4px}
-.n-goal{left:50%;top:30px;transform:translateX(-50%)}
-.n-objective{left:50%;top:122px;transform:translateX(-50%)}
-.n-keyresult{right:42px;top:238px}
-.n-milestone{left:42px;top:238px}
-.n-kpi{right:42px;bottom:42px}
-.node.n-goal:hover,.node.n-goal.active,.node.n-objective:hover,.node.n-objective.active{transform:translateX(-50%) scale(1.06)}
-.node.n-keyresult:hover,.node.n-keyresult.active,.node.n-milestone:hover,.node.n-milestone.active,.node.n-kpi:hover,.node.n-kpi.active{transform:scale(1.06)}
-.legend-box{position:absolute;left:18px;bottom:18px;right:18px;border-top:1px solid rgba(114,247,220,.16);padding-top:10px;display:grid;grid-template-columns:1fr 1fr;gap:8px;z-index:4}
-.legend-item{font-family:var(--mono);font-size:.64rem;color:var(--muted);display:flex;gap:7px;align-items:center}
-.legend-swatch{width:18px;height:2px;background:rgba(114,247,220,.45)}
-.legend-swatch.dash{background:transparent;border-top:2px dashed rgba(114,247,220,.38)}
+.map-svg{display:none}
+.core{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:78px;height:78px;border-radius:50%;display:grid;place-items:center;background:rgba(114,247,220,.08);border:1px solid rgba(114,247,220,.36);color:var(--cyan);font-family:var(--mono);font-weight:900;box-shadow:0 0 36px rgba(114,247,220,.16);z-index:2}
+.core:before{content:"";position:absolute;inset:-18px;border-radius:50%;border:1px solid rgba(114,247,220,.12)}
+.core:after{content:"";position:absolute;inset:-42px;border-radius:50%;border:1px solid rgba(128,184,255,.08)}
+.node{position:absolute;width:64px;height:64px;border-radius:50%;border:1px solid rgba(128,184,255,.34);background:rgba(14,27,46,.94);display:grid;place-items:center;text-align:center;color:var(--text);transition:.2s;z-index:3}
+.node:hover,.node.active{border-color:rgba(114,247,220,.72);box-shadow:0 0 28px rgba(114,247,220,.22);transform:scale(1.08)}
+.node.ready{border-color:rgba(78,227,155,.72);background:rgba(78,227,155,.12)}
+.node.warn{border-color:rgba(244,201,93,.72);background:rgba(244,201,93,.10)}
+.node.fail{border-color:rgba(255,116,116,.72);background:rgba(255,116,116,.10)}
+.node b{font-family:var(--mono);font-size:.92rem;color:var(--cyan)}
+.node span{display:none}
+.n-goal{left:50%;top:34px;transform:translateX(-50%)}
+.n-objective{right:60px;top:126px}
+.n-keyresult{right:78px;bottom:90px}
+.n-milestone{left:78px;bottom:90px}
+.n-kpi{left:60px;top:126px}
+.node.n-goal:hover,.node.n-goal.active{transform:translateX(-50%) scale(1.08)}
+.radar-orbit{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:300px;height:300px;border-radius:50%;border:1px solid rgba(114,247,220,.22);z-index:1}
+.radar-orbit:before{content:"";position:absolute;inset:48px;border-radius:50%;border:1px solid rgba(128,184,255,.12)}
+.radar-orbit:after{content:"";position:absolute;left:50%;top:50%;width:150px;height:150px;transform-origin:0 0;background:linear-gradient(38deg,rgba(114,247,220,.22),transparent 64%);border-radius:0 0 150px 0;animation:sweep 5.5s linear infinite}
+.radar-cross{position:absolute;left:50%;top:50%;width:300px;height:300px;transform:translate(-50%,-50%);z-index:1;opacity:.38}
+.radar-cross:before{content:"";position:absolute;left:50%;top:0;bottom:0;width:1px;background:rgba(114,247,220,.18)}
+.radar-cross:after{content:"";position:absolute;left:0;right:0;top:50%;height:1px;background:rgba(114,247,220,.18)}
+.node-key{position:absolute;left:18px;right:18px;bottom:18px;border-top:1px solid rgba(114,247,220,.14);padding-top:10px;display:flex;justify-content:center;gap:14px;flex-wrap:wrap;z-index:4}
+.node-key span{font-family:var(--mono);font-size:.64rem;color:var(--muted)}
+.legend-box{display:none}
 .readout{position:absolute;left:18px;right:18px;top:14px;font-family:var(--mono);font-size:.68rem;color:var(--muted);display:flex;justify-content:space-between;gap:12px;z-index:4}
 .workspace{display:grid;grid-template-columns:1fr 390px;gap:18px;align-items:start}
 .panel{padding:20px}
@@ -176,6 +175,31 @@ pre{white-space:pre-wrap;word-break:break-word;background:rgba(3,8,16,.7);border
 .toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%) translateY(30px);opacity:0;transition:.2s;z-index:10;background:#030816;border:1px solid rgba(114,247,220,.36);color:var(--cyan);border-radius:999px;padding:12px 16px;font-family:var(--mono);box-shadow:var(--shadow)}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 .mobilebar{display:none;position:sticky;top:0;z-index:20;background:rgba(5,10,18,.92);backdrop-filter:blur(12px);border-bottom:1px solid var(--line);padding:10px}
+
+@media(max-width:1300px) and (min-width:1101px){
+  .node{width:58px;height:58px}
+  .radar-orbit,.radar-cross{width:270px;height:270px}
+  .n-objective{right:48px}
+  .n-kpi{left:48px}
+  .n-keyresult{right:64px;bottom:92px}
+  .n-milestone{left:64px;bottom:92px}
+}
+  .n-keyresult{right:40px}
+  .n-milestone{left:40px}
+  .n-kpi{left:50%;bottom:42px;transform:translateX(-50%)}
+  .map-label{font-size:7px}
+}
+  .n-keyresult{right:42px}
+  .n-milestone{left:42px}
+  .n-kpi{left:50%;bottom:34px;transform:translateX(-50%)}
+  .map-label{font-size:8px}
+}
+  .n-keyresult{right:38px}
+  .n-milestone{left:38px}
+  .n-kpi{right:38px}
+  .map-label{font-size:9px}
+}
+
 @media(max-width:1100px){
   .app{grid-template-columns:1fr}.sidebar{display:none}.mobilebar{display:flex;justify-content:space-between;align-items:center}
   .main{padding:16px}.hero{grid-template-columns:1fr}.workspace{grid-template-columns:1fr}.radar-card{min-height:380px}.radar-inner{min-height:344px}
@@ -189,6 +213,144 @@ pre{white-space:pre-wrap;word-break:break-word;background:rgba(3,8,16,.7);border
   .app,.main,.workspace{display:block;padding:0}.panel,.section-card,.crosscheck{box-shadow:none;border:1px solid #ccc;background:white;color:black}
   .section-card{display:block!important;page-break-inside:avoid}.panel p,.learn,.question,.muted{color:#333}pre,textarea{background:white;color:black;border:1px solid #ccc}
 }
+
+
+/* v2.6 — Alignment Constellation refinement
+   The visual is now a calm navigation/status object, not a teaching diagram. */
+.radar-card{
+  min-height:440px;
+}
+.radar-card:before{
+  opacity:.42;
+  animation:spin 46s linear infinite;
+}
+.radar-inner{
+  background:
+    radial-gradient(circle at center, rgba(114,247,220,.075), transparent 18%),
+    radial-gradient(circle at 50% 48%, rgba(128,184,255,.045), transparent 45%),
+    rgba(3,8,16,.66);
+}
+.radar-grid{opacity:.42;background-size:34px 34px;}
+.rings{display:none;}
+.radar-orbit{
+  width:318px;height:318px;
+  border-color:rgba(114,247,220,.16);
+  box-shadow:0 0 0 1px rgba(128,184,255,.06), inset 0 0 32px rgba(114,247,220,.035);
+}
+.radar-orbit:before{
+  inset:64px;
+  border-color:rgba(128,184,255,.12);
+  box-shadow:0 0 0 40px rgba(128,184,255,.018);
+}
+.radar-orbit:after{
+  width:159px;height:159px;
+  background:linear-gradient(38deg,rgba(114,247,220,.14),transparent 66%);
+  animation:sweep 16s linear infinite;
+  opacity:.82;
+}
+.radar-cross{width:318px;height:318px;opacity:.18;}
+.core{
+  width:82px;height:82px;
+  background:rgba(114,247,220,.07);
+  animation:core-breathe 6.5s ease-in-out infinite;
+  letter-spacing:.02em;
+}
+.core:before{inset:-16px;border-color:rgba(114,247,220,.14);}
+.core:after{inset:-46px;border-color:rgba(128,184,255,.07);}
+@keyframes core-breathe{
+  0%,100%{transform:translate(-50%,-50%) scale(1);box-shadow:0 0 28px rgba(114,247,220,.13)}
+  50%{transform:translate(-50%,-50%) scale(1.018);box-shadow:0 0 44px rgba(114,247,220,.20)}
+}
+.node{
+  width:70px;height:70px;
+  border:0;
+  background:transparent;
+  color:var(--text);
+  isolation:isolate;
+  overflow:visible;
+  --progress:0%;
+  --ring-color:rgba(128,184,255,.34);
+  --node-fill:rgba(14,27,46,.94);
+}
+.node:before{
+  content:"";position:absolute;inset:-4px;border-radius:50%;z-index:-2;
+  background:conic-gradient(var(--ring-color) var(--progress), rgba(128,184,255,.12) 0);
+  opacity:.9;
+  filter:drop-shadow(0 0 12px rgba(128,184,255,.10));
+  transition:.25s ease;
+}
+.node:after{
+  content:"";position:absolute;inset:1px;border-radius:50%;z-index:-1;
+  background:
+    radial-gradient(circle at 35% 28%,rgba(255,255,255,.06),transparent 35%),
+    var(--node-fill);
+  border:1px solid rgba(128,184,255,.30);
+  box-shadow:inset 0 0 22px rgba(128,184,255,.035);
+  transition:.25s ease;
+}
+.node b{position:relative;z-index:1;font-size:.94rem;color:#a8fff0;}
+.node:hover,.node.active{transform:scale(1.035);}
+.node.n-goal:hover,.node.n-goal.active{transform:translateX(-50%) scale(1.035)}
+.node.active:before{--ring-color:rgba(114,247,220,.95);filter:drop-shadow(0 0 22px rgba(114,247,220,.32));animation:node-pulse 2.8s ease-in-out infinite;}
+.node.active:after{border-color:rgba(114,247,220,.78);box-shadow:0 0 30px rgba(114,247,220,.18), inset 0 0 26px rgba(114,247,220,.055);}
+.node.related:before{--ring-color:rgba(114,247,220,.48);filter:drop-shadow(0 0 14px rgba(114,247,220,.16));}
+.node.related:after{border-color:rgba(114,247,220,.42);}
+.node.ready:before{--ring-color:rgba(78,227,155,.80)}
+.node.warn:before{--ring-color:rgba(244,201,93,.82)}
+.node.fail:before{--ring-color:rgba(255,116,116,.82)}
+.node.ready:after,.node.warn:after,.node.fail:after{background:radial-gradient(circle at 35% 28%,rgba(255,255,255,.06),transparent 35%),var(--node-fill)}
+@keyframes node-pulse{0%,100%{opacity:.82;transform:scale(1)}50%{opacity:1;transform:scale(1.045)}}
+.n-goal{top:42px}.n-objective{right:64px;top:136px}.n-keyresult{right:82px;bottom:102px}.n-milestone{left:82px;bottom:102px}.n-kpi{left:64px;top:136px}
+.node-key{display:none;}
+.readout{top:17px;left:26px;right:26px;font-size:.67rem;letter-spacing:.04em;}
+.radar-inner:after{
+  content:"";position:absolute;left:50%;top:50%;width:92px;height:92px;border-radius:50%;transform:translate(-50%,-50%);
+  border:1px solid rgba(114,247,220,.11);
+  box-shadow:0 0 0 24px rgba(114,247,220,.025),0 0 0 56px rgba(128,184,255,.018);
+  pointer-events:none;z-index:1;
+}
+@media(max-width:1300px) and (min-width:1101px){
+  .node{width:64px;height:64px}.radar-orbit,.radar-cross{width:288px;height:288px}.n-objective{right:52px}.n-kpi{left:52px}.n-keyresult{right:68px;bottom:100px}.n-milestone{left:68px;bottom:100px}
+}
+
+
+/* v2.7 orientation refinement: symmetric constellation with KPI as terminal/bottom node */
+.radar-inner{min-height:440px;}
+.radar-orbit{width:340px;height:340px;}
+.radar-orbit:before{inset:70px;}
+.radar-orbit:after{width:170px;height:170px;}
+.radar-cross{width:340px;height:340px;}
+.node{
+  width:68px;
+  height:68px;
+  transform:translate(-50%,-50%);
+}
+.node:hover,.node.active,
+.node.n-goal:hover,.node.n-goal.active,
+.node.n-kpi:hover,.node.n-kpi.active{
+  transform:translate(-50%,-50%) scale(1.035);
+}
+.n-goal{left:50%;top:18%;}
+.n-objective{left:76%;top:36%;right:auto;bottom:auto;}
+.n-keyresult{left:70%;top:68%;right:auto;bottom:auto;}
+.n-milestone{left:30%;top:68%;right:auto;bottom:auto;}
+.n-kpi{left:50%;top:84%;right:auto;bottom:auto;}
+.node.active:before{animation:node-pulse-centered 2.8s ease-in-out infinite;}
+@keyframes node-pulse-centered{
+  0%,100%{opacity:.82;transform:scale(1)}
+  50%{opacity:1;transform:scale(1.045)}
+}
+@media(max-width:1300px) and (min-width:1101px){
+  .node{width:62px;height:62px;}
+  .radar-orbit,.radar-cross{width:310px;height:310px;}
+  .radar-orbit:after{width:155px;height:155px;}
+  .n-goal{left:50%;top:18%;}
+  .n-objective{left:76%;top:36%;right:auto;bottom:auto;}
+  .n-keyresult{left:70%;top:68%;right:auto;bottom:auto;}
+  .n-milestone{left:30%;top:68%;right:auto;bottom:auto;}
+  .n-kpi{left:50%;top:84%;right:auto;bottom:auto;}
+}
+
 </style>
 </head>
 <body>
@@ -232,33 +394,16 @@ pre{white-space:pre-wrap;word-break:break-word;background:rgba(3,8,16,.7);border
         <div class="radar-inner">
           <div class="radar-grid"></div>
           <div class="rings"></div>
-          <svg class="map-svg" viewBox="0 0 460 404" preserveAspectRatio="none" aria-hidden="true">
-            <defs>
-              <marker id="arrow" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto">
-                <path class="map-arrow" id="arrow-path" d="M0,0 L9,4.5 L0,9 Z"></path>
-              </marker>
-            </defs>
-            <path id="path-goal-objective" class="map-line" marker-end="url(#arrow)" d="M230 88 L230 122"></path>
-            <path id="path-objective-keyresult" class="map-line" marker-end="url(#arrow)" d="M230 188 C270 220, 320 235, 360 254"></path>
-            <path id="path-objective-milestone" class="map-line" marker-end="url(#arrow)" d="M230 188 C190 220, 140 235, 100 254"></path>
-            <path id="path-keyresult-kpi" class="map-line" marker-end="url(#arrow)" d="M360 304 L360 332"></path>
-            <path id="path-milestone-keyresult" class="map-line" d="M120 286 C190 334, 286 334, 340 286"></path>
-            <text x="242" y="108" class="map-label">advances</text>
-            <text x="282" y="224" class="map-label">proves</text>
-            <text x="74" y="224" class="map-label">tracks execution</text>
-            <text x="372" y="324" class="map-label">sustains</text>
-          </svg>
+          <div class="radar-orbit"></div>
+          <div class="radar-cross"></div>
           <div class="core">ALIGN</div>
-          <button class="node n-goal" id="node-goal" onclick="openSection('goal')"><b>GOAL</b><span>desired future state</span></button>
-          <button class="node n-objective" id="node-objective" onclick="openSection('objective')"><b>OBJECTIVE</b><span>specific outcome</span></button>
-          <button class="node n-keyresult" id="node-keyresult" onclick="openSection('keyresult')"><b>KEY RESULT</b><span>measurable proof</span></button>
-          <button class="node n-milestone" id="node-milestone" onclick="openSection('milestone')"><b>MILESTONE</b><span>progress event</span></button>
-          <button class="node n-kpi" id="node-kpi" onclick="openSection('kpi')"><b>KPI</b><span>ongoing health</span></button>
+          <button class="node n-goal" id="node-goal" onclick="openSection('goal')" title="Goal"><b>G</b><span>Goal</span></button>
+          <button class="node n-objective" id="node-objective" onclick="openSection('objective')" title="Objective"><b>O</b><span>Objective</span></button>
+          <button class="node n-keyresult" id="node-keyresult" onclick="openSection('keyresult')" title="Key Result"><b>KR</b><span>Key Result</span></button>
+          <button class="node n-milestone" id="node-milestone" onclick="openSection('milestone')" title="Milestone"><b>M</b><span>Milestone</span></button>
+          <button class="node n-kpi" id="node-kpi" onclick="openSection('kpi')" title="KPI"><b>KPI</b><span>KPI</span></button>
           <div class="readout"><span id="focusReadout">FOCUS: GOAL</span><span id="statusReadout">STATUS: CALIBRATING</span></div>
-          <div class="legend-box">
-            <div class="legend-item"><span class="legend-swatch"></span> solid glow = relationship checked strong</div>
-            <div class="legend-item"><span class="legend-swatch dash"></span> dashed line = relationship to assess</div>
-          </div>
+          <div class="node-key"><span>G Goal</span><span>O Objective</span><span>KR Key Result</span><span>M Milestone</span><span>KPI Health</span></div>
         </div>
       </div>
     </section>
@@ -479,9 +624,19 @@ function renderSection(k){
  let n=document.getElementById("notes-"+k); if(n && n.value!==state.notes[k]) n.value=state.notes[k]||"";
 }
 function renderNav(){
+ const influence={
+  goal:["objective"],
+  objective:["goal","keyresult","milestone"],
+  keyresult:["objective","kpi"],
+  milestone:["objective"],
+  kpi:["keyresult"]
+ };
  ORDER.forEach(k=>{
   let s=sectionScore(k), btn=document.getElementById("nav-"+k), node=document.getElementById("node-"+k);
-  btn.classList.toggle("active",state.active===k); node.classList.toggle("active",state.active===k);
+  btn.classList.toggle("active",state.active===k);
+  node.classList.toggle("active",state.active===k);
+  node.classList.toggle("related",(influence[state.active]||[]).includes(k));
+  node.style.setProperty("--progress", Math.round((s.answered/s.total)*100)+"%");
   ["ready","warn","fail"].forEach(c=>{btn.classList.remove(c);node.classList.remove(c)});
   if(s.status!=="new"){btn.classList.add(s.status);node.classList.add(s.status)}
   document.getElementById("navscore-"+k).textContent=`${s.answered}/${s.total}`;
@@ -502,17 +657,8 @@ function renderDimensions(){
  document.getElementById("statusReadout").textContent=overall>=85?"STATUS: GREEN":overall>=60?"STATUS: PARTIAL SIGNAL":"STATUS: CALIBRATING";
 }
 function renderLinks(){
- const mapping={
-  "path-goal-objective": checkScore("goal_objective")===1,
-  "path-objective-keyresult": checkScore("objective_keyresult")===1,
-  "path-objective-milestone": checkScore("objective_milestone")===1,
-  "path-keyresult-kpi": checkScore("keyresult_kpi")===1,
-  "path-milestone-keyresult": checkScore("objective_milestone")===1 && checkScore("objective_keyresult")===1
- };
- Object.entries(mapping).forEach(([id,strong])=>{
-  const el=document.getElementById(id);
-  if(el) el.classList.toggle("strong",strong);
- });
+ // The radar is intentionally a clean navigation/status object.
+ // Relationship detail lives in the Relationship Checks panel.
 }
 function openSection(k){
  state.active=k;
