@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<title>Starlight Landing Sequence — Deep Twilight / Lanternlight v1 ✨</title>
+<style>
+  :root{
+    /* Deep Twilight: vibrant default (used in normal room light). */
+    --bg1:#0a0a2e; --bg2:#161148; --bg3:#2b1a72; --bg4:#4321a3;
+    --panel:rgba(225,218,255,.115); --panel2:rgba(225,218,255,.055);
+    --text:#f9f7ff; --soft:rgba(249,247,255,.78);
+    --gold:#ffd166; --peach:#ffb199; --rose:#ff7aa8; --lilac:#b088ff; --mint:#5fe0d0; --blue:#5b8fff;
+    --ink:#0a0a2e; --shadow:rgba(3,3,20,.6); --app-width:1080px;
+    --sleep:0;
+  }
+  *{box-sizing:border-box} html,body{margin:0;min-height:100%}
+  body{
+    min-height:100svh; overflow-x:hidden; color:var(--text);
+    font-family:ui-rounded,"SF Pro Rounded",system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+    background:
+      radial-gradient(circle at 18% 8%, color-mix(in srgb,var(--lilac) 26%,transparent), transparent 31%),
+      radial-gradient(circle at 84% 13%, color-mix(in srgb,var(--blue) 24%,transparent), transparent 32%),
+      radial-gradient(circle at 50% 103%, color-mix(in srgb,var(--rose) 20%,transparent), transparent 43%),
+      linear-gradient(180deg,var(--bg1),var(--bg2) 45%,var(--bg3) 78%,var(--bg4));
+    transition:background 1100ms ease, filter 1100ms ease;
+  }
+  /* Lanternlight theme — engaged once "Leave Today" (Eye Comfort Shield step) is checked */
+  body[data-theme="warm"]{
+    --bg1:#1a0f0a; --bg2:#2c1912; --bg3:#4a2818; --bg4:#6b3a22;
+    --panel:rgba(255,236,218,.12); --panel2:rgba(255,236,218,.06);
+    --text:#fff3e6; --soft:rgba(255,243,230,.78);
+    --gold:#ffcc66; --peach:#e0916a; --rose:#ff5f6a; --lilac:#c78cff; --mint:#3cdcc4; --blue:#00c8d6;
+    --ink:#1a0f0a; --shadow:rgba(10,4,2,.6);
+  }
+  body[data-theme="warm"]::before{opacity:.55}
+  body::before{content:"";position:fixed;inset:-42%;pointer-events:none;filter:blur(18px);opacity:.9;animation:aurora 34s linear infinite;background:conic-gradient(from 120deg at 50% 50%,transparent,rgba(176,136,255,.09),rgba(91,143,255,.08),transparent,rgba(255,209,102,.06),rgba(255,122,168,.04),transparent);transition:opacity 1100ms ease}
+  body::after{content:"";position:fixed;inset:0;pointer-events:none;background-image:radial-gradient(circle,rgba(255,255,255,.68) 0 1px,transparent 1.3px),radial-gradient(circle,rgba(255,209,102,.5) 0 1px,transparent 1.3px);background-size:56px 56px,97px 97px;background-position:0 0,22px 19px;opacity:.16;animation:skyDrift 80s linear infinite}
+  @keyframes aurora{to{transform:rotate(360deg)}} @keyframes skyDrift{to{background-position:120px -180px,90px -220px}}
+  #stars,#ambientSparkles,#particles{position:fixed;inset:0;pointer-events:none;overflow:hidden} #sparkleCanvas{position:fixed;inset:0;width:100vw;height:100svh;pointer-events:none;z-index:999}
+  .star{position:absolute;width:2px;height:2px;border-radius:50%;background:#fff;opacity:.68;box-shadow:0 0 10px rgba(255,255,255,.85);animation:twinkle var(--dur) ease-in-out infinite}.star.med{width:3px;height:3px}.star.big{width:4px;height:4px;background:var(--gold);box-shadow:0 0 15px color-mix(in srgb,var(--gold) 70%,transparent)}@keyframes twinkle{0%,100%{opacity:.18;transform:scale(.62)}50%{opacity:1;transform:scale(1.48)}}
+  .ambient{position:fixed;width:5px;height:5px;border-radius:999px;background:var(--gold);box-shadow:0 0 18px color-mix(in srgb,var(--gold) 75%,transparent);animation:ambientFloat var(--life) linear forwards;opacity:0}@keyframes ambientFloat{0%{opacity:0;transform:translateY(12px) scale(.4)}12%{opacity:.68}100%{opacity:0;transform:translateY(-110px) translateX(var(--drift)) scale(.05)}}
+  .moon{position:fixed;right:7vw;top:7svh;width:96px;height:96px;border-radius:50%;background:radial-gradient(circle at 36% 32%,#fff4c9 0 8%,transparent 9%),radial-gradient(circle at 58% 54%,rgba(120,94,150,.2) 0 10%,transparent 11%),#ffe7a8;box-shadow:0 0 34px rgba(255,217,141,.42),0 0 95px rgba(255,179,125,.16);opacity:.78;animation:moonFloat 10s ease-in-out infinite;transition:opacity 1100ms ease}
+  body[data-theme="warm"] .moon{opacity:.5}
+  @keyframes moonFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(10px)}}
+  .wrap{display:flex;justify-content:center;padding:5svh 16px}
+  .app{position:relative;z-index:2;width:min(100%,var(--app-width));border-radius:38px;padding:30px 34px 34px;background:linear-gradient(180deg,var(--panel),var(--panel2));border:1px solid rgba(255,255,255,.14);box-shadow:0 40px 110px var(--shadow),inset 0 1px 0 rgba(255,255,255,.14);backdrop-filter:blur(18px)}
+  .content{display:grid;grid-template-columns:1.05fr 1fr;gap:26px}
+  .hero{display:flex;flex-direction:column;justify-content:center;padding:8px}
+  .pill{display:inline-block;padding:6px 14px;border-radius:999px;font-size:.74rem;letter-spacing:.06em;text-transform:uppercase;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.14);color:var(--soft);width:fit-content}
+  h1{font-size:clamp(2.6rem,4vw,3.6rem);margin:14px 0 8px;letter-spacing:-.02em;background:linear-gradient(135deg,var(--gold),var(--rose) 60%,var(--lilac));-webkit-background-clip:text;background-clip:text;color:transparent}
+  .subtitle{color:var(--soft);font-size:1rem;line-height:1.5;max-width:30rem}
+  .innWindow{position:relative;margin-top:20px;height:170px;border-radius:30px;overflow:hidden;background:linear-gradient(180deg,color-mix(in srgb,var(--bg2) 70%,transparent),color-mix(in srgb,var(--bg4) 55%,transparent));border:1px solid rgba(255,255,255,.1)}
+  .innTitle{position:absolute;left:16px;top:14px;font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;color:var(--soft);opacity:.7;z-index:3}
+  .windowMoon{position:absolute;right:24px;top:22px;width:30px;height:30px;border-radius:50%;background:var(--gold);box-shadow:0 0 20px color-mix(in srgb,var(--gold) 60%,transparent);z-index:1}
+  .horizon{position:absolute;left:0;right:0;bottom:0;height:56px;background:linear-gradient(180deg,transparent,color-mix(in srgb,var(--horizoncolor,var(--bg4)) 55%,transparent) 60%);transition:background 1.1s ease;z-index:1}
+  .orbWrap{position:absolute;left:50%;bottom:34px;transform:translateX(-50%);z-index:2;width:110px;height:110px;display:flex;align-items:center;justify-content:center}
+  .orbHalo{position:absolute;width:54px;height:54px;border-radius:50%;background:radial-gradient(circle,var(--orbcolor,var(--blue)),color-mix(in srgb,var(--orbcolor,var(--blue)) 35%,transparent) 60%,transparent 80%);opacity:.5;transition:width 1s cubic-bezier(.2,.8,.2,1),height 1s cubic-bezier(.2,.8,.2,1),opacity 1s ease,background 1s ease;box-shadow:0 0 34px color-mix(in srgb,var(--orbcolor,var(--blue)) 40%,transparent)}
+  .orbHalo.grown{width:80px;height:80px;opacity:.75}
+  .orbHalo.full{width:106px;height:106px;opacity:.95;animation:orbPulse 3.2s ease-in-out infinite}
+  @keyframes orbPulse{0%,100%{filter:brightness(1)}50%{filter:brightness(1.15)}}
+  .orbMoon{position:relative;z-index:1;width:46px;height:46px;border-radius:50%;background:
+      radial-gradient(circle at 32% 28%, rgba(255,255,255,.95) 0 5%, transparent 6%),
+      radial-gradient(circle at 62% 58%, rgba(160,150,175,.28) 0 9%, transparent 10%),
+      radial-gradient(circle at 70% 24%, rgba(180,170,195,.22) 0 5%, transparent 6%),
+      radial-gradient(circle at 40% 70%, rgba(170,160,185,.18) 0 7%, transparent 8%),
+      linear-gradient(158deg,#fff9ec,#ffeccb 55%,#ffdca4);
+    box-shadow:inset -6px -4px 10px rgba(120,90,60,.16),0 0 20px rgba(255,244,220,.5);transition:filter 1s ease}
+  body[data-theme="warm"] .orbMoon{filter:saturate(1.15) brightness(1.03)}
+  .rightPane{display:flex;flex-direction:column;gap:14px}
+  .progress{padding:2px 2px 6px}
+  .progressTop{display:flex;justify-content:space-between;font-size:.86rem;color:var(--soft);margin-bottom:8px}
+  .bar{height:8px;border-radius:999px;background:rgba(255,255,255,.08);overflow:hidden}
+  .fill{height:100%;width:0%;border-radius:999px;background:linear-gradient(90deg,var(--rose),var(--gold),var(--mint),var(--blue),var(--lilac));transition:width .6s cubic-bezier(.2,.8,.2,1)}
+  .list{display:flex;flex-direction:column;gap:10px}
+  .item{position:relative;display:grid;grid-template-columns:46px 1fr auto 34px;align-items:center;gap:12px;padding:14px;border-radius:24px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);cursor:pointer;transition:transform .2s ease,background .3s ease,border-color .3s ease}
+  .item:hover{transform:translateY(-1px);background:rgba(255,255,255,.075)}
+  .item.done{background:color-mix(in srgb,var(--accent) 12%,rgba(255,255,255,.05));border-color:color-mix(in srgb,var(--accent) 35%,transparent)}
+  .item.justDone{animation:pulseDone .5s ease}
+  @keyframes pulseDone{0%{transform:scale(1)}40%{transform:scale(1.015)}100%{transform:scale(1)}}
+  .icon{width:46px;height:46px;border-radius:18px;display:grid;place-items:center;font-size:1.38rem;background:radial-gradient(circle at 30% 25%,rgba(255,255,255,.22),transparent 38%),rgba(255,255,255,.08);box-shadow:inset 0 1px 0 rgba(255,255,255,.16),0 0 16px color-mix(in srgb,var(--accent) 30%,transparent);transition:box-shadow .4s ease}
+  .item h2{margin:0 0 3px;font-size:1.01rem;letter-spacing:-.01em}
+  .item p{margin:0;color:var(--soft);font-size:.86rem;line-height:1.35}
+  .check{width:34px;height:34px;border-radius:999px;border:1.5px solid rgba(255,255,255,.36);display:grid;place-items:center;background:rgba(255,255,255,.055);transition:all .26s ease}
+  .check::before{content:"✦";transform:scale(0) rotate(-30deg);transition:transform .35s cubic-bezier(.2,1.55,.35,1)}
+  .item.done .check{border-color:transparent;color:var(--ink);background:linear-gradient(135deg,var(--gold),var(--accent));box-shadow:0 0 30px color-mix(in srgb,var(--accent) 55%,transparent)}
+  .item.done .check::before{transform:scale(1) rotate(0deg)}
+  .ideaToggle{appearance:none;border:1px solid color-mix(in srgb,var(--accent) 30%,rgba(255,255,255,.16));border-radius:999px;padding:6px 9px;background:color-mix(in srgb,var(--accent) 8%,rgba(255,255,255,.07));color:var(--soft);font-size:.78rem;line-height:1;cursor:pointer}
+  .ideaToggle::after{content:"⌄";display:inline-block;margin-left:5px;transition:transform .22s ease}
+  .item.open .ideaToggle::after{transform:rotate(180deg)}
+  .ideas{grid-column:2/5;display:grid;grid-template-rows:0fr;transition:grid-template-rows .28s ease,opacity .22s ease,margin .22s ease;opacity:0;margin-top:-10px}
+  .ideasInner{overflow:hidden;padding:0 12px;border-radius:18px;background:rgba(0,0,0,.18);color:var(--soft);font-size:.82rem;line-height:1.5;border-left:2px solid color-mix(in srgb,var(--accent) 40%,transparent)}
+  .item.open .ideas{grid-template-rows:1fr;opacity:1;margin-top:-2px}
+  .item.open .ideasInner{padding:10px 12px 10px 14px;border-top:1px solid rgba(255,255,255,.08);border-right:1px solid rgba(255,255,255,.08);border-bottom:1px solid rgba(255,255,255,.08)}
+  .ideas b{color:var(--accent);font-weight:700}
+  .ideas span{display:inline-block;margin:3px 7px 3px 0;padding:2px 8px;border-radius:999px;background:color-mix(in srgb,var(--accent) 14%,rgba(255,255,255,.05));border:1px solid color-mix(in srgb,var(--accent) 22%,transparent)}
+  .statusPanel{position:relative;overflow:hidden;display:grid;grid-template-columns:auto 1fr;gap:12px;align-items:center;min-height:58px;padding:13px 14px;border-radius:24px;color:var(--text);line-height:1.35;background:rgba(0,0,0,.2);border:1px solid color-mix(in srgb,var(--gold) 25%,transparent)}
+  .statusIcon{width:38px;height:38px;border-radius:15px;display:grid;place-items:center;background:rgba(255,255,255,.1)}
+  .controls{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  button{appearance:none;border:1px solid rgba(255,255,255,.18);border-radius:999px;padding:12px 13px;background:rgba(255,255,255,.09);color:var(--text);font:inherit;cursor:pointer}
+  button:active{transform:scale(.98)}
+  .sparkleBtn{grid-column:1/-1;background:linear-gradient(135deg,color-mix(in srgb,var(--rose) 20%,transparent),color-mix(in srgb,var(--gold) 16%,transparent),color-mix(in srgb,var(--lilac) 16%,transparent))}
+  .themeNote{font-size:.72rem;color:var(--soft);opacity:.65;text-align:center;margin-top:2px}
+  .ring{position:fixed;z-index:998;pointer-events:none;left:var(--left);top:var(--top);width:28px;height:28px;border-radius:999px;border:1.5px solid color-mix(in srgb,var(--gold) 90%,transparent);box-shadow:0 0 20px color-mix(in srgb,var(--gold) 55%,transparent);animation:ringBloom 1.05s ease-out forwards}
+  @keyframes ringBloom{0%{opacity:0;transform:translate(-50%,-50%) scale(.25)}12%{opacity:1}100%{opacity:0;transform:translate(-50%,-50%) scale(4.6)}}
+  .completeOverlay{position:fixed;inset:0;z-index:1000;display:grid;place-items:center;pointer-events:none;background:rgba(6,4,20,.3);opacity:0;animation:overlay 2.65s ease forwards}
+  .completeText{width:min(88vw,430px);text-align:center;padding:26px 24px;border-radius:30px;color:var(--text);background:linear-gradient(180deg,color-mix(in srgb,var(--bg3) 92%,black),color-mix(in srgb,var(--bg1) 94%,black));border:1px solid color-mix(in srgb,var(--gold) 40%,transparent);box-shadow:0 30px 90px rgba(0,0,0,.48)}
+  .completeText strong{display:block;font-size:1.45rem;margin-bottom:8px}
+  @keyframes overlay{0%,100%{opacity:0}14%,84%{opacity:1}}
+  @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.001ms!important;animation-iteration-count:1!important;transition-duration:.001ms!important}}
+  @media(max-width:760px){
+    .wrap{padding:0}
+    .app{border-radius:0;padding:18px 14px max(22px,env(safe-area-inset-bottom));border:0;box-shadow:none}
+    .content{display:flex;flex-direction:column;gap:13px}
+    .hero{padding:0}
+    h1{font-size:clamp(2.2rem,11vw,3rem);margin:12px 0 8px}
+    .subtitle{font-size:.94rem}
+    .innWindow{height:150px;margin-top:14px;border-radius:24px}
+    .item{grid-template-columns:42px 1fr auto 32px;padding:12px;border-radius:20px}
+    .item:hover{transform:none}
+    .icon{width:42px;height:42px;border-radius:16px}
+    .item h2{font-size:.98rem}
+    .item p{font-size:.83rem}
+    .controls{grid-template-columns:1fr}
+  }
+</style>
+</head>
+<body data-theme="cool">
+<div id="stars"></div><div id="ambientSparkles"></div><div id="particles"></div><canvas id="sparkleCanvas" aria-hidden="true"></canvas><div class="moon" aria-hidden="true"></div>
+<main class="wrap"><section class="app" id="app"><div class="content">
+  <section class="hero">
+    <header>
+      <div class="pill">✦ Starlight Landing Sequence ✦</div>
+      <h1 id="titleText">Deep Twilight Inn</h1>
+      <p class="subtitle">A tiny cosmic inn for the end of the day — vivid sky outside, and a warm hearth waiting once you begin winding down.</p>
+    </header>
+    <section class="innWindow" aria-hidden="true">
+      <div class="innTitle">The inn window</div>
+      <div class="windowMoon"></div>
+      <div class="horizon" id="horizon"></div>
+      <div class="orbWrap"><div class="orbHalo" id="orbHalo"></div><div class="orbMoon"></div></div>
+    </section>
+  </section>
+  <section class="rightPane">
+    <section class="progress" aria-label="Landing sequence progress">
+      <div class="progressTop"><span id="dateLabel">Tonight</span><strong id="countLabel">0 / 5 stars</strong></div>
+      <div class="bar"><div class="fill" id="fill"></div></div>
+    </section>
+    <section class="list" id="list">
+      <article class="item" data-id="leave" style="--accent:var(--rose)"><div class="icon">🌅</div><div><h2>Leave Today</h2><p>Step out of doing mode. Turning this on brings the lanterns up — a good moment for your phone's Eye Comfort Shield too.</p></div><button class="ideaToggle" type="button" aria-expanded="false" aria-label="Show gentle ideas for Leave Today">ideas</button><div class="check"></div><div class="ideas"><div class="ideasInner"><b>Gentle ideas:</b> <span>Eye Comfort Shield</span><span>close laptop</span><span>soften alerts</span><span>one last message check</span><span>scroll goblin bedtime</span></div></div></article>
+      <article class="item" data-id="tomorrow" style="--accent:var(--blue)"><div class="icon">🌙</div><div><h2>Prepare Tomorrow</h2><p>One kindness for Future Clara. Not productivity — just less friction in the morning.</p></div><button class="ideaToggle" type="button" aria-expanded="false" aria-label="Show gentle ideas for Prepare Tomorrow">ideas</button><div class="check"></div><div class="ideas"><div class="ideasInner"><b>Gentle ideas:</b> <span>charger</span><span>water</span><span>clothes</span><span>tiny note</span><span>first task</span><span>cat logistics</span></div></div></article>
+      <article class="item" data-id="nest" style="--accent:var(--mint)"><div class="icon">🛁</div><div><h2>Evening Nest</h2><p>Get settled in your cozy human maintenance station. Checking this means "settled," not "perfect."</p></div><button class="ideaToggle" type="button" aria-expanded="false" aria-label="Show gentle ideas for Evening Nest">ideas</button><div class="check"></div><div class="ideas"><div class="ideasInner"><b>Gentle ideas:</b> <span>teeth</span><span>face</span><span>skincare</span><span>hair</span><span>pajamas</span><span>meds</span></div></div></article>
+      <article class="item" data-id="sky" style="--accent:var(--lilac)"><div class="icon">✨</div><div><h2>Tiny Sky</h2><p>Give today one peaceful ending. A breath, a prayer, a win, Sammy pets, or a quiet page.</p></div><button class="ideaToggle" type="button" aria-expanded="false" aria-label="Show gentle ideas for Tiny Sky">ideas</button><div class="check"></div><div class="ideas"><div class="ideasInner"><b>Gentle ideas:</b> <span>one win</span><span>one prayer</span><span>one breath</span><span>pet Sammy</span><span>thank Cameron</span><span>read one page</span></div></div></article>
+      <article class="item" data-id="drift" style="--accent:var(--gold)"><div class="icon">😴</div><div><h2>Drift</h2><p>You don't have to command sleep. Just make a place where sleep can find you.</p></div><button class="ideaToggle" type="button" aria-expanded="false" aria-label="Show gentle ideas for Drift">ideas</button><div class="check"></div><div class="ideas"><div class="ideasInner"><b>Gentle ideas:</b> <span>in bed</span><span>comfy pillow</span><span>fan/water</span><span>phone away-ish</span><span>lights low</span><span>tiny exhale</span></div></div></article>
+    </section>
+    <div class="statusPanel" aria-live="polite"><div class="statusIcon">✨</div><div class="statusText" id="message">Welcome back, Sweet Clara. The stars kept your place.</div></div>
+    <div class="controls">
+      <button id="soundBtn" type="button">🔊 Sound On</button>
+      <button id="resetBtn" type="button">↺ Starlight Reset</button>
+      <button id="sparkleBtn" class="sparkleBtn" type="button">✨ Just Give Me Sparkles ✨</button>
+    </div>
+    <div class="themeNote" id="themeNote">Deep Twilight — vivid and cool. Checking "Leave Today" brings the lanterns up.</div>
+  </section>
+</div></section></main>
+<script>
+(function(){
+const stars=document.getElementById('stars'),ambientSparkles=document.getElementById('ambientSparkles'),particles=document.getElementById('particles'),sparkleCanvas=document.getElementById('sparkleCanvas'),sparkleCtx=sparkleCanvas.getContext('2d'),items=Array.from(document.querySelectorAll('.item')),app=document.getElementById('app'),fill=document.getElementById('fill'),countLabel=document.getElementById('countLabel'),dateLabel=document.getElementById('dateLabel'),message=document.getElementById('message'),soundBtn=document.getElementById('soundBtn'),resetBtn=document.getElementById('resetBtn'),sparkleBtn=document.getElementById('sparkleBtn'),themeNote=document.getElementById('themeNote'),horizon=document.getElementById('horizon'),orbHalo=document.getElementById('orbHalo');
+const isMobile=window.matchMedia('(max-width: 760px)').matches,reduceMotion=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+const FX={stars:isMobile?58:92,ambientInterval:isMobile?1700:1150,clickBurst:isMobile?54:86,clickSpread:isMobile?190:290,resetSparkles:isMobile?95:150,buttonSparkles:isMobile?135:230}; const MAX_PARTICLES=isMobile?140:240;
+function addParticleNode(node,ttl=1900){particles.appendChild(node);while(particles.childElementCount>MAX_PARTICLES)particles.firstElementChild?.remove();setTimeout(()=>node.remove(),ttl)}
+let sparkleBits=[],sparkleRaf=0,canvasW=0,canvasH=0,dpr=1; function resizeSparkleCanvas(){dpr=Math.min(window.devicePixelRatio||1,2);canvasW=Math.ceil(window.innerWidth);canvasH=Math.ceil(window.innerHeight);sparkleCanvas.width=Math.ceil(canvasW*dpr);sparkleCanvas.height=Math.ceil(canvasH*dpr);sparkleCanvas.style.width=canvasW+'px';sparkleCanvas.style.height=canvasH+'px';sparkleCtx.setTransform(dpr,0,0,dpr,0,0)} window.addEventListener('resize',resizeSparkleCanvas,{passive:true});resizeSparkleCanvas();
+function drawStar(ctx,x,y,size,alpha,rotation){ctx.save();ctx.translate(x,y);ctx.rotate(rotation);ctx.globalAlpha=alpha;ctx.beginPath();ctx.moveTo(0,-size);ctx.lineTo(size*.23,-size*.23);ctx.lineTo(size,0);ctx.lineTo(size*.23,size*.23);ctx.lineTo(0,size);ctx.lineTo(-size*.23,size*.23);ctx.lineTo(-size,0);ctx.lineTo(-size*.23,-size*.23);ctx.closePath();ctx.fill();ctx.restore()}
+function drawDiamond(ctx,x,y,size,alpha,rotation){ctx.save();ctx.translate(x,y);ctx.rotate(rotation);ctx.globalAlpha=alpha;ctx.beginPath();ctx.moveTo(0,-size);ctx.lineTo(size*.55,0);ctx.lineTo(0,size);ctx.lineTo(-size*.55,0);ctx.closePath();ctx.fill();ctx.restore()}
+function sparkleFrame(now){sparkleCtx.clearRect(0,0,canvasW,canvasH);sparkleCtx.save();sparkleCtx.globalCompositeOperation='lighter';sparkleBits=sparkleBits.filter(bit=>{const t=(now-bit.born)/bit.life;if(t>=1)return false;if(t<0)return true;const ease=1-Math.pow(1-t,3),x=bit.x+bit.vx*ease,y=bit.y+bit.vy*ease+bit.gravity*t*t,alpha=Math.sin(Math.PI*t)*bit.alpha,size=bit.size*(1+bit.grow*t);sparkleCtx.fillStyle=bit.color;sparkleCtx.shadowColor=bit.color;sparkleCtx.shadowBlur=bit.blur;if(bit.kind==='star')drawStar(sparkleCtx,x,y,size,alpha,bit.rot+bit.spin*t);else if(bit.kind==='diamond')drawDiamond(sparkleCtx,x,y,size,alpha,bit.rot+bit.spin*t);else if(bit.kind==='comet'){sparkleCtx.save();sparkleCtx.globalAlpha=alpha;sparkleCtx.translate(x,y);sparkleCtx.rotate(Math.atan2(bit.vy,bit.vx));const grad=sparkleCtx.createLinearGradient(-bit.tail,0,8,0);grad.addColorStop(0,'rgba(255,255,255,0)');grad.addColorStop(1,bit.color);sparkleCtx.fillStyle=grad;sparkleCtx.fillRect(-bit.tail,-1.2,bit.tail,2.4);sparkleCtx.beginPath();sparkleCtx.arc(0,0,size*.65,0,Math.PI*2);sparkleCtx.fillStyle='white';sparkleCtx.fill();sparkleCtx.restore()}else{sparkleCtx.globalAlpha=alpha;sparkleCtx.beginPath();sparkleCtx.arc(x,y,size,0,Math.PI*2);sparkleCtx.fill()}return true});sparkleCtx.restore();if(sparkleBits.length)sparkleRaf=requestAnimationFrame(sparkleFrame);else sparkleRaf=0}
+function pickKind(bias){const r=Math.random();if(bias==='comet')return r>.4?'comet':(r>.15?'star':'dot');if(bias==='diamond')return r>.55?'diamond':(r>.3?'star':'dot');if(bias==='dot')return r>.6?'dot':(r>.3?'star':'comet');if(bias==='star')return r>.55?'star':(r>.3?'diamond':'dot');return r>.72?'star':r>.62?'comet':r>.52?'diamond':'dot'}
+function addCanvasSparkles(x,y,amount=60,spread=220,mode='burst',accentHex=null,kindBias='mixed'){if(reduceMotion)return;const isWarm=document.body.dataset.theme==='warm';const basePalette=isWarm?['#ffcc66','#e0916a','#ff5f6a','#c78cff','#3cdcc4','#00c8d6','#ffffff']:['#ffd166','#ffb199','#ff7aa8','#b088ff','#5fe0d0','#5b8fff','#ffffff'];const palette=accentHex?[accentHex,accentHex,'#ffffff',...basePalette]:basePalette;const cap=isMobile?260:440,now=performance.now();for(let i=0;i<amount;i++){const angle=Math.random()*Math.PI*2,dist=22+Math.random()*spread,kind=pickKind(kindBias),lift=mode==='screen'?-30-Math.random()*120:-40-Math.random()*90;sparkleBits.push({x,y,vx:Math.cos(angle)*dist,vy:Math.sin(angle)*dist+lift,gravity:18+Math.random()*36,born:now+Math.random()*70,life:650+Math.random()*760,size:(kind==='star'||kind==='diamond')?5+Math.random()*12:1.8+Math.random()*4.8,grow:(kind==='star'||kind==='diamond')?.55:.15,color:palette[Math.floor(Math.random()*palette.length)],alpha:.45+Math.random()*.55,blur:(kind==='star'||kind==='diamond')?14:10,rot:Math.random()*Math.PI,spin:(Math.random()*2-1)*Math.PI*1.4,tail:22+Math.random()*42,kind})}if(sparkleBits.length>cap)sparkleBits.splice(0,sparkleBits.length-cap);if(!sparkleRaf)sparkleRaf=requestAnimationFrame(sparkleFrame)}
+function canvasRing(x,y,accentHex){if(reduceMotion)return;const ring=document.createElement('span');ring.className='ring';ring.style.setProperty('--left',x+'px');ring.style.setProperty('--top',y+'px');if(accentHex){ring.style.borderColor=accentHex;ring.style.boxShadow=`0 0 20px ${accentHex}88, inset 0 0 14px rgba(255,255,255,.35)`}addParticleNode(ring,1150)}
+const today=new Date().toDateString(),dateKey='starlightV3.date',stateKey='starlightV3.state',mutedKey='starlightV3.muted';let muted=localStorage.getItem(mutedKey)==='true',isResetting=false,lastToggleAt=0;
+const messages=['A tiny star just came back online.','Future Clara appreciates this.','The scroll goblin files a formal complaint.','Soft choice logged. The lanterns glow a little warmer.','That counts. Tiny magic is still magic.','The night sky settles a little more.'];
+dateLabel.textContent=new Intl.DateTimeFormat(undefined,{weekday:'long',month:'short',day:'numeric'}).format(new Date());if(localStorage.getItem(dateKey)!==today){localStorage.setItem(dateKey,today);localStorage.setItem(stateKey,JSON.stringify({}))}let state={};try{state=JSON.parse(localStorage.getItem(stateKey)||'{}')}catch{state={}}
+function makeStars(){if(reduceMotion)return;for(let i=0;i<FX.stars;i++){const s=document.createElement('span'),r=Math.random();s.className='star'+(r>.94?' big':r>.78?' med':'');s.style.left=Math.random()*100+'vw';s.style.top=Math.random()*100+'vh';s.style.setProperty('--dur',(2.2+Math.random()*5.8)+'s');s.style.animationDelay=Math.random()*4+'s';stars.appendChild(s)}}
+function ambientLoop(){if(reduceMotion||document.hidden)return;const done=items.filter(i=>state[i.dataset.id]).length;if(Math.random()<done*.06)return;const p=document.createElement('span');p.className='ambient';p.style.left=Math.random()*100+'vw';p.style.top=(55+Math.random()*45)+'vh';p.style.setProperty('--life',(3.6+Math.random()*3.6+done*.25)+'s');p.style.setProperty('--drift',(Math.random()*80-40)+'px');ambientSparkles.appendChild(p);setTimeout(()=>p.remove(),8000)}setInterval(ambientLoop,FX.ambientInterval);for(let i=0;i<(isMobile?4:8);i++)setTimeout(ambientLoop,i*180);
+let audioCtx;function ctx(){if(!audioCtx)audioCtx=new(window.AudioContext||window.webkitAudioContext)();if(audioCtx.state==='suspended')audioCtx.resume();return audioCtx}function playTone(freq,start,dur,gainValue=.025,type='sine',detune=0){if(muted)return;const c=ctx(),osc=c.createOscillator(),gain=c.createGain();osc.type=type;osc.frequency.setValueAtTime(freq,c.currentTime+start);osc.detune.setValueAtTime(detune,c.currentTime+start);gain.gain.setValueAtTime(.0001,c.currentTime+start);gain.gain.exponentialRampToValueAtTime(gainValue,c.currentTime+start+.025);gain.gain.exponentialRampToValueAtTime(.0001,c.currentTime+start+dur);osc.connect(gain).connect(c.destination);osc.start(c.currentTime+start);osc.stop(c.currentTime+start+dur+.04)}
+function crystalNote(freq,start,dur,gain=.026,detune=0){playTone(freq,start,dur,gain,'sine',detune);playTone(freq*2,start+.012,dur*.75,gain*.38,'sine',detune*1.6)}
+const PENTA=[523.25,587.33,659.25,783.99,880,1046.5,1174.66,1318.51];
+function shimmer(){PENTA.slice(0,5).forEach((f,i)=>crystalNote(f,i*.055,1.05+i*.05,.03-i*.002,Math.random()*6-3))}
+function megaShimmer(){shimmer();setTimeout(()=>{if(muted)return;PENTA.slice(2).forEach((f,i)=>crystalNote(f,i*.06,1.3+i*.05,.026,i%2?4:-4))},210)}
+function lanternChime(){if(muted)return;[880,783.99,659.25,587.33,440].forEach((f,i)=>{playTone(f,i*.1,1.5+i*.09,.024,'triangle',-4+i*2);playTone(f*2,i*.1+.02,1.1,.008,'sine',0)})}
+const ITEM_ROOTS={leave:659.25,tomorrow:587.33,nest:698.46,sky:783.99,drift:523.25};
+const ITEM_ACCENT_HEX={leave:{cool:'#ff7aa8',warm:'#ff5f6a'},tomorrow:{cool:'#5b8fff',warm:'#00c8d6'},nest:{cool:'#5fe0d0',warm:'#3cdcc4'},sky:{cool:'#b088ff',warm:'#c78cff'},drift:{cool:'#ffd166',warm:'#ffcc66'}};
+const ITEM_SPARKLE_STYLE={leave:'comet',tomorrow:'diamond',nest:'dot',sky:'star',drift:'mixed'};
+function itemChime(id){if(muted)return;const root=ITEM_ROOTS[id]||659.25,ratios=[1,1.125,1.26];ratios.forEach((r,i)=>crystalNote(root*r,i*.075,.85+i*.05,.027,Math.random()*4-2))}
+function resetSound(){if(muted)return;const notes=[1318.51,1174.66,1046.5,880,783.99,659.25,880];notes.forEach((f,i)=>crystalNote(f,i*.045,.7+i*.04,.02,-6+i*2));setTimeout(()=>{if(isResetting)shimmer()},390)}
+function foregroundBurst(x,y,amount=70,spread=300){if(reduceMotion)return;canvasRing(x,y);addCanvasSparkles(x,y,amount,spread,'burst')}
+function screenSparkles(amount=120){if(reduceMotion)return;const clusters=isMobile?8:14,perCluster=Math.max(10,Math.floor(amount/clusters));for(let i=0;i<clusters;i++)setTimeout(()=>addCanvasSparkles(Math.random()*window.innerWidth,Math.random()*window.innerHeight,perCluster,isMobile?150:230,'screen'),i*38)}
+function lineSweep(rect){if(reduceMotion)return;const y=rect.top+rect.height/2;for(let i=0;i<3;i++)setTimeout(()=>addCanvasSparkles(rect.left+rect.width*(.22+i*.28),y+(Math.random()*14-7),isMobile?8:12,65,'burst'),i*28)}
+function resetCascade(){if(reduceMotion)return;items.map(i=>i.getBoundingClientRect()).forEach((rect,idx)=>setTimeout(()=>foregroundBurst(rect.left+rect.width*.82,rect.top+rect.height/2+(Math.random()*12-6),isMobile?10:16,isMobile?95:125),idx*100))}
+function applyTheme(){const warm=!!state['leave'];document.body.dataset.theme=warm?'warm':'cool';document.getElementById('titleText').textContent=warm?'Lanternlight Inn':'Deep Twilight Inn';themeNote.textContent=warm?'Lanternlight — warm and settled. Uncheck "Leave Today" to return to twilight.':'Deep Twilight — vivid and cool. Checking "Leave Today" brings the lanterns up.';const done=items.filter(i=>state[i.dataset.id]).length;const orbColor=warm?'var(--gold)':(done>=3?'var(--lilac)':'var(--blue)');orbHalo.style.setProperty('--orbcolor',orbColor);horizon.style.setProperty('--horizoncolor',warm?'var(--peach)':(done>=3?'var(--lilac)':'var(--bg4)'))}
+function save(){localStorage.setItem(stateKey,JSON.stringify(state))}
+function update(options={}){const silent=!!options.silent;let done=0;items.forEach(item=>{const isDone=!!state[item.dataset.id];item.classList.toggle('done',isDone);if(isDone)done++});const isWarm=document.body.dataset.theme==='warm';orbHalo.classList.remove('grown','full');const orbColor=isWarm?'var(--gold)':(done>=3?'var(--lilac)':'var(--blue)');orbHalo.style.setProperty('--orbcolor',orbColor);if(done>0&&done<items.length)orbHalo.classList.add('grown');if(done===items.length)orbHalo.classList.add('full');horizon.style.setProperty('--horizoncolor',isWarm?'var(--peach)':(done>=3?'var(--lilac)':'var(--bg4)'));countLabel.textContent=`${done} / ${items.length} star${done===1?'':'s'}`;fill.style.width=`${done/items.length*100}%`;if(silent)return;if(done===items.length&&!isResetting)message.textContent='Goodnight, Sweet Clara. Today’s adventures can wait here until morning.';else if(done===0)message.textContent='Welcome back, Sweet Clara. The stars kept your place.'}
+function completeOverlay(){if(isResetting)return;const overlay=document.createElement('div');overlay.className='completeOverlay';overlay.innerHTML='<div class="completeText"><strong>Goodnight, Sweet Clara ✨</strong>Today’s adventures can wait here until morning.</div>';document.body.appendChild(overlay);setTimeout(()=>overlay.remove(),2300)}
+function toggle(item){if(isResetting)return;const now=Date.now();if(now-lastToggleAt<140)return;lastToggleAt=now;const id=item.dataset.id,rect=item.getBoundingClientRect(),wasComplete=items.every(i=>state[i.dataset.id]),themeWasWarm=!!state['leave'];const isWarmNow=document.body.dataset.theme==='warm';const accentHex=(ITEM_ACCENT_HEX[id]||{})[isWarmNow?'warm':'cool']||null;const kindBias=ITEM_SPARKLE_STYLE[id]||'mixed';state[id]=!state[id];if(state[id]){item.classList.remove('justDone');void item.offsetWidth;item.classList.add('justDone');shimmer();itemChime(id);canvasRing(rect.right-32,rect.top+rect.height/2,accentHex);addCanvasSparkles(rect.right-32,rect.top+rect.height/2,FX.clickBurst,FX.clickSpread,'burst',accentHex,kindBias);if(!isMobile)setTimeout(()=>addCanvasSparkles(rect.left+64,rect.top+rect.height/2,28,210,'burst',accentHex,kindBias),70);lineSweep(rect);message.textContent=messages[Math.floor(Math.random()*messages.length)]}else message.textContent='No guilt. You can always add it back when it feels true.';save();update({silent:true});const themeIsWarmNow=!!state['leave'];if(id==='leave'&&themeIsWarmNow&&!themeWasWarm){applyTheme();lanternChime();screenSparkles(isMobile?40:64);orbHalo.classList.add('full');setTimeout(()=>{if(!items.every(i=>state[i.dataset.id]))orbHalo.classList.remove('full')},1600);message.textContent='The lanterns are lit. Welcome to the warm hours.'}else if(id==='leave'&&!themeIsWarmNow&&themeWasWarm){applyTheme();message.textContent='Back to twilight, whenever you need it.'}const isCompleteNow=items.every(i=>state[i.dataset.id]);if(isCompleteNow&&!wasComplete&&state[id])setTimeout(()=>{if(isResetting)return;megaShimmer();screenSparkles(isMobile?48:80);foregroundBurst(window.innerWidth/2,window.innerHeight/2,isMobile?34:60,isMobile?260:360);completeOverlay();message.textContent='Goodnight, Sweet Clara. Today’s adventures can wait here until morning.'},230)}
+function setOpen(item, force){const open=force ?? !item.classList.contains('open');item.classList.toggle('open',open);const btn=item.querySelector('.ideaToggle');if(btn)btn.setAttribute('aria-expanded',String(open));}
+items.forEach(item=>{item.setAttribute('role','button');item.setAttribute('tabindex','0');const btn=item.querySelector('.ideaToggle');btn?.addEventListener('click',e=>{e.stopPropagation();setOpen(item);const rect=item.getBoundingClientRect();addCanvasSparkles(rect.left+rect.width*.68,rect.top+rect.height*.22,isMobile?10:16,isMobile?60:85,'burst');message.textContent=item.classList.contains('open')?'Gentle ideas opened. Suggestions only — not extra chores.':'Ideas tucked away. Still no guilt.'});item.addEventListener('click',e=>{if(e.target.closest('.ideas')||e.target.closest('.ideaToggle'))return;toggle(item)});item.addEventListener('contextmenu',e=>{e.preventDefault();setOpen(item)});item.addEventListener('dblclick',e=>{e.preventDefault();setOpen(item)});item.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();toggle(item)}if(e.key.toLowerCase()==='i'){setOpen(item)}})});
+soundBtn.addEventListener('click',()=>{muted=!muted;localStorage.setItem(mutedKey,muted);soundBtn.textContent=muted?'🔈 Sound Off':'🔊 Sound On';if(!muted)shimmer()});
+sparkleBtn.addEventListener('click',()=>{if(isResetting)return;shimmer();screenSparkles(FX.buttonSparkles);foregroundBurst(window.innerWidth/2,window.innerHeight/2,isMobile?42:76,isMobile?280:390);if(!isMobile){setTimeout(()=>foregroundBurst(window.innerWidth*.35,window.innerHeight*.45,28,220),180);setTimeout(()=>foregroundBurst(window.innerWidth*.65,window.innerHeight*.55,28,220),320)}message.textContent='Extra starlight deployed.'});
+resetBtn.addEventListener('click',()=>{if(isResetting)return;isResetting=true;particles.replaceChildren();sparkleBits=[];sparkleCtx.clearRect(0,0,canvasW,canvasH);state={};save();update({silent:true});applyTheme();message.textContent='Resetting the sky...';const wave=document.createElement('div');wave.className='resetWave';app.appendChild(wave);app.classList.add('resetting');resetSound();screenSparkles(FX.resetSparkles);resetCascade();items.forEach((item,idx)=>{const rect=item.getBoundingClientRect();setTimeout(()=>lineSweep(rect),idx*90)});setTimeout(()=>{message.textContent='Starlight reset complete. Fresh sky, no guilt.'},650);setTimeout(()=>{wave.remove();app.classList.remove('resetting');isResetting=false;update()},1500)});
+soundBtn.textContent=muted?'🔈 Sound Off':'🔊 Sound On';applyTheme();makeStars();update();
+})();
+</script>
+</body>
+</html>
