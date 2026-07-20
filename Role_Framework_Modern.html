@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "IBM Plex Sans", Arial, sans-serif;
+    background: linear-gradient(135deg, #0A0A0F 0%, #1a1a22 100%);
+    color: #ffffff;
+    padding: 60px 20px;
+    min-height: 100vh;
+  }
+
+  .container {
+    max-width: 1000px;
+    margin: 0 auto;
+  }
+
+  .header {
+    text-align: center;
+    margin-bottom: 60px;
+  }
+
+  .header h1 {
+    font-size: 32px;
+    font-weight: 300;
+    letter-spacing: -0.5px;
+    margin-bottom: 12px;
+    color: #ffffff;
+  }
+
+  .header p {
+    font-size: 14px;
+    color: #999;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  .framework {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 20px;
+    margin-bottom: 60px;
+  }
+
+  @media (max-width: 900px) {
+    .framework {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .pillar {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(192, 122, 48, 0.2);
+    padding: 32px;
+    border-radius: 2px;
+    position: relative;
+    min-height: 400px;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .pillar::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: #C07A30;
+    border-radius: 2px 2px 0 0;
+  }
+
+  .pillar-number {
+    font-size: 24px;
+    font-weight: 600;
+    color: #C07A30;
+    margin-bottom: 4px;
+  }
+
+  .pillar-question {
+    font-size: 18px;
+    font-weight: 500;
+    line-height: 1.4;
+    margin-bottom: 20px;
+    color: #ffffff;
+  }
+
+  .pillar-context {
+    font-size: 12px;
+    color: #999;
+    line-height: 1.6;
+    margin-bottom: 24px;
+    padding-bottom: 24px;
+    border-bottom: 1px solid rgba(192, 122, 48, 0.1);
+  }
+
+  .answer-input {
+    flex-grow: 1;
+    background: rgba(0, 0, 0, 0.2);
+    border: 1px solid rgba(192, 122, 48, 0.15);
+    border-radius: 2px;
+    padding: 16px;
+    font-family: inherit;
+    color: #ffffff;
+    font-size: 13px;
+    line-height: 1.6;
+    resize: none;
+  }
+
+  .answer-input::placeholder {
+    color: #555;
+  }
+
+  .answer-input:focus {
+    outline: none;
+    border-color: #C07A30;
+    background: rgba(192, 122, 48, 0.05);
+  }
+
+  .connectors {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin: 40px 0;
+    height: 60px;
+    position: relative;
+  }
+
+  @media (max-width: 900px) {
+    .connectors {
+      display: none;
+    }
+  }
+
+  .connector-line {
+    flex-grow: 1;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, #C07A30, transparent);
+    margin: 0 16px;
+  }
+
+  .connector-dot {
+    width: 12px;
+    height: 12px;
+    background: #C07A30;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .decision-zone {
+    background: rgba(107, 66, 224, 0.1);
+    border: 1px solid rgba(107, 66, 224, 0.3);
+    border-radius: 2px;
+    padding: 48px 40px;
+    text-align: center;
+  }
+
+  .decision-title {
+    font-size: 16px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: #6B42E0;
+    margin-bottom: 24px;
+  }
+
+  .decision-text {
+    font-size: 16px;
+    line-height: 1.8;
+    color: #ffffff;
+    margin-bottom: 32px;
+  }
+
+  .decision-statement {
+    background: rgba(0, 0, 0, 0.3);
+    border-left: 3px solid #6B42E0;
+    padding: 20px;
+    margin-bottom: 32px;
+    font-style: italic;
+    color: #e0e0e0;
+  }
+
+  .decision-input {
+    background: rgba(0, 0, 0, 0.2);
+    border: 1px solid rgba(107, 66, 224, 0.3);
+    border-radius: 2px;
+    padding: 12px 16px;
+    font-family: inherit;
+    color: #ffffff;
+    font-size: 14px;
+    text-align: center;
+    width: 100%;
+    max-width: 200px;
+  }
+
+  .decision-input::placeholder {
+    color: #555;
+  }
+
+  .decision-input:focus {
+    outline: none;
+    border-color: #6B42E0;
+    background: rgba(107, 66, 224, 0.1);
+  }
+
+  .footer {
+    text-align: center;
+    font-size: 12px;
+    color: #666;
+    margin-top: 60px;
+    padding-top: 40px;
+    border-top: 1px solid rgba(192, 122, 48, 0.1);
+  }
+
+  .note {
+    display: inline-block;
+    background: rgba(192, 122, 48, 0.1);
+    border-left: 2px solid #C07A30;
+    padding: 12px 16px;
+    margin-bottom: 16px;
+    font-size: 13px;
+    color: #999;
+    line-height: 1.6;
+  }
+
+  @media print {
+    body {
+      background: white;
+      color: #333;
+    }
+    .pillar {
+      background: white;
+      border-color: #999;
+      page-break-inside: avoid;
+    }
+    .answer-input {
+      border-color: #999;
+      background: white;
+      color: #333;
+    }
+    .decision-zone {
+      background: white;
+      border-color: #999;
+    }
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <div class="header">
+    <h1>Role Evaluation Framework</h1>
+    <p>15-minute decision tool • Reusable for any role</p>
+  </div>
+
+  <div class="framework">
+    <!-- PILLAR 1 -->
+    <div class="pillar">
+      <div class="pillar-number">1</div>
+      <div class="pillar-question">What's the ONE thing we need?</div>
+      <div class="pillar-context">Be specific. Not "manage AI strategy." Instead: "Risk assessments before capability deployments" or "Understands the stakeholder ecosystem."</div>
+      <textarea class="answer-input" placeholder="The core need..."></textarea>
+    </div>
+
+    <!-- PILLAR 2 -->
+    <div class="pillar">
+      <div class="pillar-number">2</div>
+      <div class="pillar-question">Are they good at that?</div>
+      <div class="pillar-context">Track record on this specific task? Relevant skills? Known weakness that blocks them? Be honest about capability vs. potential.</div>
+      <textarea class="answer-input" placeholder="Their fit for this task..."></textarea>
+    </div>
+
+    <!-- PILLAR 3 -->
+    <div class="pillar">
+      <div class="pillar-number">3</div>
+      <div class="pillar-question">How do we make sure they do it?</div>
+      <div class="pillar-context">What structure makes this non-optional? Cadence? Verification? Deadline? How does accountability work given their weakness?</div>
+      <textarea class="answer-input" placeholder="The accountability structure..."></textarea>
+    </div>
+  </div>
+
+  <div class="connectors">
+    <div class="connector-dot"></div>
+    <div class="connector-line"></div>
+    <div class="connector-dot"></div>
+    <div class="connector-line"></div>
+    <div class="connector-dot"></div>
+  </div>
+
+  <div class="decision-zone">
+    <div class="decision-title">The Verdict</div>
+    <div class="decision-text">
+      If you can answer those three questions clearly in 15 minutes, you know if the role works.
+    </div>
+    <div class="decision-statement">
+      Everything else is elaboration. The hard question is: Are you willing to structure accountability around their weakness?
+    </div>
+    <div style="font-size: 14px; color: #999; margin-bottom: 24px;">Decision:</div>
+    <textarea class="decision-input" placeholder="Go / No-Go / Contingent on..." style="min-height: 60px; text-align: left; padding: 12px;"></textarea>
+  </div>
+
+  <div class="footer">
+    <div class="note">Print this. Use it for any role decision. Refill the fields each time.</div>
+  </div>
+</div>
+
+</body>
+</html>
