@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Team Operating System Prototype</title>
+
+<style>
+:root{
+  --paper:#EFEEE4;
+  --card:#FBFAF6;
+  --ink:#1F2A24;
+  --muted:#6B7268;
+  --line:#D9D5C6;
+  --accent:#2F5D50;
+  --accent-soft:#E1E9E4;
+  --flag-soft:#F3E7D6;
+}
+
+*{box-sizing:border-box;}
+
+body{
+  margin:0;
+  background:var(--paper);
+  color:var(--ink);
+  font-family:Georgia,'Palatino Linotype',serif;
+}
+
+#app{
+  max-width:1000px;
+  margin:auto;
+  padding:50px 28px;
+}
+
+.eyebrow{
+  font-family:monospace;
+  color:var(--muted);
+  font-size:11px;
+  letter-spacing:.15em;
+  text-transform:uppercase;
+}
+
+h1{
+  font-size:40px;
+  margin:10px 0;
+}
+
+.lede{
+  max-width:700px;
+  color:var(--muted);
+  line-height:1.6;
+}
+
+.hero{
+  margin-top:30px;
+  background:var(--accent);
+  color:white;
+  padding:30px;
+  border-radius:4px;
+}
+
+.hero h2{
+  margin-top:0;
+}
+
+.phases{
+  display:flex;
+  gap:10px;
+  margin-top:30px;
+}
+
+.phase-btn{
+  flex:1;
+  padding:14px;
+  border:1px solid var(--line);
+  background:var(--card);
+  cursor:pointer;
+  font-family:monospace;
+}
+
+.phase-btn.active{
+  background:var(--accent);
+  color:white;
+}
+
+.section{
+  margin-top:35px;
+}
+
+.card{
+  background:var(--card);
+  border:1px solid var(--line);
+  padding:24px;
+  margin-bottom:16px;
+}
+
+.card h3{
+  margin-top:0;
+}
+
+.question{
+  color:var(--muted);
+  font-style:italic;
+}
+
+.output{
+  margin-top:14px;
+  background:var(--accent-soft);
+  padding:12px;
+  font-size:14px;
+}
+
+.tool{
+  margin-top:10px;
+  padding:10px;
+  border:1px dashed var(--line);
+  font-family:monospace;
+  font-size:12px;
+}
+
+.future{
+  background:var(--flag-soft);
+}
+
+footer{
+  margin-top:50px;
+  text-align:center;
+  color:var(--muted);
+  font-family:monospace;
+  font-size:12px;
+}
+
+@media(max-width:700px){
+ .phases{flex-direction:column;}
+}
+</style>
+
+</head>
+
+<body>
+
+<div id="app">
+
+<div class="eyebrow">
+Leader enablement prototype
+</div>
+
+<h1>Team Operating System</h1>
+
+<p class="lede">
+A living operating model for a leader and their team.
+Stand up the organization, run the operating rhythm,
+and continuously improve how work gets done.
+</p>
+
+
+<div class="hero">
+<h2>The Leadership Contract</h2>
+
+<p>
+The leader provides direction, decisions, priorities, and protection.
+The team provides analysis, recommendations, transparency, and execution reality.
+</p>
+
+<p>
+The goal is not perfect execution.
+The goal is a team that knows why it exists, how it operates,
+and how to adapt.
+</p>
+
+</div>
+
+
+<div class="phases">
+
+<button class="phase-btn active" onclick="showPhase('standup',this)">
+1. Stand Up
+</button>
+
+<button class="phase-btn" onclick="showPhase('operate',this)">
+2. Operate
+</button>
+
+<button class="phase-btn" onclick="showPhase('evolve',this)">
+3. Evolve
+</button>
+
+</div>
+
+
+<div id="content"></div>
+
+
+<footer>
+Prototype concept — tools are modules inside the operating system
+</footer>
+
+</div>
+
+
+<script>
+
+const phases={
+
+standup:[
+{
+title:"Define Team Identity",
+question:"Why does this team exist?",
+details:"Establish mission, capabilities, boundaries, stakeholders, and success measures.",
+output:"Team Identity Model",
+tools:[
+"Need to create: Team Identity Builder",
+"Existing candidate: Team Operating Model Architect"
+]
+},
+
+{
+title:"Define Decision Rights",
+question:"What belongs to the leader versus the team?",
+details:"Clarify authority, approvals, escalation paths, and delegation.",
+output:"Decision Model",
+tools:[
+"Need to create: Decision Rights Canvas",
+"Existing candidate: Role Alignment Canvas"
+]
+},
+
+{
+title:"Design Operating Rhythm",
+question:"How should information and work move?",
+details:"Create meeting cadence, leadership touchpoints, reporting flow, and escalation patterns.",
+output:"Operating Rhythm",
+tools:[
+"Existing candidate: Team Cadence Builder",
+"Need to create: Leadership Information Flow Map"
+]
+},
+
+{
+title:"Define Roles & Ownership",
+question:"Who owns what?",
+details:"Map responsibilities, capability gaps, and areas requiring role evolution.",
+output:"Ownership Model",
+tools:[
+"Existing candidate: Role Alignment Canvas"
+]
+}
+
+],
+
+
+operate:[
+
+{
+title:"Leadership Information Loop",
+question:"How does the leader stay informed without becoming the bottleneck?",
+details:"Maintain predictable information flow, decisions, risks, and priorities.",
+output:"Leadership Dashboard",
+tools:[
+"Existing candidate: State of Play",
+"Need to create: Executive Information Diet Builder"
+]
+},
+
+{
+title:"Team Execution Rhythm",
+question:"How does the team coordinate daily work?",
+details:"Maintain working agreements, sync points, planning cycles, and dependencies.",
+output:"Team Operating Guide",
+tools:[
+"Existing candidate: Cadence Builder",
+"Need to create: Team Working Agreement Tracker"
+]
+},
+
+{
+title:"Decision Support",
+question:"How do decisions get prepared?",
+details:"Create repeatable methods for recommendations and leadership choices.",
+output:"Decision Package",
+tools:[
+"Need to create: Decision Brief Generator"
+]
+}
+
+],
+
+
+evolve:[
+
+{
+title:"Assess What Changed",
+question:"Does the operating model still match reality?",
+details:"Review mission, scope, roles, stakeholders, and friction points.",
+output:"Operating Model Review",
+tools:[
+"Need to create: Operating Model Health Check"
+]
+},
+
+{
+title:"Improve Capability",
+question:"Where does the team need to grow?",
+details:"Identify capability gaps, ownership issues, and future needs.",
+output:"Capability Roadmap",
+tools:[
+"Need to create: Capability Maturity Assessment"
+]
+}
+
+]
+
+};
+
+
+function showPhase(name,btn){
+
+document.querySelectorAll(".phase-btn")
+.forEach(x=>x.classList.remove("active"));
+
+btn.classList.add("active");
+
+let html="";
+
+phases[name].forEach(item=>{
+
+html+=`
+
+<div class="section">
+
+<div class="card">
+
+<h3>${item.title}</h3>
+
+<div class="question">
+${item.question}
+</div>
+
+<p>
+${item.details}
+</p>
+
+<div class="output">
+<strong>Produces:</strong> ${item.output}
+</div>
+
+${item.tools.map(t=>`
+<div class="tool future">
+${t}
+</div>
+`).join("")}
+
+</div>
+
+</div>
+
+`;
+
+});
+
+document.getElementById("content").innerHTML=html;
+
+}
+
+
+showPhase("standup",
+document.querySelector(".phase-btn"));
+
+</script>
+
+</body>
+</html>
