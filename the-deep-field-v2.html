@@ -1,0 +1,958 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Deep Field</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --void:#0A0A0F;
+    --ink:#E6E6EF;
+    --ink-dim:#8A8A9C;
+    --ink-faint:#4A4A5C;
+    --rule:#1E1E2A;
+
+    --c-recover:#00D9B8;
+    --c-vessel:#C07A30;
+    --c-inward:#E3B778;
+    --c-loop:#6B42E0;
+    --c-structure:#8FA6E8;
+
+    --sans:'IBM Plex Sans',ui-sans-serif,system-ui,-apple-system,Segoe UI,sans-serif;
+    --mono:'IBM Plex Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
+  }
+
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    background:var(--void); color:var(--ink);
+    font-family:var(--sans); font-weight:300;
+    -webkit-font-smoothing:antialiased; overflow-x:hidden;
+  }
+
+  #starfield{position:fixed; inset:0; z-index:0; pointer-events:none !important}
+  #vignette{
+    position:fixed; inset:0; z-index:1; pointer-events:none !important;
+    background:radial-gradient(120% 90% at 50% 38%, transparent 42%, rgba(0,0,0,.55) 100%);
+  }
+  .wrap{position:relative; z-index:2}
+
+  /* ---------------- masthead ---------------- */
+  header{padding:30px 28px 0; max-width:1180px; margin:0 auto}
+  .topline{
+    display:flex; justify-content:space-between; align-items:flex-start;
+    gap:20px; flex-wrap:wrap;
+  }
+  .eyebrow{
+    font-family:var(--mono); font-size:10.5px; letter-spacing:.22em;
+    text-transform:uppercase; color:var(--ink-faint); margin:0 0 10px;
+  }
+  h1{
+    font-weight:300; letter-spacing:-.02em;
+    font-size:clamp(28px,5vw,46px); margin:0; line-height:1.02;
+  }
+  h1 .accent{color:var(--c-vessel)}
+  .dek{max-width:58ch; margin:14px 0 0; font-size:14.5px; line-height:1.6; color:var(--ink-dim)}
+  .dek strong{color:var(--ink); font-weight:400}
+
+  /* guided toggle */
+  .guide-toggle{
+    display:flex; align-items:center; gap:11px;
+    border:1px solid var(--rule); padding:11px 15px; cursor:pointer;
+    background:rgba(14,14,22,.7); flex:0 0 auto;
+    font-family:var(--mono); font-size:10px; letter-spacing:.18em;
+    text-transform:uppercase; color:var(--ink-dim);
+    transition:border-color .25s, color .25s;
+  }
+  .guide-toggle:hover{border-color:var(--ink-faint); color:var(--ink)}
+  .guide-toggle.on{border-color:var(--c-vessel); color:var(--c-vessel)}
+  .switch{
+    width:26px; height:13px; border:1px solid currentColor; border-radius:999px;
+    position:relative; flex:0 0 auto;
+  }
+  .switch i{
+    position:absolute; top:2px; left:2px; width:7px; height:7px; border-radius:50%;
+    background:currentColor; transition:transform .25s ease;
+  }
+  .guide-toggle.on .switch i{transform:translateX(11px)}
+  .guide-hint{
+    font-family:var(--mono); font-size:9.5px; letter-spacing:.1em;
+    color:var(--ink-faint); text-transform:none; margin-top:7px; text-align:right;
+  }
+
+  /* ---------------- field ---------------- */
+  .field-shell{max-width:1180px; margin:22px auto 0; padding:0 28px}
+  .field-frame{
+    position:relative; border:1px solid var(--rule); border-radius:2px;
+    background:linear-gradient(180deg, rgba(20,20,32,.42), rgba(10,10,15,.42));
+  }
+  svg#field{display:block; width:100%; height:auto}
+
+  .corner{
+    position:absolute; font-family:var(--mono); font-size:9.5px;
+    letter-spacing:.16em; color:var(--ink-faint); pointer-events:none !important;
+  }
+  .corner.tl{top:10px; left:12px}
+  .corner.tr{top:10px; right:12px}
+
+  .howto{
+    position:absolute; left:12px; bottom:10px; right:12px;
+    font-family:var(--mono); font-size:10px; letter-spacing:.13em;
+    color:var(--ink-faint); pointer-events:none !important;
+    transition:opacity .6s ease; text-transform:uppercase;
+  }
+  .howto b{color:var(--c-vessel); font-weight:400}
+
+  .star{cursor:pointer}
+  .star circle.hit{fill:transparent}
+  .star circle.halo{fill:none; stroke:none}
+  .star circle.body{transition:r .3s ease, opacity .45s ease}
+  .star text{
+    font-family:var(--mono); font-size:8.5px; letter-spacing:.09em;
+    fill:var(--ink-dim); opacity:0; transition:opacity .25s ease; pointer-events:none;
+  }
+  .star:hover text, .star.sel text, .star.tour text{opacity:1; fill:var(--ink)}
+  .star:hover circle.halo, .star.tour circle.halo{stroke:currentColor}
+  .star:focus{outline:none}
+  .star:focus-visible circle.body{stroke:var(--ink); stroke-width:1.3}
+
+  path.link{fill:none; stroke-width:.9; opacity:.6}
+  path.overlink{fill:none; stroke:#6E6E86; stroke-width:.4; opacity:.3}
+
+  @keyframes pulse{0%,100%{opacity:.15} 50%{opacity:.5}}
+  .tourhalo{
+    fill:none; stroke:var(--c-vessel); stroke-width:1;
+    animation:pulse 2.2s ease-in-out infinite;
+  }
+
+  /* ---------------- console ---------------- */
+  .console{
+    max-width:1180px; margin:0 auto; padding:18px 28px 0;
+    display:flex; flex-wrap:wrap; gap:18px 30px; align-items:flex-end;
+  }
+  .exposure{flex:1 1 320px; min-width:250px}
+  .lbl{
+    font-family:var(--mono); font-size:10px; letter-spacing:.2em;
+    text-transform:uppercase; color:var(--ink-faint);
+    display:flex; justify-content:space-between; align-items:baseline; margin-bottom:9px;
+  }
+  .lbl .val{color:var(--c-vessel); letter-spacing:.1em}
+
+  input[type=range]{-webkit-appearance:none; appearance:none; width:100%; background:transparent; margin:0; cursor:ew-resize}
+  input[type=range]:focus{outline:none}
+  input[type=range]:focus-visible{outline:1px solid var(--ink-dim); outline-offset:6px}
+  input[type=range]::-webkit-slider-runnable-track{height:1px; background:var(--rule)}
+  input[type=range]::-moz-range-track{height:1px; background:var(--rule)}
+  input[type=range]::-webkit-slider-thumb{
+    -webkit-appearance:none; appearance:none; width:13px; height:13px; border-radius:50%;
+    background:var(--c-vessel); margin-top:-6px; box-shadow:0 0 0 5px rgba(192,122,48,.15);
+  }
+  input[type=range]::-moz-range-thumb{
+    width:13px; height:13px; border:none; border-radius:50%;
+    background:var(--c-vessel); box-shadow:0 0 0 5px rgba(192,122,48,.15);
+  }
+
+  .further{
+    font-family:var(--mono); font-size:10px; letter-spacing:.18em; text-transform:uppercase;
+    color:var(--ink-faint); background:none; border:none; padding:8px 0 0; cursor:pointer;
+    opacity:0; transition:opacity .7s ease; pointer-events:none;
+  }
+  .further.on{opacity:.5; pointer-events:auto}
+  .further:hover{color:var(--c-vessel); opacity:1}
+
+  .legend-wrap{flex:1 1 320px}
+  .legend{display:flex; flex-wrap:wrap; gap:7px}
+  .chip{
+    font-family:var(--mono); font-size:9.5px; letter-spacing:.14em; text-transform:uppercase;
+    padding:7px 12px; border:1px solid var(--rule); border-radius:999px;
+    background:transparent; color:var(--ink-faint); cursor:pointer;
+    opacity:0; transform:translateY(4px); pointer-events:none;
+    transition:opacity .55s ease, transform .55s ease, color .2s, border-color .2s, background .2s;
+  }
+  .chip.revealed{opacity:1; transform:none; pointer-events:auto}
+  .chip:hover{color:var(--ink)}
+  .chip.active{color:var(--void); border-color:transparent}
+
+  /* ---------------- guide rail ---------------- */
+  .rail{display:none; max-width:1180px; margin:20px auto 0; padding:0 28px}
+  .rail.open{display:block}
+  .rail-inner{
+    border:1px solid rgba(192,122,48,.35); border-left-width:2px;
+    background:rgba(20,15,10,.55); padding:20px 24px;
+  }
+  .rail-head{
+    font-family:var(--mono); font-size:10px; letter-spacing:.2em; text-transform:uppercase;
+    color:var(--c-vessel); margin:0 0 12px; display:flex; gap:14px; align-items:center;
+  }
+  .rail-head .step{color:var(--ink-faint)}
+  .rail p.say{margin:0 0 16px; font-size:15.5px; line-height:1.6; max-width:64ch}
+  .rail p.say em{color:var(--c-vessel); font-style:normal}
+  .rail-controls{display:flex; gap:9px; flex-wrap:wrap; align-items:center}
+  .btn{
+    font-family:var(--mono); font-size:10px; letter-spacing:.16em; text-transform:uppercase;
+    background:none; border:1px solid var(--rule); color:var(--ink-dim);
+    padding:9px 16px; cursor:pointer; transition:color .2s, border-color .2s, background .2s;
+  }
+  .btn:hover{color:var(--ink); border-color:var(--ink-faint)}
+  .btn.primary{border-color:var(--c-vessel); color:var(--c-vessel)}
+  .btn.primary:hover{background:var(--c-vessel); color:var(--void)}
+  .btn.ghost{border-color:transparent; color:var(--ink-faint)}
+  .btn.ghost:hover{color:var(--ink-dim); border-color:var(--rule)}
+  .dots{display:flex; gap:6px; margin-left:auto}
+  .dots i{width:5px; height:5px; border-radius:50%; background:var(--rule); display:block}
+  .dots i.done{background:var(--ink-faint)}
+  .dots i.now{background:var(--c-vessel)}
+
+  .rail-resume{
+    display:none; margin-top:12px; font-family:var(--mono); font-size:10px;
+    letter-spacing:.14em; text-transform:uppercase; color:var(--ink-faint);
+  }
+  .rail-resume.on{display:block}
+
+  /* ---------------- reading panel ---------------- */
+  .panel{display:none; max-width:1180px; margin:20px auto 0; padding:0 28px}
+  .panel.open{display:block}
+  .panel-inner{
+    border:1px solid var(--rule); border-left-width:2px;
+    background:rgba(14,14,22,.75); padding:24px 26px;
+  }
+  .panel-kicker{
+    font-family:var(--mono); font-size:10px; letter-spacing:.2em; text-transform:uppercase;
+    color:var(--ink-faint); margin:0 0 14px; display:flex; gap:14px; flex-wrap:wrap;
+  }
+  .panel-quote{
+    font-size:clamp(17px,2.3vw,22px); line-height:1.45; font-weight:300;
+    margin:0 0 18px; letter-spacing:-.01em; max-width:46ch;
+  }
+  .axiom{
+    font-family:var(--mono); font-size:12px; line-height:1.7; letter-spacing:.02em;
+    margin:0 0 20px; padding-left:14px; border-left:1px solid var(--rule);
+    color:var(--ink-dim); max-width:54ch;
+  }
+  .axiom b{font-weight:500; display:block; margin-bottom:5px; color:var(--ink)}
+  .sib-head{
+    font-family:var(--mono); font-size:10px; letter-spacing:.2em; text-transform:uppercase;
+    color:var(--ink-faint); margin:0 0 12px;
+  }
+  .siblings{margin:0; padding:0; list-style:none; display:grid; gap:11px}
+  .siblings li{display:flex; gap:13px; align-items:baseline; font-size:13.5px; line-height:1.55; color:var(--ink-dim)}
+  .siblings .dom{
+    font-family:var(--mono); font-size:9px; letter-spacing:.14em; text-transform:uppercase;
+    color:var(--ink-faint); flex:0 0 96px; padding-top:2px;
+  }
+  .closebar{display:flex; justify-content:flex-end; margin-top:20px}
+
+  /* ---------------- overexposure ---------------- */
+  .overmsg{display:none; max-width:1180px; margin:16px auto 0; padding:0 28px}
+  .overmsg.open{display:block}
+  .overmsg div{
+    border:1px solid var(--rule); padding:18px 22px; background:rgba(14,14,22,.8);
+    font-size:14px; line-height:1.6; color:var(--ink-dim); max-width:66ch;
+  }
+  .overmsg b{color:var(--ink); font-weight:400}
+
+  /* ---------------- sounding ---------------- */
+  .sounding{max-width:1180px; margin:74px auto 0; padding:0 28px 90px}
+  .rule-head{
+    display:flex; align-items:baseline; gap:18px;
+    border-top:1px solid var(--rule); padding-top:22px; margin-bottom:22px;
+  }
+  .rule-head h2{font-weight:300; font-size:clamp(20px,3vw,27px); margin:0; letter-spacing:-.015em}
+  .rule-head span{
+    font-family:var(--mono); font-size:10px; letter-spacing:.2em;
+    text-transform:uppercase; color:var(--ink-faint);
+  }
+  .sounding > p.intro{max-width:60ch; color:var(--ink-dim); font-size:14.5px; line-height:1.6; margin:0 0 30px}
+  .q{margin:0 0 24px; max-width:72ch}
+  .q .qtext{font-size:15px; line-height:1.5; margin:0 0 11px; color:var(--ink)}
+  .q .qnum{font-family:var(--mono); font-size:10px; letter-spacing:.16em; color:var(--ink-faint); margin-right:11px}
+  .opts{display:flex; flex-wrap:wrap; gap:9px}
+  .opt{
+    font-family:var(--sans); font-weight:300; font-size:13.5px;
+    background:none; border:1px solid var(--rule); color:var(--ink-dim);
+    padding:9px 16px; cursor:pointer; text-align:left;
+    transition:color .2s, border-color .2s, background .2s;
+  }
+  .opt:hover{color:var(--ink); border-color:var(--ink-faint)}
+  .opt.on{color:var(--void); background:var(--ink); border-color:var(--ink)}
+  .result{
+    display:none; margin-top:32px; border:1px solid var(--rule); border-left-width:2px;
+    padding:24px 26px; background:rgba(14,14,22,.75);
+  }
+  .result.open{display:block}
+
+  footer{
+    max-width:1180px; margin:0 auto; padding:0 28px 60px;
+    font-family:var(--mono); font-size:10px; letter-spacing:.14em;
+    color:var(--ink-faint); line-height:2.2;
+  }
+
+  @media (max-width:760px){
+    header,.field-shell,.console,.panel,.rail,.sounding,footer,.overmsg{padding-left:18px; padding-right:18px}
+    .topline{flex-direction:column}
+    .guide-toggle{width:100%; justify-content:center}
+    .guide-hint{text-align:left}
+    .siblings li{flex-direction:column; gap:3px}
+    .siblings .dom{flex:none}
+    .star text{font-size:11px}
+    .howto{font-size:9px; letter-spacing:.08em}
+  }
+  @media (prefers-reduced-motion:reduce){
+    *{animation:none !important; transition-duration:.01ms !important}
+  }
+
+  @media print{
+    #starfield,#vignette,.field-shell,.console,.overmsg,.rail,.sounding .q,.result,footer,.guide-toggle,.panel{display:none !important}
+    body{background:#fff; color:#111}
+    .printsheet{display:block !important}
+  }
+  .printsheet{display:none}
+  .printsheet h3{font-size:13px; margin:18px 0 4px; font-family:var(--mono); letter-spacing:.1em; text-transform:uppercase}
+  .printsheet p{margin:0 0 6px; font-size:12px}
+  .printsheet ul{margin:0 0 14px 18px; padding:0; font-size:11.5px; line-height:1.6}
+</style>
+</head>
+<body>
+
+<canvas id="starfield"></canvas>
+<div id="vignette"></div>
+
+<div class="wrap">
+
+  <header>
+    <div class="topline">
+      <div>
+        <p class="eyebrow">A long exposure of your own work</p>
+        <h1>The Deep&nbsp;<span class="accent">Field</span></h1>
+      </div>
+      <div>
+        <button class="guide-toggle" id="guideBtn" aria-pressed="false">
+          <span class="switch"><i></i></span><span id="guideLabel">Guided</span>
+        </button>
+        <p class="guide-hint">Turn on if you'd rather be shown</p>
+      </div>
+    </div>
+    <p class="dek">Every point below is something <strong>you actually wrote</strong> — in a governance memo, a Hebrew word study, a CSS checklist, a physics argument, a hiring note. Separately they look like scatter. The slider holds the shutter open. Five constellations come out.</p>
+  </header>
+
+  <div class="field-shell">
+    <div class="field-frame">
+      <span class="corner tl">FIELD 01 · 38 SOURCES · 6 DOMAINS</span>
+      <span class="corner tr" id="expReadout">t = 0.0 s</span>
+
+      <svg id="field" viewBox="0 0 1000 640" role="img" aria-label="A field of scattered principles that resolves into five constellations as exposure increases.">
+        <g id="links"></g>
+        <g id="overlinks"></g>
+        <g id="tourmark"></g>
+        <g id="stars"></g>
+      </svg>
+
+      <p class="howto" id="howto"><b>1</b> Drag the Exposure slider below &nbsp;·&nbsp; <b>2</b> Click a name when it appears &nbsp;·&nbsp; <b>3</b> Click any dot to read it</p>
+    </div>
+  </div>
+
+  <div class="console">
+    <div class="exposure">
+      <div class="lbl"><span>Exposure</span><span class="val" id="expPct">18%</span></div>
+      <input type="range" id="exposure" min="0" max="100" value="18" step="1" aria-label="Exposure">
+      <button class="further" id="further">Further?</button>
+    </div>
+    <div class="legend-wrap">
+      <div class="lbl"><span>Constellations found</span><span class="val" id="foundCount">1 of 5</span></div>
+      <div class="legend" id="legend"></div>
+    </div>
+  </div>
+
+  <section class="rail" id="rail" aria-live="polite">
+    <div class="rail-inner">
+      <p class="rail-head"><span>Guided</span><span class="step" id="railStep">Step 1 of 7</span></p>
+      <p class="say" id="railSay"></p>
+      <div class="rail-controls">
+        <button class="btn primary" id="railNext">Next</button>
+        <button class="btn ghost" id="railBack">Back</button>
+        <button class="btn ghost" id="railExit">Explore on my own</button>
+        <span class="dots" id="railDots"></span>
+      </div>
+      <p class="rail-resume" id="railResume">Paused — you took the controls. <button class="btn ghost" id="railResumeBtn" style="padding:4px 10px">Resume the tour</button></p>
+    </div>
+  </section>
+
+  <div class="overmsg" id="overmsg">
+    <div><b>Everything connects to everything.</b> Give any two ideas enough attention and a line appears — which is exactly what it looks like from inside the symposium. You already named this failure mode twice: <em>one critique pass, then commit</em>, and <em>a session that ends without a recommendation has failed</em>. The instrument agrees with you.
+    <button class="btn" id="stopDown" style="margin-left:10px">Stop down</button></div>
+  </div>
+
+  <section class="panel" id="panel" aria-live="polite">
+    <div class="panel-inner" id="panelInner">
+      <p class="panel-kicker" id="pKicker"></p>
+      <p class="panel-quote" id="pQuote"></p>
+      <p class="axiom" id="pAxiom"></p>
+      <p class="sib-head" id="pSibHead"></p>
+      <ul class="siblings" id="pSibs"></ul>
+      <div class="closebar"><button class="btn" id="pClose">Close</button></div>
+    </div>
+  </section>
+
+  <section class="sounding">
+    <div class="rule-head"><h2>Take a sounding</h2><span>Instrument 02</span></div>
+    <p class="intro">A sounding is how you find out how deep the water is before you commit the hull to it. Four questions about something you're currently stuck on. They route you to the axiom you already wrote for it — usually from a different part of your life entirely.</p>
+    <div id="questions"></div>
+    <div class="result" id="result">
+      <p class="panel-kicker" id="rKicker"></p>
+      <p class="panel-quote" id="rAxiom"></p>
+      <p class="axiom" id="rWhy"></p>
+      <p class="sib-head">You have already solved this shape here</p>
+      <ul class="siblings" id="rSibs"></ul>
+    </div>
+  </section>
+
+  <div class="printsheet" id="printsheet"></div>
+
+  <footer>
+    THE DEEP FIELD · SINGLE FILE · NO BACKEND · THE BROWSER IS THE RUNTIME<br>
+    Every line is sourced from something you wrote. Nothing was invented for effect.<br>
+    Names, org identifiers and program codenames stripped — safe to host.
+  </footer>
+
+</div>
+
+<script>
+(function(){
+"use strict";
+
+/* ================= DATA ================= */
+
+var CONS = {
+  recover: {
+    name:"Recoverability", raw:"#00D9B8", at:16,
+    axiom:"Know the cost of undoing it before you decide how carefully to do it.",
+    gloss:"You never optimise for being right. You optimise for being able to come back. This is the only one of the five that shows up in your physics, your hardware, and your CSS.",
+    shape:[[0,1],[1,2],[2,3],[3,4],[4,5],[5,6],[6,0]]
+  },
+  vessel: {
+    name:"The Vessel", raw:"#C07A30", at:33,
+    axiom:"One source of truth, many vessels. Never one vessel, many truths.",
+    gloss:"You are relentless about not diluting the thing itself — and equally relentless about reshaping how it arrives. Most people confuse those two moves. You never have.",
+    shape:[[0,1],[1,2],[2,7],[7,4],[4,5],[5,6],[6,3],[3,1]]
+  },
+  inward: {
+    name:"Aim it inward", raw:"#E3B778", at:50,
+    axiom:"Point it at yourself first. Then say the hard thing plainly, and stay in the room.",
+    gloss:"You built this one entirely out of ethics, then quietly imported it into management, physics and AI collaboration without noticing you'd done it.",
+    shape:[[0,1],[1,2],[2,6],[6,5],[5,3],[3,4],[4,0],[1,3]]
+  },
+  loop: {
+    name:"The bounded loop", raw:"#6B42E0", at:67,
+    axiom:"Declare the exit before you enter the loop.",
+    gloss:"Every guardrail you have ever designed is a variation on this, and you built them all against the same known tendency in yourself. That isn't a weakness in the system. That is the system.",
+    shape:[[0,1],[1,2],[2,3],[3,4],[4,5],[5,0]]
+  },
+  structure: {
+    name:"Draw the structure", raw:"#8FA6E8", at:83,
+    axiom:"Ambiguity is not the absence of structure. It is structure nobody has drawn yet.",
+    gloss:"The thesis under your whole career. You don't make pictures of things people already understand — you make things understandable by insisting they can be drawn.",
+    shape:[[0,1],[1,2],[2,4],[4,5],[2,3],[3,6],[6,0]]
+  }
+};
+
+var STARS = [
+  {c:"recover", x:108, y:148, dom:"Governance", t:"Recoverability over perfection. Surface reality early; degrade gracefully."},
+  {c:"recover", x:196, y:104, dom:"Decision",   t:"Before anything else: is this reversible, or hard to reverse?"},
+  {c:"recover", x:286, y:146, dom:"Committee",  t:"Every session ends with a reversibility assessment."},
+  {c:"recover", x:352, y:220, dom:"Machine",    t:"No preemptive upgrades. Escalate on real bottlenecks, not theoretical ones."},
+  {c:"recover", x:300, y:308, dom:"Craft",      t:"Overlays start as display:none. Never unconditionally visible."},
+  {c:"recover", x:208, y:296, dom:"Physics",    t:"The singularity is where the math breaks down, not a physical feature."},
+  {c:"recover", x:132, y:246, dom:"Strategy",   t:"The Reconfiguration Tax: every restructure charges interest."},
+
+  {c:"vessel", x:600, y:120, dom:"Strategy",   t:"Deliverables was cut from the hierarchy. Defensible in the abstract; too much for this audience."},
+  {c:"vessel", x:676, y:152, dom:"Governance", t:"One filter, two outputs. The living page is the source of truth; the slide is a dressed-up snapshot."},
+  {c:"vessel", x:742, y:120, dom:"Governance", t:"Show only what needs a decision. Three to five items. Standup handles the rest."},
+  {c:"vessel", x:626, y:206, dom:"Field guide",t:"Trigger, then form, then template. One connected flow, not three lookup sections."},
+  {c:"vessel", x:712, y:232, dom:"Governance", t:"Density isn't fixed by smaller type. It's fixed by a third layer of concrete example."},
+  {c:"vessel", x:668, y:296, dom:"Physics",    t:"He reaches general relativity through water, because water is the vessel that fits the thinker."},
+  {c:"vessel", x:592, y:268, dom:"Scripture",  t:"Proverbs is general wisdom, not case law. Application takes discernment, not formula."},
+  {c:"vessel", x:760, y:196, dom:"Strategy",   t:"Work inside the agency's vocabulary. Don't correct a language that's already working."},
+
+  {c:"inward", x:150, y:430, dom:"Scripture",  t:"Wisdom literature is a mirror, not a weapon. It cuts inward before it points out."},
+  {c:"inward", x:232, y:466, dom:"Governance", t:"Directness as dignity."},
+  {c:"inward", x:312, y:432, dom:"People",     t:"Screen for what's hard to teach: judgment, and honest assessment that doesn't damage the relationship."},
+  {c:"inward", x:250, y:530, dom:"People",     t:"Tell him the truth: this role is a stepping stone, not the trajectory he thinks it is."},
+  {c:"inward", x:168, y:556, dom:"Physics",    t:"Don't just validate. Show precisely where the analogy breaks."},
+  {c:"inward", x:330, y:516, dom:"Governance", t:"We recommend and produce. They bless, decide and promulgate."},
+  {c:"inward", x:398, y:470, dom:"Committee",  t:"Push back with good reasoning. I'll trust you more, not less."},
+
+  {c:"loop", x:500, y:440, dom:"Decision",   t:"One critique pass. Then commit."},
+  {c:"loop", x:566, y:404, dom:"Committee",  t:"It must end with a recommendation, a confidence and a next step, or it has failed."},
+  {c:"loop", x:630, y:442, dom:"Decision",   t:"Watch for designing v1.1 before v1.0 has been run once."},
+  {c:"loop", x:622, y:516, dom:"Decision",   t:"Step minus one keeps important-decision rigour off merely interesting decisions."},
+  {c:"loop", x:552, y:552, dom:"Field guide",t:"The lookup reduced my hesitation. Bounding the search is what made me act."},
+  {c:"loop", x:486, y:512, dom:"Craft",      t:"On mobile, let the window do the scrolling. Don't nest a second scroll context."},
+
+  {c:"structure", x:820, y:420, dom:"Governance", t:"The value is connective interpretation: the links nobody upstairs has time to surface."},
+  {c:"structure", x:868, y:352, dom:"Field guide",t:"Turn the instinct to grab a marker into a framework."},
+  {c:"structure", x:906, y:278, dom:"Strategy",   t:"Calibration, not documentation. It's a soundness check, not paperwork."},
+  {c:"structure", x:846, y:236, dom:"Scripture",  t:"To pass over transgression shares a root with Passover. The link changes the weight."},
+  {c:"structure", x:930, y:180, dom:"Physics",    t:"Water displaced, pressure pushing back. An analogy is a structure made visible."},
+  {c:"structure", x:884, y:120, dom:"Governance", t:"A node atlas, so the ecosystem can be seen instead of remembered."},
+  {c:"structure", x:800, y:300, dom:"Craft",      t:"ASCII wasn't enough. The line has to draw itself before it feels real."},
+
+  {c:null, x:452, y:110, dom:"Scripture",       t:"Only fools are offended."},
+  {c:null, x:944, y:544, dom:"Physics",         t:"Nested black hole cosmology — what if it goes down recursively?"},
+  {c:null, x:60,  y:398, dom:"Entrepreneurship",t:"Which one would we actually pursue on a tired weekend?"}
+];
+
+var DARK_NOTE = "This one isn't part of anything yet. You wrote it down and walked away from it — which is not a failure, it's how every constellation on this page started. Three of these are floating out here. The next axiom is probably made of them.";
+
+/* ================= FIELD ================= */
+
+var svgNS = "http://www.w3.org/2000/svg";
+var gLinks = document.getElementById("links");
+var gOver  = document.getElementById("overlinks");
+var gTour  = document.getElementById("tourmark");
+var gStars = document.getElementById("stars");
+
+var byCon = {};
+Object.keys(CONS).forEach(function(k){ byCon[k] = []; });
+STARS.forEach(function(s,i){ s.i = i; if(s.c) byCon[s.c].push(s); });
+
+var linkEls = [];
+Object.keys(CONS).forEach(function(key){
+  var con = CONS[key], list = byCon[key];
+  con.shape.forEach(function(pair){
+    var a = list[pair[0]], b = list[pair[1]];
+    if(!a || !b) return;
+    var p = document.createElementNS(svgNS,"path");
+    p.setAttribute("d","M"+a.x+" "+a.y+" L"+b.x+" "+b.y);
+    p.setAttribute("class","link");
+    p.setAttribute("stroke", con.raw);
+    gLinks.appendChild(p);
+    var len = Math.hypot(b.x-a.x, b.y-a.y);
+    p.style.strokeDasharray = len;
+    p.style.strokeDashoffset = len;
+    linkEls.push({el:p, len:len, con:key});
+  });
+});
+
+var starEls = [];
+STARS.forEach(function(s){
+  var g = document.createElementNS(svgNS,"g");
+  g.setAttribute("class","star");
+  g.setAttribute("tabindex","0");
+  g.setAttribute("role","button");
+  g.setAttribute("aria-label", s.dom + ": " + s.t);
+  g.style.color = s.c ? CONS[s.c].raw : "#6E6E86";
+
+  var hit = document.createElementNS(svgNS,"circle");
+  hit.setAttribute("class","hit");
+  hit.setAttribute("cx",s.x); hit.setAttribute("cy",s.y); hit.setAttribute("r",18);
+
+  var halo = document.createElementNS(svgNS,"circle");
+  halo.setAttribute("class","halo");
+  halo.setAttribute("cx",s.x); halo.setAttribute("cy",s.y); halo.setAttribute("r",9);
+  halo.setAttribute("stroke-width","0.7");
+
+  var c = document.createElementNS(svgNS,"circle");
+  c.setAttribute("class","body");
+  c.setAttribute("cx",s.x); c.setAttribute("cy",s.y); c.setAttribute("r",1.1);
+  c.setAttribute("fill", s.c ? CONS[s.c].raw : "#6E6E86");
+  c.setAttribute("opacity",".18");
+
+  var lab = document.createElementNS(svgNS,"text");
+  lab.setAttribute("x", s.x + (s.x > 820 ? -13 : 13));
+  lab.setAttribute("y", s.y + 3.5);
+  if(s.x > 820) lab.setAttribute("text-anchor","end");
+  lab.textContent = s.dom.toUpperCase();
+
+  g.appendChild(hit); g.appendChild(halo); g.appendChild(c); g.appendChild(lab);
+  gStars.appendChild(g);
+  starEls.push({g:g, c:c, s:s});
+
+  g.addEventListener("click", function(){ openStar(s); });
+  g.addEventListener("keydown", function(e){
+    if(e.key === "Enter" || e.key === " "){ e.preventDefault(); openStar(s); }
+  });
+});
+
+/* ================= EXPOSURE ================= */
+
+var slider  = document.getElementById("exposure");
+var pctEl   = document.getElementById("expPct");
+var readout = document.getElementById("expReadout");
+var foundEl = document.getElementById("foundCount");
+var howto   = document.getElementById("howto");
+var furtherBtn = document.getElementById("further");
+var legend  = document.getElementById("legend");
+var overOn  = false;
+
+Object.keys(CONS).forEach(function(key){
+  var b = document.createElement("button");
+  b.className = "chip"; b.dataset.con = key;
+  b.textContent = CONS[key].name;
+  b.addEventListener("click", function(){ openCon(key); });
+  legend.appendChild(b);
+});
+
+function expTime(v){
+  if(v <= 0) return "t = 0.0 s";
+  var days = Math.pow(v/100, 3) * 11.3;
+  var secs = days * 86400;
+  if(secs < 90)   return "t = " + secs.toFixed(1) + " s";
+  if(secs < 5400) return "t = " + (secs/60).toFixed(1) + " min";
+  if(secs < 86400)return "t = " + (secs/3600).toFixed(1) + " hr";
+  return "t = " + days.toFixed(1) + " days";
+}
+
+function render(v){
+  pctEl.textContent = v + "%";
+  readout.textContent = expTime(v);
+
+  starEls.forEach(function(o){
+    var thresh = o.s.c ? CONS[o.s.c].at : 92;
+    var local = Math.max(0, Math.min(1, (v - thresh + 14) / 26));
+    o.c.setAttribute("opacity", (0.18 + local*0.82).toFixed(3));
+    o.c.setAttribute("r", (1.1 + local * (o.s.c ? 2.6 : 1.8)).toFixed(2));
+  });
+
+  linkEls.forEach(function(o){
+    var local = Math.max(0, Math.min(1, (v - CONS[o.con].at) / 15));
+    o.el.style.strokeDashoffset = o.len * (1 - local);
+  });
+
+  var found = 0;
+  Object.keys(CONS).forEach(function(key){
+    var chip = legend.querySelector('[data-con="'+key+'"]');
+    if(v >= CONS[key].at + 3){ chip.classList.add("revealed"); found++; }
+    else chip.classList.remove("revealed");
+  });
+  foundEl.textContent = found + " of 5";
+  furtherBtn.classList.toggle("on", v >= 100);
+  howto.style.opacity = v >= 40 ? .35 : 1;
+}
+
+slider.addEventListener("input", function(){
+  if(overOn) stopDown();
+  if(guided && !railBusy) pauseRail();
+  render(parseInt(slider.value,10));
+});
+render(18);
+
+function animateTo(target, dur, done){
+  var start = parseInt(slider.value,10);
+  if(window.matchMedia("(prefers-reduced-motion: reduce)").matches){
+    slider.value = target; render(target); if(done) done(); return;
+  }
+  var t0 = null;
+  function step(ts){
+    if(!t0) t0 = ts;
+    var p = Math.min(1,(ts-t0)/dur);
+    var e = 1 - Math.pow(1-p,3);
+    var val = Math.round(start + (target-start)*e);
+    slider.value = val; render(val);
+    if(p < 1) requestAnimationFrame(step); else if(done) done();
+  }
+  requestAnimationFrame(step);
+}
+
+/* ================= OVEREXPOSURE ================= */
+
+var overmsg = document.getElementById("overmsg");
+furtherBtn.addEventListener("click", function(){
+  overOn = true;
+  overmsg.classList.add("open");
+  gOver.innerHTML = "";
+  for(var i=0;i<STARS.length;i++){
+    for(var j=i+1;j<STARS.length;j++){
+      var a=STARS[i], b=STARS[j];
+      if(Math.hypot(a.x-b.x, a.y-b.y) > 340) continue;
+      var p = document.createElementNS(svgNS,"path");
+      p.setAttribute("d","M"+a.x+" "+a.y+" L"+b.x+" "+b.y);
+      p.setAttribute("class","overlink");
+      gOver.appendChild(p);
+    }
+  }
+  overmsg.scrollIntoView({behavior:"smooth", block:"nearest"});
+});
+function stopDown(){
+  overOn=false; gOver.innerHTML=""; overmsg.classList.remove("open");
+}
+document.getElementById("stopDown").addEventListener("click", stopDown);
+
+/* ================= PANEL ================= */
+
+var panel = document.getElementById("panel");
+var pInner= document.getElementById("panelInner");
+var pKick = document.getElementById("pKicker");
+var pQuote= document.getElementById("pQuote");
+var pAx   = document.getElementById("pAxiom");
+var pSibs = document.getElementById("pSibs");
+var pSibHead = document.getElementById("pSibHead");
+
+function clearSel(){
+  starEls.forEach(function(o){ o.g.classList.remove("sel"); o.g.style.opacity=""; });
+  legend.querySelectorAll(".chip").forEach(function(c){
+    c.classList.remove("active"); c.style.background=""; c.style.borderColor="";
+  });
+  linkEls.forEach(function(o){ o.el.style.opacity=""; });
+}
+
+function openStar(s, fromTour){
+  if(guided && !fromTour && !railBusy) pauseRail();
+  clearSel();
+  starEls[s.i].g.classList.add("sel");
+
+  if(!s.c){
+    pInner.style.borderLeftColor = "#6E6E86";
+    pKick.innerHTML = '<span style="color:#8A8A9C">UNAFFILIATED</span><span>'+s.dom.toUpperCase()+'</span>';
+    pQuote.textContent = "\u201C"+s.t+"\u201D";
+    pAx.innerHTML = "<b>No axiom yet</b>" + DARK_NOTE;
+    pSibHead.textContent = "Also drifting";
+    pSibs.innerHTML = "";
+    STARS.filter(function(x){ return !x.c && x!==s; }).forEach(function(x){
+      pSibs.insertAdjacentHTML("beforeend",'<li><span class="dom">'+x.dom+'</span><span>'+x.t+'</span></li>');
+    });
+  } else {
+    var con = CONS[s.c];
+    pInner.style.borderLeftColor = con.raw;
+    pKick.innerHTML = '<span style="color:'+con.raw+'">'+con.name.toUpperCase()+'</span><span>'+s.dom.toUpperCase()+'</span>';
+    pQuote.textContent = "\u201C"+s.t+"\u201D";
+    pAx.innerHTML = "<b>"+con.axiom+"</b>"+con.gloss;
+    pSibHead.textContent = "The same shape, elsewhere in your work";
+    pSibs.innerHTML = "";
+    byCon[s.c].filter(function(x){ return x!==s && x.dom!==s.dom; }).slice(0,4).forEach(function(x){
+      pSibs.insertAdjacentHTML("beforeend",'<li><span class="dom">'+x.dom+'</span><span>'+x.t+'</span></li>');
+    });
+    dim(s.c);
+  }
+  panel.classList.add("open");
+}
+
+function openCon(key, fromTour){
+  if(guided && !fromTour && !railBusy) pauseRail();
+  clearSel();
+  var con = CONS[key];
+  var chip = legend.querySelector('[data-con="'+key+'"]');
+  chip.classList.add("active");
+  chip.style.background = con.raw; chip.style.borderColor = con.raw;
+
+  pInner.style.borderLeftColor = con.raw;
+  pKick.innerHTML = '<span style="color:'+con.raw+'">CONSTELLATION</span><span>'+byCon[key].length+' SOURCES · '+countDomains(key)+' DOMAINS</span>';
+  pQuote.textContent = con.axiom;
+  pAx.innerHTML = "<b>"+con.name+"</b>"+con.gloss;
+  pSibHead.textContent = "Everything this is made of";
+  pSibs.innerHTML = "";
+  byCon[key].forEach(function(x){
+    pSibs.insertAdjacentHTML("beforeend",'<li><span class="dom">'+x.dom+'</span><span>'+x.t+'</span></li>');
+  });
+  dim(key);
+  panel.classList.add("open");
+}
+
+function countDomains(key){
+  var seen={}; byCon[key].forEach(function(x){ seen[x.dom]=1; });
+  return Object.keys(seen).length;
+}
+function dim(key){
+  starEls.forEach(function(o){ o.g.style.opacity = (o.s.c===key) ? "1" : ".22"; });
+  linkEls.forEach(function(o){ o.el.style.opacity = (o.con===key) ? ".95" : ".07"; });
+}
+document.getElementById("pClose").addEventListener("click", function(){
+  panel.classList.remove("open"); clearSel();
+});
+
+/* ================= GUIDED RAIL ================= */
+
+var guided = false, railBusy = false, railIdx = 0, railPaused = false;
+var rail = document.getElementById("rail");
+var railSay = document.getElementById("railSay");
+var railStepEl = document.getElementById("railStep");
+var railDots = document.getElementById("railDots");
+var railResume = document.getElementById("railResume");
+var guideBtn = document.getElementById("guideBtn");
+
+var TOUR = [
+  {
+    say:"Right now the exposure is low, so most of what's here is invisible. That's the honest starting state — thirty-eight things you wrote down in six different parts of your life, none of them obviously related. Watch what happens when we hold the shutter open a little longer.",
+    run:function(next){ animateTo(22, 1400, next); }
+  },
+  {
+    say:"There's the first one. Seven points just linked up — <em>Recoverability</em>. Look at what's in it: a governance north star, a decision-classification rule, a hardware policy, and a CSS rule about overlays. You wrote those months and contexts apart. They're the same instruction.",
+    run:function(next){ animateTo(30, 1600, function(){ openCon("recover", true); next(); }); }
+  },
+  {
+    say:"The panel below the field is where the reading happens. It shows the axiom, then every source line underneath it. Anytime you click a name or a dot, that's what opens.",
+    run:function(next){ next(); }
+  },
+  {
+    say:"Now let's keep going. Three more will resolve as the exposure climbs — <em>The Vessel</em>, <em>Aim it inward</em>, and <em>The bounded loop</em>. Each name appears as a pill next to the slider. Those pills are clickable whenever you want.",
+    run:function(next){ panel.classList.remove("open"); clearSel(); animateTo(72, 3200, next); }
+  },
+  {
+    say:"This one is worth stopping on. <em>Aim it inward</em> is built almost entirely out of your Proverbs study — mirror not weapon — and then it turns up in how you plan to talk to M, in how you asked me to handle Cameron's physics, and in how you told me to push back on you. You exported an ethic into three unrelated domains without ever calling it a method.",
+    run:function(next){ openCon("inward", true); next(); }
+  },
+  {
+    say:"Full exposure. Five constellations, and three points that never joined anything — those are the threads you wrote down and walked away from. They're clickable too, and they're the most interesting part of the map.",
+    run:function(next){ panel.classList.remove("open"); clearSel(); animateTo(100, 2400, next); }
+  },
+  {
+    say:"That's the whole instrument. The slider controls how much resolves, the pills filter, every dot opens its source. Below the field there's a second tool — <em>Take a sounding</em> — that routes something you're currently stuck on to whichever of these five you already wrote for it.",
+    run:function(next){ next(); }
+  }
+];
+
+for(var d=0; d<TOUR.length; d++){ railDots.appendChild(document.createElement("i")); }
+
+function paintDots(){
+  var els = railDots.querySelectorAll("i");
+  for(var i=0;i<els.length;i++){
+    els[i].className = i < railIdx ? "done" : (i === railIdx ? "now" : "");
+  }
+}
+
+function showStep(i){
+  railIdx = Math.max(0, Math.min(TOUR.length-1, i));
+  railStepEl.textContent = "Step " + (railIdx+1) + " of " + TOUR.length;
+  railSay.innerHTML = TOUR[railIdx].say;
+  paintDots();
+  railPaused = false;
+  railResume.classList.remove("on");
+  railBusy = true;
+  TOUR[railIdx].run(function(){ railBusy = false; });
+  document.getElementById("railNext").textContent =
+    (railIdx === TOUR.length-1) ? "Finish" : "Next";
+}
+
+function pauseRail(){
+  railPaused = true;
+  railResume.classList.add("on");
+}
+
+guideBtn.addEventListener("click", function(){
+  guided = !guided;
+  guideBtn.classList.toggle("on", guided);
+  guideBtn.setAttribute("aria-pressed", guided ? "true" : "false");
+  document.getElementById("guideLabel").textContent = guided ? "Guided · on" : "Guided";
+  rail.classList.toggle("open", guided);
+  if(guided){ showStep(0); rail.scrollIntoView({behavior:"smooth", block:"nearest"}); }
+  else { railResume.classList.remove("on"); }
+});
+
+document.getElementById("railNext").addEventListener("click", function(){
+  if(railIdx === TOUR.length-1){ guideBtn.click(); return; }
+  showStep(railIdx+1);
+});
+document.getElementById("railBack").addEventListener("click", function(){ showStep(railIdx-1); });
+document.getElementById("railExit").addEventListener("click", function(){ guideBtn.click(); });
+document.getElementById("railResumeBtn").addEventListener("click", function(){ showStep(railIdx); });
+
+/* ================= SOUNDING ================= */
+
+var QS = [
+  {q:"If this goes wrong, what does it cost to undo?", a:["Cheap — we can back out","Expensive, or permanent"]},
+  {q:"Is the trouble that people can't see the shape of it, or that they're seeing too much of it at once?", a:["They can't see the shape","They're seeing too much"]},
+  {q:"Is anyone avoiding saying something true — you included?", a:["No, it's all on the table","Yes, something isn't being said"]},
+  {q:"How many passes have you already made at this?", a:["First real pass","I've been circling it"]}
+];
+var answers=[null,null,null,null];
+var qWrap = document.getElementById("questions");
+
+QS.forEach(function(item, qi){
+  var d = document.createElement("div");
+  d.className="q";
+  d.innerHTML = '<p class="qtext"><span class="qnum">0'+(qi+1)+'</span>'+item.q+'</p>';
+  var opts = document.createElement("div"); opts.className="opts";
+  item.a.forEach(function(txt, ai){
+    var b = document.createElement("button");
+    b.className="opt"; b.type="button"; b.textContent=txt;
+    b.addEventListener("click", function(){
+      answers[qi]=ai;
+      opts.querySelectorAll(".opt").forEach(function(x){ x.classList.remove("on"); });
+      b.classList.add("on");
+      maybeRoute();
+    });
+    opts.appendChild(b);
+  });
+  d.appendChild(opts); qWrap.appendChild(d);
+});
+
+var ROUTE_WHY = {
+  inward:"You said something true is going unsaid. That outranks everything else here, so nothing downstream got to vote. No framework survives a conversation nobody is willing to have.",
+  loop:"Everything is on the table and you've already been round this more than once. The problem isn't information. It's that no exit was declared.",
+  recover:"Undoing this is expensive, and you're on a first pass with nothing hidden. That's the case where precision genuinely earns its cost.",
+  vessel:"The material is fine; the delivery is overloaded. You don't cut the truth, you change the container.",
+  structure:"Cheap to undo, and nobody can see the shape. That isn't a decision problem yet — it's a drawing problem."
+};
+function route(){
+  if(answers[2]===1) return "inward";
+  if(answers[3]===1) return "loop";
+  if(answers[0]===1) return "recover";
+  if(answers[1]===1) return "vessel";
+  return "structure";
+}
+var result = document.getElementById("result");
+function maybeRoute(){
+  if(answers.some(function(a){ return a===null; })) return;
+  var key = route(), con = CONS[key];
+  document.getElementById("rKicker").innerHTML =
+    '<span style="color:'+con.raw+'">'+con.name.toUpperCase()+'</span><span>ROUTED FROM 4 SIGNALS</span>';
+  document.getElementById("rAxiom").textContent = con.axiom;
+  document.getElementById("rWhy").innerHTML = "<b>Why this one</b>"+ROUTE_WHY[key];
+  result.style.borderLeftColor = con.raw;
+  var ul = document.getElementById("rSibs"); ul.innerHTML="";
+  byCon[key].slice(0,5).forEach(function(x){
+    ul.insertAdjacentHTML("beforeend",'<li><span class="dom">'+x.dom+'</span><span>'+x.t+'</span></li>');
+  });
+  result.classList.add("open");
+}
+
+/* ================= PRINT SHEET ================= */
+
+var html = "<h3>The five axioms</h3>";
+Object.keys(CONS).forEach(function(k){
+  var c = CONS[k];
+  html += "<h3>"+c.name+"</h3><p><em>"+c.axiom+"</em></p><ul>";
+  byCon[k].forEach(function(s){ html += "<li>["+s.dom+"] "+s.t+"</li>"; });
+  html += "</ul>";
+});
+html += "<h3>Unaffiliated</h3><ul>";
+STARS.filter(function(s){ return !s.c; }).forEach(function(s){
+  html += "<li>["+s.dom+"] "+s.t+"</li>";
+});
+html += "</ul>";
+document.getElementById("printsheet").innerHTML = html;
+
+/* ================= STARFIELD ================= */
+
+var cv = document.getElementById("starfield"), ctx = cv.getContext("2d");
+var pts=[], W=0, H=0;
+var reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+function seed(){
+  W = cv.width = window.innerWidth; H = cv.height = window.innerHeight;
+  pts = [];
+  var n = Math.round((W*H)/9000);
+  for(var i=0;i<n;i++){
+    pts.push({x:Math.random()*W, y:Math.random()*H, r:Math.random()*0.9+0.15,
+              a:Math.random()*0.3+0.04, s:Math.random()*0.01+0.002, p:Math.random()*6.2832});
+  }
+}
+function draw(t){
+  ctx.clearRect(0,0,W,H);
+  for(var i=0;i<pts.length;i++){
+    var p = pts[i];
+    var tw = reduce ? p.a : p.a*(0.62+0.38*Math.sin(t*p.s+p.p));
+    ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,6.2832);
+    ctx.fillStyle = "rgba(200,206,232,"+tw.toFixed(3)+")"; ctx.fill();
+  }
+  if(!reduce) requestAnimationFrame(draw);
+}
+seed();
+if(reduce) draw(0); else requestAnimationFrame(draw);
+window.addEventListener("resize", function(){ seed(); if(reduce) draw(0); });
+
+})();
+</script>
+</body>
+</html>
