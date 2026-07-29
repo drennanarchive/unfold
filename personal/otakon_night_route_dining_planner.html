@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#050713" />
+  <title>Night Route // Otakon 2026 Dining Planner</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Oxanium:wght@400;500;600;700&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg:#040611;
+      --bg2:#080c1c;
+      --panel:rgba(8,13,31,.88);
+      --panel2:rgba(12,18,40,.72);
+      --text:#f6f8ff;
+      --muted:#a9b4cf;
+      --faint:#65718e;
+      --cyan:#00d9ff;
+      --pink:#ff006e;
+      --gold:#f4a340;
+      --violet:#a979ff;
+      --mint:#5ff2ba;
+      --danger:#ff5b70;
+      --line:rgba(139,165,218,.18);
+      --line2:rgba(198,218,255,.32);
+      --shadow:0 24px 80px rgba(0,0,0,.56);
+      --day:#00d9ff;
+      --day-rgb:0,217,255;
+    }
+    *{box-sizing:border-box}
+    html{scroll-behavior:smooth}
+    body{
+      margin:0;
+      min-height:100vh;
+      color:var(--text);
+      font-family:"Rajdhani",system-ui,sans-serif;
+      background:
+        linear-gradient(rgba(0,217,255,.026) 1px,transparent 1px),
+        linear-gradient(90deg,rgba(255,0,110,.018) 1px,transparent 1px),
+        radial-gradient(circle at 9% 0%,rgba(0,217,255,.15),transparent 25%),
+        radial-gradient(circle at 92% 6%,rgba(255,0,110,.13),transparent 25%),
+        radial-gradient(circle at 70% 100%,rgba(244,163,64,.07),transparent 30%),
+        var(--bg);
+      background-size:42px 42px,42px 42px,auto,auto,auto,auto;
+      overflow-x:hidden;
+    }
+    body::after{
+      content:"";position:fixed;inset:0;z-index:1000;pointer-events:none;opacity:.2;
+      background:repeating-linear-gradient(180deg,transparent 0 3px,rgba(0,0,0,.24) 3px 4px)
+    }
+    button,input,textarea{font:inherit}
+    button{color:inherit}
+    a{color:inherit;text-decoration:none}
+    ::selection{background:rgba(255,0,110,.36)}
+
+    .topbar{
+      position:sticky;top:0;z-index:80;
+      min-height:64px;
+      display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:24px;
+      padding:10px 22px;
+      background:rgba(4,6,17,.87);backdrop-filter:blur(18px);
+      border-bottom:1px solid rgba(0,217,255,.19);
+      box-shadow:0 10px 35px rgba(0,0,0,.28)
+    }
+    .brand{display:flex;align-items:center;gap:11px;white-space:nowrap}
+    .brand-sigil{
+      width:38px;height:38px;display:grid;place-items:center;position:relative;
+      border:1px solid var(--cyan);box-shadow:0 0 20px rgba(0,217,255,.18);
+      clip-path:polygon(8px 0,100% 0,100% calc(100% - 8px),calc(100% - 8px) 100%,0 100%,0 8px)
+    }
+    .brand-sigil::before,.brand-sigil::after{content:"";position:absolute;background:var(--pink);box-shadow:0 0 10px var(--pink)}
+    .brand-sigil::before{width:18px;height:1px;transform:rotate(45deg)}
+    .brand-sigil::after{width:1px;height:18px;transform:rotate(45deg)}
+    .brand strong{display:block;font:700 15px/1 "Oxanium",sans-serif;letter-spacing:.14em}
+    .brand span{display:block;margin-top:4px;font:500 8px/1 "IBM Plex Mono",monospace;letter-spacing:.13em;color:var(--cyan)}
+    .global-progress{display:flex;align-items:center;gap:10px;max-width:650px;width:100%;justify-self:center}
+    .progress-label{font:500 9px/1 "IBM Plex Mono",monospace;letter-spacing:.12em;color:var(--muted);white-space:nowrap}
+    .progress-track{flex:1;display:grid;grid-template-columns:repeat(9,1fr);gap:4px}
+    .progress-seg{appearance:none;padding:0;height:7px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.07);transition:.22s;cursor:pointer}
+    .progress-seg:hover,.progress-seg:focus-visible{border-color:var(--cyan);outline:none;transform:scaleY(1.55)}
+    .progress-seg.filled{background:var(--cyan);border-color:var(--cyan);box-shadow:0 0 12px rgba(0,217,255,.65)}
+    .progress-count{font:600 11px/1 "IBM Plex Mono",monospace;color:var(--pink);white-space:nowrap}
+    .progress-next{min-height:28px;padding:0 8px;border:1px solid rgba(0,217,255,.28);background:rgba(0,217,255,.045);color:var(--cyan);cursor:pointer;font:600 7px/1 "IBM Plex Mono",monospace;letter-spacing:.07em;text-transform:uppercase;white-space:nowrap;transition:.18s}
+    .progress-next:hover{background:rgba(0,217,255,.11);border-color:var(--cyan)}
+    .top-actions{display:flex;gap:8px;align-items:center}
+    .mini-action{
+      min-height:34px;padding:0 12px;border:1px solid var(--line);background:rgba(255,255,255,.025);
+      cursor:pointer;font:500 9px/1 "IBM Plex Mono",monospace;letter-spacing:.07em;text-transform:uppercase;
+      clip-path:polygon(7px 0,100% 0,100% calc(100% - 7px),calc(100% - 7px) 100%,0 100%,0 7px);
+      transition:.18s
+    }
+    .mini-action:hover{border-color:var(--cyan);background:rgba(0,217,255,.07);transform:translateY(-1px)}
+
+    .workspace{
+      width:min(1540px,calc(100% - 30px));margin:0 auto;
+      display:grid;grid-template-columns:132px minmax(0,1fr) 340px;gap:18px;
+      padding:18px 0 76px;
+    }
+
+    /* DAY CREDENTIAL SPINE */
+    .day-spine{position:sticky;top:82px;height:calc(100vh - 100px);display:flex;flex-direction:column;gap:10px}
+    .spine-label{padding:5px 5px 10px;font:500 8px/1 "IBM Plex Mono",monospace;letter-spacing:.17em;color:var(--faint);writing-mode:vertical-rl;position:absolute;left:-14px;top:8px}
+    .day-pass{
+      position:relative;flex:1;min-height:126px;padding:14px 11px 12px;border:1px solid rgba(255,255,255,.11);
+      background:linear-gradient(145deg,rgba(12,18,40,.85),rgba(6,9,22,.9));cursor:pointer;overflow:hidden;text-align:left;
+      clip-path:polygon(0 0,calc(100% - 14px) 0,100% 14px,100% 100%,14px 100%,0 calc(100% - 14px));
+      transition:transform .2s,border-color .2s,background .2s,box-shadow .2s
+    }
+    .day-pass::before{content:"";position:absolute;inset:0;background:linear-gradient(115deg,transparent 36%,rgba(255,255,255,.06) 48%,transparent 58%);transform:translateX(-130%);transition:.5s}
+    .day-pass:hover::before{transform:translateX(130%)}
+    .day-pass:hover{transform:translateX(5px);border-color:var(--pass-color)}
+    .day-pass.active{border-color:var(--pass-color);background:linear-gradient(145deg,rgba(var(--pass-rgb),.16),rgba(7,10,24,.95));box-shadow:0 0 0 1px rgba(var(--pass-rgb),.15),0 16px 34px rgba(0,0,0,.38)}
+    .day-pass.active::after{content:"";position:absolute;left:0;top:14px;bottom:14px;width:3px;background:var(--pass-color);box-shadow:0 0 15px var(--pass-color)}
+    .day-index{display:block;font:500 8px/1 "IBM Plex Mono",monospace;color:var(--faint);letter-spacing:.12em}
+    .day-name{display:block;margin-top:12px;font:700 24px/.86 "Oxanium",sans-serif;letter-spacing:-.04em;color:var(--pass-color);text-transform:uppercase}
+    .day-date{display:block;margin-top:7px;font:600 10px/1 "IBM Plex Mono",monospace;letter-spacing:.08em;color:var(--muted)}
+    .day-status{position:absolute;left:11px;right:11px;bottom:29px;display:flex;gap:4px}
+    .status-pip{height:4px;flex:1;background:rgba(255,255,255,.1)}
+    .status-pip.done{background:var(--pass-color);box-shadow:0 0 7px rgba(var(--pass-rgb),.6)}
+    .barcode{position:absolute;left:11px;right:11px;bottom:10px;height:10px;opacity:.45;background:repeating-linear-gradient(90deg,var(--pass-color) 0 1px,transparent 1px 3px,var(--pass-color) 3px 5px,transparent 5px 8px)}
+
+    /* CENTRAL ROUTE BOARD */
+    .route-stage{min-width:0}
+    .route-header{
+      position:relative;min-height:230px;padding:30px 34px;overflow:hidden;border:1px solid rgba(var(--day-rgb),.34);
+      background:linear-gradient(105deg,rgba(5,8,20,.97) 0%,rgba(8,13,31,.9) 52%,rgba(var(--day-rgb),.12) 100%);
+      box-shadow:var(--shadow),inset 0 0 50px rgba(var(--day-rgb),.04);
+      clip-path:polygon(0 0,calc(100% - 28px) 0,100% 28px,100% 100%,28px 100%,0 calc(100% - 28px))
+    }
+    .route-header::before{content:"";position:absolute;inset:0;opacity:.65;background:linear-gradient(90deg,transparent 0 66%,rgba(var(--day-rgb),.05) 66% 66.2%,transparent 66.2%),repeating-linear-gradient(90deg,transparent 0 72px,rgba(var(--day-rgb),.045) 72px 73px)}
+    .route-header::after{content:"";position:absolute;left:0;right:0;bottom:0;height:3px;background:linear-gradient(90deg,var(--day),transparent 58%);box-shadow:0 0 18px var(--day)}
+    .route-sheen{position:absolute;z-index:3;inset:-95%;pointer-events:none;opacity:.58;background:linear-gradient(90deg,transparent 43%,rgba(255,255,255,.18) 49%,rgba(var(--day-rgb),.16) 51%,transparent 57%);transform:rotate(20deg);animation:routeFoil 8.5s cubic-bezier(.4,0,.2,1) infinite;will-change:translate}
+    @keyframes routeFoil{0%,18%{translate:-34% 0}52%,100%{translate:42% 0}}
+    .route-copy{position:relative;z-index:4;max-width:650px}
+    .route-code{font:500 9px/1 "IBM Plex Mono",monospace;letter-spacing:.16em;color:var(--day);text-transform:uppercase}
+    .route-title{margin:15px 0 0;font:700 clamp(44px,6vw,84px)/.82 "Oxanium",sans-serif;letter-spacing:-.065em;text-transform:uppercase}
+    .route-title span{display:block;color:transparent;-webkit-text-stroke:1px rgba(var(--day-rgb),.8);text-shadow:0 0 24px rgba(var(--day-rgb),.16)}
+    .route-sub{max-width:530px;margin:17px 0 0;color:var(--muted);font:500 14px/1.5 "IBM Plex Mono",monospace}
+    .route-meta{display:flex;flex-wrap:wrap;gap:7px;margin-top:20px}
+    .meta-tag{padding:6px 8px;border:1px solid rgba(var(--day-rgb),.25);background:rgba(var(--day-rgb),.055);font:500 8px/1 "IBM Plex Mono",monospace;letter-spacing:.08em;text-transform:uppercase}
+    .mobile-route-tools{display:none;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;margin-top:12px}
+    .mobile-route-tool{min-height:36px;display:grid;place-items:center;padding:7px 6px;border:1px solid rgba(var(--day-rgb),.34);background:rgba(5,8,20,.58);color:#e9fbff;text-align:center;font:600 7px/1.2 "IBM Plex Mono",monospace;letter-spacing:.055em;text-transform:uppercase;backdrop-filter:blur(7px)}
+    .mobile-route-tool:nth-child(1){color:#ff9bc5;border-color:rgba(255,0,110,.38)}
+    .mobile-route-tool:nth-child(2){color:#86efff;border-color:rgba(0,217,255,.4)}
+    .mobile-route-tool:nth-child(3){color:#ffd08d;border-color:rgba(244,163,64,.4)}
+    .mobile-route-tool:hover{background:rgba(var(--day-rgb),.09);border-color:var(--day)}
+    .sky-upload{cursor:pointer;color:var(--cyan)}
+    #skyInput{display:none}
+    .sky-layer{position:absolute;z-index:1;inset:0 0 0 42%;opacity:.78;pointer-events:none;background-size:cover;background-position:center;mask-image:linear-gradient(90deg,transparent,#000 22%);-webkit-mask-image:linear-gradient(90deg,transparent,#000 22%)}
+    .sky-layer.has-image{filter:saturate(1.15) contrast(1.08)}
+    .css-city{position:absolute;inset:auto 0 0 0;height:70%;overflow:hidden;opacity:.85}
+    .tower{position:absolute;bottom:0;background:linear-gradient(180deg,rgba(var(--day-rgb),.22),#070a18 45%);border-top:1px solid rgba(var(--day-rgb),.7);box-shadow:0 0 18px rgba(var(--day-rgb),.12)}
+    .tower::after{content:"";position:absolute;inset:8px 7px;background-image:radial-gradient(circle,rgba(244,163,64,.9) 0 1px,transparent 1.4px);background-size:9px 11px;opacity:.5}
+    .monument{position:absolute;bottom:0;left:55%;width:5px;height:72%;background:linear-gradient(#fff,var(--cyan));clip-path:polygon(48% 0,100% 100%,0 100%);box-shadow:0 0 16px rgba(0,217,255,.75)}
+    .crosshair{position:absolute;z-index:2;width:30px;height:30px;right:20%;top:23%;opacity:.55}
+    .crosshair::before,.crosshair::after{content:"";position:absolute;background:var(--day);box-shadow:0 0 8px var(--day)}
+    .crosshair::before{left:14px;top:0;width:1px;height:30px}.crosshair::after{top:14px;left:0;height:1px;width:30px}
+
+    .meal-route{position:relative;margin-top:18px;padding-left:34px}
+    .meal-route::before{content:"";position:absolute;left:13px;top:32px;bottom:32px;width:2px;background:linear-gradient(var(--day),rgba(var(--day-rgb),.1));box-shadow:0 0 10px rgba(var(--day-rgb),.25)}
+    .meal-station{position:relative;margin-bottom:16px;border:1px solid var(--line);background:rgba(7,11,26,.78);box-shadow:0 14px 46px rgba(0,0,0,.28);overflow:hidden}
+    .meal-station::before{content:"";position:absolute;left:-29px;top:29px;width:15px;height:15px;border:2px solid var(--day);background:var(--bg);transform:rotate(45deg);box-shadow:0 0 15px rgba(var(--day-rgb),.55)}
+    .station-head{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:15px;padding:17px 18px;border-bottom:1px solid var(--line);background:linear-gradient(90deg,rgba(var(--day-rgb),.085),transparent 60%)}
+    .station-number{font:600 10px/1 "IBM Plex Mono",monospace;color:var(--day);letter-spacing:.12em}
+    .station-name{font:700 24px/1 "Oxanium",sans-serif;text-transform:uppercase;letter-spacing:-.03em}
+    .station-state{padding:5px 8px;border:1px solid rgba(255,255,255,.12);font:500 8px/1 "IBM Plex Mono",monospace;letter-spacing:.09em;text-transform:uppercase;color:var(--faint)}
+    .station-state.ready{color:var(--mint);border-color:rgba(95,242,186,.35);background:rgba(95,242,186,.06)}
+    .lane{display:grid;grid-template-columns:118px minmax(0,1fr);min-height:130px;border-bottom:1px solid var(--line)}
+    .lane:last-of-type{border-bottom:0}
+    .lane-label{position:relative;padding:18px 14px;border-right:1px solid var(--line);background:rgba(255,255,255,.018);overflow:hidden}
+    .lane-label::after{content:"";position:absolute;right:0;top:0;bottom:0;width:2px;background:var(--lane);box-shadow:0 0 10px var(--lane)}
+    .lane-id{display:block;font:500 8px/1 "IBM Plex Mono",monospace;letter-spacing:.1em;color:var(--lane)}
+    .lane-name{display:block;margin-top:9px;font:700 17px/.95 "Oxanium",sans-serif;text-transform:uppercase}
+    .lane-help{display:block;margin-top:8px;color:var(--faint);font:500 10px/1.25 "IBM Plex Mono",monospace}
+    .option-strip{display:grid;grid-template-columns:repeat(auto-fit,minmax(195px,1fr));gap:10px;padding:12px}
+    .place-card{position:relative;min-height:110px;padding:13px;border:1px solid rgba(255,255,255,.1);background:linear-gradient(145deg,rgba(255,255,255,.035),rgba(255,255,255,.012));overflow:hidden;transition:.2s;cursor:pointer}
+    .place-card::before{content:"";position:absolute;left:0;top:0;width:23px;height:2px;background:var(--lane);box-shadow:0 0 11px var(--lane)}
+    .place-card:hover{transform:translateY(-2px);border-color:rgba(255,255,255,.25);background:rgba(255,255,255,.045)}.place-card:focus-within{outline:1px solid var(--cyan);outline-offset:2px}
+    .place-card.planned{border-color:var(--pink);box-shadow:inset 0 0 0 1px rgba(255,0,110,.16),0 0 24px rgba(255,0,110,.1)}
+    .place-card.backup{border-color:var(--cyan);box-shadow:inset 0 0 0 1px rgba(0,217,255,.12)}
+    .place-name{padding-right:46px;font:700 17px/1.05 "Oxanium",sans-serif}
+    .place-meta{margin-top:7px;color:var(--muted);font:500 10px/1.35 "IBM Plex Mono",monospace}
+    .place-walk{display:inline-flex;margin-top:7px;padding:3px 6px;border:1px solid rgba(244,163,64,.28);background:rgba(244,163,64,.045);color:#ffc56f;font:600 7px/1 "IBM Plex Mono",monospace;letter-spacing:.05em;text-transform:uppercase}
+    .place-links{display:flex;flex-wrap:wrap;gap:5px;margin-top:9px}
+    .place-link{position:relative;z-index:2;padding:4px 6px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.025);color:var(--muted);font:600 7px/1 "IBM Plex Mono",monospace;letter-spacing:.055em;text-transform:uppercase;transition:.16s}
+    .place-link:hover{color:var(--cyan);border-color:rgba(0,217,255,.45);background:rgba(0,217,255,.065)}
+    .place-link.reserve:hover{color:#ff8abd;border-color:rgba(255,0,110,.45);background:rgba(255,0,110,.065)}
+    .state-chip{position:absolute;top:10px;right:9px;padding:4px 6px;font:600 7px/1 "IBM Plex Mono",monospace;letter-spacing:.08em;text-transform:uppercase}
+    .state-chip.plan{background:rgba(255,0,110,.12);border:1px solid rgba(255,0,110,.5);color:#ff7fb7}.state-chip.alt{background:rgba(0,217,255,.09);border:1px solid rgba(0,217,255,.45);color:#73ecff}
+    .place-actions{display:flex;gap:6px;margin-top:12px}
+    .card-btn{flex:1;min-height:29px;padding:0 7px;border:1px solid rgba(255,255,255,.12);background:transparent;cursor:pointer;font:600 8px/1 "IBM Plex Mono",monospace;letter-spacing:.055em;text-transform:uppercase;transition:.18s}
+    .card-btn:hover{background:rgba(255,255,255,.05)}
+    .card-btn.select-btn:hover,.planned .select-btn,.backup .select-btn{border-color:var(--cyan);color:#73ecff;background:rgba(0,217,255,.06)}
+    .card-btn.primary-btn:hover,.backup .primary-btn{border-color:var(--pink);color:#ff7fb7;background:rgba(255,0,110,.07)}
+    .card-btn.primary-btn[disabled]{cursor:default;opacity:.75;border-color:rgba(255,0,110,.45);color:#ff7fb7;background:rgba(255,0,110,.07)}
+    .station-footer{display:grid;grid-template-columns:1fr auto;gap:10px;padding:12px;border-top:1px solid var(--line);background:rgba(255,255,255,.014)}
+    .custom-wrap{display:flex;gap:7px;min-width:0}
+    .custom-input,.note-input{min-width:0;width:100%;height:36px;border:1px solid rgba(255,255,255,.11);background:rgba(0,0,0,.2);color:var(--text);padding:0 10px;outline:none;font:500 11px/1 "IBM Plex Mono",monospace}
+    .custom-input:focus,.note-input:focus{border-color:var(--gold);box-shadow:0 0 0 2px rgba(244,163,64,.08)}
+    .add-custom{height:36px;padding:0 12px;border:1px solid rgba(244,163,64,.45);background:rgba(244,163,64,.07);color:var(--gold);cursor:pointer;font:600 8px/1 "IBM Plex Mono",monospace;letter-spacing:.06em;text-transform:uppercase}
+    .note-toggle{height:36px;padding:0 12px;border:1px solid rgba(169,121,255,.4);background:rgba(169,121,255,.06);color:#c7a9ff;cursor:pointer;font:600 8px/1 "IBM Plex Mono",monospace;letter-spacing:.05em;text-transform:uppercase}
+    .note-row{display:none;padding:0 12px 12px;background:rgba(255,255,255,.014)}.note-row.open{display:block}.note-input{height:42px;padding-top:10px;resize:vertical}
+
+    /* PHYSICAL WEEKEND PASS */
+    .pass-rail{position:sticky;top:82px;height:calc(100vh - 100px)}
+    .weekend-pass{position:relative;height:100%;min-height:600px;border:1px solid rgba(255,0,110,.38);background:linear-gradient(155deg,rgba(16,21,45,.97),rgba(5,8,20,.98) 72%);box-shadow:var(--shadow),inset 0 0 55px rgba(255,0,110,.035);overflow:hidden;clip-path:polygon(0 18px,18px 0,calc(100% - 18px) 0,100% 18px,100% calc(100% - 18px),calc(100% - 18px) 100%,18px 100%,0 calc(100% - 18px))}
+    .lanyard-hole{position:absolute;top:12px;left:50%;transform:translateX(-50%);width:42px;height:12px;border-radius:999px;background:var(--bg);border:1px solid rgba(255,255,255,.18);box-shadow:inset 0 2px 7px rgba(0,0,0,.8)}
+    .pass-foil{height:88px;margin-top:32px;padding:18px;background:linear-gradient(112deg,rgba(0,217,255,.24),rgba(169,121,255,.17) 35%,rgba(255,0,110,.27) 68%,rgba(244,163,64,.2));border-top:1px solid rgba(255,255,255,.2);border-bottom:1px solid rgba(255,255,255,.18);position:relative;overflow:hidden}
+    .pass-foil::after{content:"";position:absolute;inset:-80%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.22),transparent);transform:rotate(22deg);animation:foil 7s linear infinite}@keyframes foil{from{translate:-30%}to{translate:45%}}
+    .pass-kicker{font:500 8px/1 "IBM Plex Mono",monospace;letter-spacing:.18em;text-transform:uppercase;color:#e5faff}.pass-title{margin-top:9px;font:700 25px/.9 "Oxanium",sans-serif;text-transform:uppercase;letter-spacing:-.035em}.pass-title span{color:var(--pink)}
+    .pass-body{height:calc(100% - 120px);display:flex;flex-direction:column;padding:16px}
+    .pass-stats{display:grid;grid-template-columns:1fr 1fr;gap:8px}.stat{padding:10px;border:1px solid var(--line);background:rgba(255,255,255,.025)}.stat b{display:block;font:700 22px/1 "Oxanium",sans-serif;color:var(--cyan)}.stat span{display:block;margin-top:4px;font:500 7px/1 "IBM Plex Mono",monospace;letter-spacing:.1em;color:var(--faint);text-transform:uppercase}
+    .manifest{flex:1;min-height:0;margin-top:14px;overflow:auto;padding-right:3px}.manifest::-webkit-scrollbar{width:4px}.manifest::-webkit-scrollbar-thumb{background:rgba(0,217,255,.28)}
+    .manifest-day{margin-bottom:14px;padding-bottom:13px;border-bottom:1px dashed rgba(255,255,255,.13)}.manifest-day-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}.manifest-day-name{font:700 13px/1 "Oxanium",sans-serif;text-transform:uppercase;color:var(--mcolor)}.manifest-day-date{font:500 8px/1 "IBM Plex Mono",monospace;color:var(--muted)}
+    .manifest-meal{display:grid;grid-template-columns:64px 1fr;gap:9px;margin:10px 0 13px}.manifest-label{font:600 8px/1.35 "IBM Plex Mono",monospace;color:var(--gold);text-transform:uppercase}.manifest-value{font:600 12px/1.3 "Rajdhani",sans-serif}.manifest-value.empty{color:var(--faint);font-style:italic;font-weight:500}.manifest-primary{display:flex;align-items:baseline;gap:7px;flex-wrap:wrap}.manifest-primary-label{flex:0 0 auto;color:#ff8abd;font:600 7px/1 "IBM Plex Mono",monospace;letter-spacing:.09em}.manifest-primary strong{font:700 13.5px/1.2 "Rajdhani",sans-serif}.manifest-place-link:hover{text-decoration:underline;color:#fff}.manifest-walk{display:block;margin-top:3px;color:#ffc56f;font:500 7px/1.25 "IBM Plex Mono",monospace}.manifest-alts{margin-top:7px;padding:7px 8px;border-left:2px solid var(--cyan);background:rgba(0,217,255,.045)}.manifest-alt-label{display:block;margin-bottom:6px;color:var(--cyan);font:600 7px/1 "IBM Plex Mono",monospace;letter-spacing:.1em}.manifest-alt-list{display:flex;flex-wrap:wrap;gap:5px}.manifest-alt-item{display:inline-block;padding:4px 6px;border:1px solid rgba(0,217,255,.24);background:rgba(0,217,255,.055);color:#c9f8ff;font:600 9.5px/1.2 "Rajdhani",sans-serif}.manifest-alt-item:hover{border-color:var(--cyan);background:rgba(0,217,255,.11)}.manifest-note{display:block;margin-top:7px;color:#c7a9ff;font:500 8px/1.35 "IBM Plex Mono",monospace}.manifest-alt{display:block;margin-top:2px;color:var(--cyan);font:500 8px/1.25 "IBM Plex Mono",monospace}
+    .field-links{display:none;grid-template-columns:repeat(3,1fr);gap:5px;margin-top:10px}.field-link{min-height:31px;display:grid;place-items:center;padding:5px;border:1px solid rgba(0,217,255,.2);background:rgba(0,217,255,.035);color:var(--cyan);text-align:center;font:600 7px/1.2 "IBM Plex Mono",monospace;letter-spacing:.045em;text-transform:uppercase}.field-link:hover{border-color:var(--cyan);background:rgba(0,217,255,.09)}
+    .pass-actions{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:10px}.pass-action{min-height:34px;border:1px solid var(--line);background:rgba(255,255,255,.025);cursor:pointer;font:600 8px/1 "IBM Plex Mono",monospace;letter-spacing:.06em;text-transform:uppercase}.pass-action:hover{border-color:var(--cyan);background:rgba(0,217,255,.06)}.pass-action.primary{border-color:rgba(255,0,110,.4);color:#ff8abd;background:rgba(255,0,110,.06)}
+    .pass-serial{margin-top:10px;font:500 7px/1 "IBM Plex Mono",monospace;letter-spacing:.16em;color:var(--faint);text-align:center}
+    .pass-codebars{height:20px;margin-top:8px;opacity:.65;background:repeating-linear-gradient(90deg,#fff 0 1px,transparent 1px 3px,#fff 3px 5px,transparent 5px 6px,#fff 6px 7px,transparent 7px 11px)}
+
+    .mobile-pass-button{display:none;position:fixed;left:16px;right:16px;bottom:14px;z-index:90;height:52px;border:1px solid var(--pink);background:rgba(7,10,24,.94);backdrop-filter:blur(12px);box-shadow:0 0 30px rgba(255,0,110,.18);cursor:pointer;font:700 11px/1 "Oxanium",sans-serif;letter-spacing:.1em;text-transform:uppercase;clip-path:polygon(10px 0,100% 0,100% calc(100% - 10px),calc(100% - 10px) 100%,0 100%,0 10px)}
+    .mobile-pass-button span{color:var(--cyan)}
+    .drawer-backdrop{display:none;position:fixed;inset:0;z-index:94;background:rgba(0,0,0,.68);backdrop-filter:blur(5px)}
+    .mobile-drawer{display:none;position:fixed;z-index:95;left:0;right:0;bottom:0;max-height:88vh;padding:14px;background:var(--bg);border-top:1px solid var(--pink);transform:translateY(105%);transition:.28s}.mobile-drawer.open{transform:none}.drawer-close{position:absolute;right:22px;top:20px;z-index:4;width:34px;height:34px;border:1px solid rgba(255,255,255,.18);background:rgba(0,0,0,.25);cursor:pointer}.mobile-drawer .weekend-pass{height:calc(88vh - 28px);min-height:0}
+
+    .toast{position:fixed;left:50%;bottom:82px;z-index:110;transform:translate(-50%,20px);opacity:0;padding:10px 14px;border:1px solid var(--cyan);background:#07101e;box-shadow:0 0 25px rgba(0,217,255,.2);font:600 9px/1 "IBM Plex Mono",monospace;letter-spacing:.07em;text-transform:uppercase;transition:.2s;pointer-events:none}.toast.show{transform:translate(-50%,0);opacity:1}
+
+    @media(max-width:1180px){
+      .workspace{grid-template-columns:116px minmax(0,1fr)}
+      .pass-rail{display:none}.mobile-pass-button,.mobile-drawer,.drawer-backdrop{display:block}
+      .top-actions .hide-mid{display:none}.field-links{display:grid}
+    }
+    @media(max-width:760px){
+      .topbar{grid-template-columns:1fr auto;padding:8px 12px}.global-progress{grid-column:1/-1;grid-row:2;gap:8px}.top-actions{grid-column:2}.top-actions .mini-action{display:none}.brand strong{font-size:13px}
+      .workspace{width:100%;display:block;padding:0 0 82px}
+      .day-spine{position:sticky;top:99px;z-index:70;height:auto;display:grid;grid-template-columns:repeat(4,1fr);gap:0;background:rgba(4,6,17,.93);backdrop-filter:blur(14px);border-bottom:1px solid rgba(0,217,255,.14)}
+      .spine-label{display:none}.day-pass{min-height:78px;height:78px;padding:9px 7px;border-width:0 1px 0 0;clip-path:none}.day-pass:hover{transform:none}.day-pass.active::after{left:8px;right:8px;top:auto;bottom:0;width:auto;height:3px}.day-name{font-size:15px;margin-top:7px}.day-date{font-size:7px;margin-top:4px}.day-index,.barcode{display:none}.day-status{left:7px;right:7px;bottom:9px}.status-pip{height:3px}
+      .route-stage{padding:12px}.route-header{min-height:250px;padding:24px 20px}.route-title{font-size:48px}.route-sub{font-size:11px}.route-meta{padding-right:0}.mobile-route-tools{display:grid}.route-meta a[href="https://conradwashingtondc.com/dine/"]{display:none}.sky-layer{inset:0;opacity:.32;mask-image:linear-gradient(180deg,transparent,#000);-webkit-mask-image:linear-gradient(180deg,transparent,#000)}
+      .meal-route{padding-left:22px}.meal-route::before{left:7px}.meal-station::before{left:-21px;width:11px;height:11px}.station-head{grid-template-columns:auto 1fr;padding:14px 12px}.station-name{font-size:20px}.station-state{display:none}
+      .lane{grid-template-columns:1fr}.lane-label{padding:10px 12px;border-right:0;border-bottom:1px solid var(--line);display:grid;grid-template-columns:auto 1fr;align-items:center;gap:10px}.lane-label::after{left:0;right:auto;width:2px}.lane-name{margin:0;font-size:14px}.lane-help{display:none}.option-strip{grid-template-columns:1fr;padding:9px}.place-card{min-height:0}.station-footer{grid-template-columns:1fr}.custom-wrap{display:grid;grid-template-columns:1fr auto}.note-toggle{width:100%}
+    }
+    @media(max-width:430px){.route-title{font-size:40px}.route-header{min-height:265px}.meta-tag:nth-last-child(-n+2){display:none}.mobile-route-tools{gap:4px}.mobile-route-tool{min-height:34px;padding:6px 4px;font-size:6.5px;letter-spacing:.035em}.progress-label{display:none}.progress-track{gap:2px}.progress-next{width:29px;padding:0;font-size:0}.progress-next::after{content:'↘';font-size:11px}.station-number{display:none}.station-head{grid-template-columns:1fr}.day-name{font-size:13px}.field-links{grid-template-columns:1fr}.manifest-meal{grid-template-columns:58px 1fr}}
+
+    @media (prefers-reduced-motion:reduce){.route-sheen,.pass-foil::after{animation:none;display:none}}
+
+    @media print{
+      body{background:#fff;color:#111}.topbar,.day-spine,.route-stage,.mobile-pass-button,.drawer-backdrop,.mobile-drawer{display:none!important}.workspace{display:block;width:100%;padding:0}.pass-rail{display:block;position:static;height:auto}.weekend-pass{height:auto;min-height:0;background:#fff;color:#111;border:1px solid #111;box-shadow:none;clip-path:none}.lanyard-hole,.pass-foil::after{display:none}.pass-foil{margin:0;background:#eee;border-color:#111}.pass-kicker,.pass-title,.manifest-day-name,.manifest-alt{color:#111}.pass-body{height:auto}.manifest{overflow:visible}.stat{border-color:#aaa}.stat b{color:#111}.pass-actions,.field-links{display:none}.pass-codebars{background:repeating-linear-gradient(90deg,#111 0 1px,transparent 1px 3px,#111 3px 5px,transparent 5px 7px)}
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <div class="brand-sigil" aria-hidden="true"></div>
+      <div><strong>NIGHT ROUTE</strong><span>OTAKON // DC // 2026</span></div>
+    </div>
+    <div class="global-progress" aria-label="Meal planning progress">
+      <span class="progress-label">ROUTE LOCK</span>
+      <div class="progress-track" id="progressTrack"></div>
+      <span class="progress-count" id="progressCount">0 / 9</span>
+      <button class="progress-next" id="nextOpenBtn" type="button" title="Jump to the next open meal">Next open ↘</button>
+    </div>
+    <div class="top-actions">
+      <a class="mini-action hide-mid" href="https://conventions.leapevent.tech/schedules/frontend/Otakon_2026" target="_blank" rel="noopener">Schedule</a>
+      <a class="mini-action hide-mid" href="https://www.google.com/maps/search/restaurants/@38.9012,-77.0247,16z" target="_blank" rel="noopener">Map</a>
+      <a class="mini-action hide-mid" href="https://conradwashingtondc.com/dine/" target="_blank" rel="noopener">Conrad Menus</a>
+      <button class="mini-action" id="resetBtn">Reset</button>
+    </div>
+  </header>
+
+  <div class="workspace">
+    <nav class="day-spine" id="daySpine" aria-label="Convention days"><span class="spine-label">SELECT CREDENTIAL</span></nav>
+
+    <main class="route-stage">
+      <section class="route-header" id="routeHeader">
+        <div class="sky-layer" id="skyLayer">
+          <div class="css-city" aria-hidden="true">
+            <i class="tower" style="left:4%;width:11%;height:34%"></i><i class="tower" style="left:17%;width:8%;height:50%"></i><i class="tower" style="left:28%;width:12%;height:42%"></i><i class="tower" style="left:43%;width:10%;height:62%"></i><i class="tower" style="left:66%;width:12%;height:45%"></i><i class="tower" style="left:81%;width:17%;height:58%"></i><i class="monument"></i>
+          </div>
+        </div>
+        <div class="route-sheen" aria-hidden="true"></div>
+        <div class="crosshair" aria-hidden="true"></div>
+        <div class="route-copy">
+          <div class="route-code" id="routeCode"></div>
+          <h1 class="route-title" id="routeTitle"></h1>
+          <p class="route-sub" id="routeSub"></p>
+          <div class="route-meta" id="routeMeta"></div>
+          <nav class="mobile-route-tools" aria-label="Mobile route tools">
+            <a class="mobile-route-tool" href="https://conventions.leapevent.tech/schedules/frontend/Otakon_2026" target="_blank" rel="noopener">Otakon schedule</a>
+            <a class="mobile-route-tool" href="https://www.google.com/maps/search/restaurants/@38.9012,-77.0247,16z" target="_blank" rel="noopener">GPS / map</a>
+            <a class="mobile-route-tool" href="https://conradwashingtondc.com/dine/" target="_blank" rel="noopener">Conrad menus</a>
+          </nav>
+        </div>
+      </section>
+      <section class="meal-route" id="mealRoute"></section>
+    </main>
+
+    <aside class="pass-rail"><div id="desktopPass"></div></aside>
+  </div>
+
+  <button class="mobile-pass-button" id="mobilePassButton">Open weekend loadout <span id="mobileCount">0/9</span></button>
+  <div class="drawer-backdrop" id="drawerBackdrop"></div>
+  <div class="mobile-drawer" id="mobileDrawer"><button class="drawer-close" id="drawerClose" aria-label="Close weekend pass">×</button><div id="mobilePass"></div></div>
+  <input type="file" id="skyInput" accept="image/*" />
+  <input type="file" id="planInput" accept="application/json,.json" hidden />
+  <div class="toast" id="toast"></div>
+
+<script>
+const DAYS = {
+  thu:{label:'Thursday',short:'THU',date:'Jul 30',code:'ARRIVAL // ROUTE 00',accent:'#00d9ff',rgb:'0,217,255',sub:'Check in, settle down, then choose the first meal of the weekend without turning it into a mission.',meta:['Arrival night','1 meal node','Hotel or Penn Quarter'],meals:{
+    dinner:{hotel:[
+      {id:'sakura-thu-dinner',name:'Sakura Club',meta:'Casual · pricing TBD',walk:'Inside Conrad',site:'https://conradwashingtondc.com/dine/sakura-club-dining/sakura-club-menus/',siteLabel:'Menus'},
+      {id:'estuary-thu-dinner',name:'Estuary',meta:'Smart casual · $25–45',walk:'Inside Conrad',site:'https://estuarydc.com/',siteLabel:'Menus',reserve:'https://www.opentable.com/r/estuary-washington'}
+    ],walk:[{id:'yardbird-thu',name:'Yardbird',meta:'Penn Quarter · $16–28',walk:'≈ 2 min walk',address:'901 New York Ave NW, Washington, DC 20001',site:'https://www.runchickenrun.com/location/yardbird-washington-dc/',siteLabel:'Menus',reserve:'https://www.runchickenrun.com/reservations/'}]}
+  }},
+  fri:{label:'Friday',short:'FRI',date:'Jul 31',code:'CON DAY 01 // ROUTE 31',accent:'#ff006e',rgb:'255,0,110',sub:'The first full convention day. Tap every option that works; the first becomes the plan and the rest stay visible as alternatives.',meta:['Convention day','3 meal nodes','Fast pivots welcome'],meals:{
+    breakfast:{hotel:[{id:'sakura-fri-breakfast',name:'Sakura Club buffet',meta:'Included',walk:'Inside Conrad',site:'https://conradwashingtondc.com/dine/sakura-club-dining/sakura-club-menus/',siteLabel:'Menus'}]},
+    lunch:{hotel:[{id:'sakura-fri-lunch',name:'Sakura Club',meta:'Hotel snack stop · pricing TBD',walk:'Inside Conrad',site:'https://conradwashingtondc.com/dine/sakura-club-dining/sakura-club-menus/',siteLabel:'Menus'}],walk:[
+      {id:'tatte-fri',name:'Tatte Bakery',meta:'CityCenterDC · $8–15',walk:'≈ 2 min walk',address:'1090 I St NW, Washington, DC 20001',site:'https://tattebakery.com/locations/dc/washington/1090-i-street-nw/',siteLabel:'Location / menu'},
+      {id:'diner-fri',name:'Unconventional Diner',meta:'Penn Quarter · $$–$$$ · book ahead',walk:'≈ 8 min walk',address:'1207 9th St NW, Washington, DC 20001',site:'https://www.unconventionaldiner.com/',siteLabel:'Menus',reserve:'https://resy.com/cities/washington-dc/venues/unconventional-diner'}
+    ]},
+    dinner:{hotel:[
+      {id:'sakura-fri-dinner',name:'Sakura Club',meta:'Casual · pricing TBD',walk:'Inside Conrad',site:'https://conradwashingtondc.com/dine/sakura-club-dining/sakura-club-menus/',siteLabel:'Menus'},
+      {id:'summit-fri',name:'Summit Rooftop Bar',meta:'Smart casual · $12–18 cocktails',walk:'Inside Conrad',site:'https://conradwashingtondc.com/dine/rooftop/',siteLabel:'Menu / details'}
+    ],walk:[{id:'zaytinya-fri',name:'Zaytinya',meta:'Penn Quarter · $$–$$$',walk:'≈ 5 min walk',address:'701 9th St NW, Washington, DC 20001',site:'https://www.zaytinya.com/location/washington-dc/',siteLabel:'Menus',reserve:'https://www.zaytinya.com/reservations-email/'}]}
+  }},
+  sat:{label:'Saturday',short:'SAT',date:'Aug 1',code:'PEAK DAY // ROUTE 01',accent:'#f4a340',rgb:'244,163,64',sub:'Peak Otakon energy. Select several realistic routes now, then promote whichever one fits the final convention schedule.',meta:['Peak convention day','3 meal nodes','Reservations matter'],meals:{
+    breakfast:{hotel:[{id:'sakura-sat-breakfast',name:'Sakura Club buffet',meta:'Included',walk:'Inside Conrad',site:'https://conradwashingtondc.com/dine/sakura-club-dining/sakura-club-menus/',siteLabel:'Menus'}]},
+    lunch:{hotel:[{id:'sakura-sat-lunch',name:'Sakura Club',meta:'Hotel snack stop · pricing TBD',walk:'Inside Conrad',site:'https://conradwashingtondc.com/dine/sakura-club-dining/sakura-club-menus/',siteLabel:'Menus'}],walk:[
+      {id:'centrolina-sat-lunch',name:'Centrolina',meta:'CityCenterDC · $18–35',walk:'≈ 3 min walk',address:'974 Palmer Alley NW, Washington, DC 20001',site:'https://www.centrolinadc.com/menu',siteLabel:'Menus'},
+      {id:'diner-sat',name:'Unconventional Diner',meta:'Penn Quarter · $$–$$$ · book ahead',walk:'≈ 8 min walk',address:'1207 9th St NW, Washington, DC 20001',site:'https://www.unconventionaldiner.com/',siteLabel:'Menus',reserve:'https://resy.com/cities/washington-dc/venues/unconventional-diner'}
+    ]},
+    dinner:{hotel:[
+      {id:'sakura-sat-dinner',name:'Sakura Club',meta:'Casual · pricing TBD',walk:'Inside Conrad',site:'https://conradwashingtondc.com/dine/sakura-club-dining/sakura-club-menus/',siteLabel:'Menus'},
+      {id:'estuary-sat-dinner',name:'Estuary',meta:'Smart casual · $25–45 · reserve',walk:'Inside Conrad',site:'https://estuarydc.com/',siteLabel:'Menus',reserve:'https://www.opentable.com/r/estuary-washington'}
+    ],walk:[
+      {id:'centrolina-sat-dinner',name:'Centrolina',meta:'CityCenterDC · $18–35 · tight reservation',walk:'≈ 3 min walk',address:'974 Palmer Alley NW, Washington, DC 20001',site:'https://www.centrolinadc.com/menu',siteLabel:'Menus'},
+      {id:'yardbird-sat',name:'Yardbird',meta:'Penn Quarter · $16–28',walk:'≈ 2 min walk',address:'901 New York Ave NW, Washington, DC 20001',site:'https://www.runchickenrun.com/location/yardbird-washington-dc/',siteLabel:'Menus',reserve:'https://www.runchickenrun.com/reservations/'},
+      {id:'zaytinya-sat',name:'Zaytinya',meta:'Penn Quarter · $$–$$$',walk:'≈ 5 min walk',address:'701 9th St NW, Washington, DC 20001',site:'https://www.zaytinya.com/location/washington-dc/',siteLabel:'Menus',reserve:'https://www.zaytinya.com/reservations-email/'}
+    ]}
+  }},
+  sun:{label:'Sunday',short:'SUN',date:'Aug 2',code:'EXIT DAY // ROUTE 02',accent:'#a979ff',rgb:'169,121,255',sub:'A softer exit route: breakfast, one final lunch, and enough flexibility to linger before heading home.',meta:['Departure day','2 meal nodes','Slow landing'],meals:{
+    breakfast:{hotel:[{id:'sakura-sun-breakfast',name:'Sakura Club buffet',meta:'Included',walk:'Inside Conrad',site:'https://conradwashingtondc.com/dine/sakura-club-dining/sakura-club-menus/',siteLabel:'Menus'}]},
+    lunch:{hotel:[
+      {id:'sakura-sun-lunch',name:'Sakura Club',meta:'Hotel snack stop · linger if late checkout',walk:'Inside Conrad',site:'https://conradwashingtondc.com/dine/sakura-club-dining/sakura-club-menus/',siteLabel:'Menus'},
+      {id:'estuary-sun',name:'Estuary',meta:'Casual / smart casual · $18–30 brunch',walk:'Inside Conrad',site:'https://estuarydc.com/',siteLabel:'Menus',reserve:'https://www.opentable.com/r/estuary-washington'}
+    ],walk:[
+      {id:'tatte-sun',name:'Tatte Bakery',meta:'CityCenterDC · $8–15',walk:'≈ 2 min walk',address:'1090 I St NW, Washington, DC 20001',site:'https://tattebakery.com/locations/dc/washington/1090-i-street-nw/',siteLabel:'Location / menu'},
+      {id:'diner-sun',name:'Unconventional Diner',meta:'Penn Quarter · $$–$$$ · book ahead',walk:'≈ 8 min walk',address:'1207 9th St NW, Washington, DC 20001',site:'https://www.unconventionaldiner.com/',siteLabel:'Menus',reserve:'https://resy.com/cities/washington-dc/venues/unconventional-diner'},
+      {id:'ebbitt-sun',name:'Old Ebbitt Grill',meta:'White House area · $18–35',walk:'≈ 14 min walk',address:'675 15th St NW, Washington, DC 20005',site:'https://www.ebbitt.com/menus/',siteLabel:'Menus',reserve:'https://www.opentable.com/old-ebbitt-grill-reservations-washington?lang=en-US&ot_source=Restaurant+website&restref=2069'}
+    ]}
+  }}
+};
+const MEAL_LABEL={breakfast:'Breakfast',lunch:'Lunch',dinner:'Dinner'};
+const MEAL_ORDER=['breakfast','lunch','dinner'];
+const STORAGE='otakon-night-route-v2';
+const DEFAULT_SKYLINE='ChatGPTskylineDC.png'; // Keep this image beside the HTML, or change the filename here.
+const ORIGIN='Conrad Washington DC, 950 New York Ave NW, Washington, DC 20001';
+const FIELD_LINKS={schedule:'https://conventions.leapevent.tech/schedules/frontend/Otakon_2026',map:'https://www.google.com/maps/search/restaurants/@38.9012,-77.0247,16z',conrad:'https://conradwashingtondc.com/dine/'};
+let state={day:'thu',plans:{},backups:{},notes:{},custom:{},sky:null};
+try{state={...state,...JSON.parse(localStorage.getItem(STORAGE)||'{}')}}catch(e){}
+
+const $=s=>document.querySelector(s);
+const save=()=>{try{localStorage.setItem(STORAGE,JSON.stringify(state))}catch(e){console.warn('Planner state could not be persisted',e)}};
+const mealKey=(d,m)=>`${d}-${m}`;
+const esc=s=>String(s||'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
+const allSlots=()=>Object.entries(DAYS).flatMap(([d,x])=>MEAL_ORDER.filter(m=>x.meals[m]).map(m=>mealKey(d,m)));
+const plannedCount=()=>allSlots().filter(k=>state.plans[k]).length;
+const getOptions=(d,m)=>{
+  const base=[];const meal=DAYS[d].meals[m];
+  ['hotel','walk'].forEach(g=>(meal[g]||[]).forEach(o=>base.push({...o,group:g})));
+  (state.custom[mealKey(d,m)]||[]).forEach(o=>base.push({...o,group:'custom'}));
+  return base;
+};
+const findOption=(key,id)=>{const [d,m]=key.split('-');return getOptions(d,m).find(o=>o.id===id)};
+const directionsURL=address=>`https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(ORIGIN)}&destination=${encodeURIComponent(address)}&travelmode=walking`;
+const slotLabel=key=>{const [d,m]=key.split('-');return `${DAYS[d].label} ${MEAL_LABEL[m]}`};
+function toast(msg){const t=$('#toast');t.textContent=msg;t.classList.add('show');clearTimeout(toast.timer);toast.timer=setTimeout(()=>t.classList.remove('show'),1800)}
+
+function render(){
+  const day=DAYS[state.day];
+  document.documentElement.style.setProperty('--day',day.accent);
+  document.documentElement.style.setProperty('--day-rgb',day.rgb);
+  renderProgress();renderDays();renderHeader();renderMeals();renderPasses();
+}
+function renderProgress(){
+  const slots=allSlots();const count=plannedCount();
+  $('#progressTrack').innerHTML=slots.map(key=>`<button type="button" class="progress-seg ${state.plans[key]?'filled':''}" data-slot="${key}" title="${slotLabel(key)}: ${state.plans[key]?'planned':'open'}" aria-label="${slotLabel(key)}: ${state.plans[key]?'planned':'open'}"></button>`).join('');
+  $('#progressCount').textContent=`${count} / 9`;$('#mobileCount').textContent=`${count}/9`;
+  document.querySelectorAll('[data-slot]').forEach(b=>b.onclick=()=>jumpToSlot(b.dataset.slot));
+}
+function renderDays(){
+  $('#daySpine').innerHTML='<span class="spine-label">SELECT CREDENTIAL</span>'+Object.entries(DAYS).map(([k,d],i)=>{
+    const slots=MEAL_ORDER.filter(m=>d.meals[m]);
+    return `<button class="day-pass ${state.day===k?'active':''}" data-day="${k}" style="--pass-color:${d.accent};--pass-rgb:${d.rgb}">
+      <span class="day-index">0${i+1} // ${slots.length} NODE${slots.length>1?'S':''}</span><strong class="day-name">${d.short}</strong><span class="day-date">${d.date}</span>
+      <span class="day-status">${slots.map(m=>`<i class="status-pip ${state.plans[mealKey(k,m)]?'done':''}" title="${MEAL_LABEL[m]}: ${state.plans[mealKey(k,m)]?'planned':'open'}"></i>`).join('')}</span><span class="barcode"></span></button>`
+  }).join('');
+  document.querySelectorAll('[data-day]').forEach(b=>b.onclick=()=>{state.day=b.dataset.day;save();render();window.scrollTo({top:0,behavior:'smooth'})});
+}
+function renderHeader(){
+  const d=DAYS[state.day];$('#routeCode').textContent=d.code;$('#routeTitle').innerHTML=`${d.label}<span>${d.date}</span>`;$('#routeSub').textContent=d.sub;
+  $('#routeMeta').innerHTML=d.meta.map(x=>`<span class="meta-tag">${x}</span>`).join('')
+    +`<a class="meta-tag" href="https://conradwashingtondc.com/dine/" target="_blank" rel="noopener">Conrad dining + menus ↗</a>`
+    +`<label class="meta-tag sky-upload" for="skyInput">${state.sky?'Replace skyline':'Swap skyline'}</label>`
+    +`${state.sky?'<button class="meta-tag sky-upload" id="clearSky">Restore folder image</button>':''}`;
+
+  const layer=$('#skyLayer');
+  const city=layer.querySelector('.css-city');
+  const source=state.sky||DEFAULT_SKYLINE;
+  const probe=new Image();
+  probe.onload=()=>{
+    if((state.sky||DEFAULT_SKYLINE)!==source)return;
+    layer.style.backgroundImage=`linear-gradient(90deg,rgba(5,8,20,.08),rgba(5,8,20,.24)),url("${source}")`;
+    layer.classList.add('has-image');
+    city.style.display='none';
+  };
+  probe.onerror=()=>{
+    if((state.sky||DEFAULT_SKYLINE)!==source)return;
+    layer.style.backgroundImage='';
+    layer.classList.remove('has-image');
+    city.style.display='block';
+  };
+  probe.src=source;
+
+  if($('#clearSky'))$('#clearSky').onclick=()=>{state.sky=null;save();render();toast('Folder skyline restored')};
+}
+function laneHTML(d,m,group,label,help,color){
+  const options=getOptions(d,m).filter(o=>o.group===group);
+  if(!options.length)return'';
+  const key=mealKey(d,m);
+  return `<div class="lane"><div class="lane-label" style="--lane:${color}"><span class="lane-id">${group==='hotel'?'INTERNAL':'CITY'} LOOP</span><strong class="lane-name">${label}</strong><span class="lane-help">${help}</span></div><div class="option-strip">${options.map(o=>cardHTML(key,o,color)).join('')}</div></div>`
+}
+function cardHTML(key,o,color){
+  const planned=state.plans[key]===o.id;const backup=(state.backups[key]||[]).includes(o.id);const selected=planned||backup;
+  const links=[];
+  if(o.site)links.push(`<a class="place-link" href="${o.site}" target="_blank" rel="noopener">${esc(o.siteLabel||'Menu / site')} ↗</a>`);
+  if(o.reserve)links.push(`<a class="place-link reserve" href="${o.reserve}" target="_blank" rel="noopener">Reserve ↗</a>`);
+  if(o.address)links.push(`<a class="place-link" href="${directionsURL(o.address)}" target="_blank" rel="noopener">Walking map ↗</a>`);
+  return `<article class="place-card ${planned?'planned':''} ${backup?'backup':''}" style="--lane:${color}" data-select="${key}|${o.id}" aria-pressed="${selected}" tabindex="0">
+    ${planned?'<span class="state-chip plan">Primary</span>':backup?'<span class="state-chip alt">Alternative</span>':''}
+    <div class="place-name">${esc(o.name)}</div><div class="place-meta">${esc(o.meta)}</div>${o.walk?`<span class="place-walk">${esc(o.walk)}</span>`:''}
+    ${links.length?`<div class="place-links">${links.join('')}</div>`:''}
+    <div class="place-actions"><button class="card-btn select-btn" data-select-button="${key}|${o.id}">${selected?'Remove':'Select'}</button>${planned?'<button class="card-btn primary-btn" disabled>Primary plan</button>':backup?`<button class="card-btn primary-btn" data-promote="${key}|${o.id}">Make primary</button>`:'<button class="card-btn primary-btn" disabled>First pick = plan</button>'}</div>
+  </article>`
+}
+function renderMeals(){
+  const d=state.day;const day=DAYS[d];let seq=0;
+  $('#mealRoute').innerHTML=MEAL_ORDER.filter(m=>day.meals[m]).map(m=>{
+    seq++;const key=mealKey(d,m);const ready=!!state.plans[key];const altCount=(state.backups[key]||[]).length;
+    return `<article class="meal-station" data-meal-key="${key}">
+      <header class="station-head"><span class="station-number">NODE 0${seq}</span><strong class="station-name">${MEAL_LABEL[m]}</strong><span class="station-state ${ready?'ready':''}">${ready?`${1+altCount} selected${altCount?` · ${altCount} alt${altCount>1?'s':''}`:''}`:'Tap any option'}</span></header>
+      ${laneHTML(d,m,'hotel','Stay inside','Fastest return to the room.','#ff006e')}
+      ${laneHTML(d,m,'walk','Step into DC','Walkable city options.','#00d9ff')}
+      ${laneHTML(d,m,'custom','Your coordinates','Added manually.','#f4a340')}
+      <footer class="station-footer"><div class="custom-wrap"><input class="custom-input" id="custom-${key}" placeholder="Add a restaurant or flexible plan…"><button class="add-custom" data-custom="${key}">Add route</button></div><button class="note-toggle" data-note-toggle="${key}">${state.notes[key]?'Edit rendezvous note':'Add rendezvous note'}</button></footer>
+      <div class="note-row ${state.notes[key]?'open':''}" id="note-${key}"><textarea class="note-input" data-note="${key}" placeholder="Reservation time, meetup detail, dietary note…">${esc(state.notes[key]||'')}</textarea></div>
+    </article>`
+  }).join('');
+  document.querySelectorAll('.place-card[data-select]').forEach(card=>{
+    const activate=()=>{const [key,id]=card.dataset.select.split('|');toggleChoice(key,id)};
+    card.onclick=e=>{if(e.target.closest('button,a'))return;activate()};
+    card.onkeydown=e=>{if((e.key==='Enter'||e.key===' ')&&!e.target.closest('button')){e.preventDefault();activate()}};
+  });
+  document.querySelectorAll('[data-select-button]').forEach(b=>b.onclick=e=>{e.stopPropagation();const [key,id]=b.dataset.selectButton.split('|');toggleChoice(key,id)});
+  document.querySelectorAll('[data-promote]').forEach(b=>b.onclick=e=>{e.stopPropagation();const [key,id]=b.dataset.promote.split('|');promoteChoice(key,id)});
+  document.querySelectorAll('[data-custom]').forEach(b=>b.onclick=()=>addCustom(b.dataset.custom));
+  document.querySelectorAll('.custom-input').forEach(i=>i.onkeydown=e=>{if(e.key==='Enter')addCustom(i.id.replace('custom-',''))});
+  document.querySelectorAll('[data-note-toggle]').forEach(b=>b.onclick=()=>$('#note-'+b.dataset.noteToggle).classList.toggle('open'));
+  document.querySelectorAll('[data-note]').forEach(t=>t.oninput=()=>{state.notes[t.dataset.note]=t.value;save()});
+}
+function addCustom(key){const input=$('#custom-'+key);const name=input.value.trim();if(!name)return;state.custom[key]=state.custom[key]||[];state.custom[key].push({id:`custom-${Date.now()}`,name,meta:'Added by you'});save();render();toast('Custom route added')}
+function toggleChoice(key,id){
+  const primary=state.plans[key];
+  const alts=state.backups[key]||[];
+  if(primary===id){
+    if(alts.length){state.plans[key]=alts[0];state.backups[key]=alts.slice(1);if(!state.backups[key].length)delete state.backups[key];toast('Choice removed · next option promoted')}
+    else{delete state.plans[key];toast('Choice removed')}
+  }else if(alts.includes(id)){
+    state.backups[key]=alts.filter(x=>x!==id);if(!state.backups[key].length)delete state.backups[key];toast('Alternative removed')
+  }else if(!primary){
+    state.plans[key]=id;toast('Selected as primary plan')
+  }else{
+    state.backups[key]=[...alts,id];toast('Alternative selected')
+  }
+  save();render();
+}
+function promoteChoice(key,id){
+  const alts=state.backups[key]||[];
+  if(!alts.includes(id))return;
+  const oldPrimary=state.plans[key];
+  state.plans[key]=id;
+  state.backups[key]=alts.filter(x=>x!==id);
+  if(oldPrimary)state.backups[key].unshift(oldPrimary);
+  if(!state.backups[key].length)delete state.backups[key];
+  save();render();toast('Primary plan updated');
+}
+function manifestName(o,cls='manifest-place-link'){
+  const name=esc(o.name);return o.site?`<a class="${cls}" href="${o.site}" target="_blank" rel="noopener">${name} ↗</a>`:name;
+}
+function passHTML(){
+  const count=plannedCount();const backupCount=Object.values(state.backups).reduce((n,a)=>n+a.length,0);
+  return `<section class="weekend-pass"><div class="lanyard-hole"></div><header class="pass-foil"><div class="pass-kicker">Convention credential // dining layer</div><div class="pass-title">Weekend <span>loadout</span></div></header><div class="pass-body"><div class="pass-stats"><div class="stat"><b>${count}</b><span>of 9 routes locked</span></div><div class="stat"><b>${backupCount}</b><span>alternatives selected</span></div></div><div class="manifest">${Object.entries(DAYS).map(([d,day])=>{
+    const meals=MEAL_ORDER.filter(m=>day.meals[m]);return `<section class="manifest-day" style="--mcolor:${day.accent}"><header class="manifest-day-head"><strong class="manifest-day-name">${day.label}</strong><span class="manifest-day-date">${day.date}</span></header>${meals.map(m=>{const key=mealKey(d,m);const plan=state.plans[key]&&findOption(key,state.plans[key]);const alts=(state.backups[key]||[]).map(id=>findOption(key,id)).filter(Boolean);return `<div class="manifest-meal"><span class="manifest-label">${MEAL_LABEL[m]}</span><div class="manifest-value ${plan||alts.length?'':'empty'}">${plan?`<div class="manifest-primary"><span class="manifest-primary-label">PLAN</span><strong>${manifestName(plan)}</strong></div>${plan.walk?`<span class="manifest-walk">${esc(plan.walk)}</span>`:''}`:'Route open'}${alts.length?`<div class="manifest-alts"><span class="manifest-alt-label">ALTERNATIVES // ${alts.length}</span><div class="manifest-alt-list">${alts.map(a=>a.site?`<a class="manifest-alt-item" href="${a.site}" target="_blank" rel="noopener">${esc(a.name)}${a.walk?` · ${esc(a.walk)}`:''} ↗</a>`:`<span class="manifest-alt-item">${esc(a.name)}${a.walk?` · ${esc(a.walk)}`:''}</span>`).join('')}</div></div>`:''}${state.notes[key]?`<span class="manifest-note">NOTE // ${esc(state.notes[key])}</span>`:''}</div></div>`}).join('')}</section>`}).join('')}</div><nav class="field-links" aria-label="Weekend field links"><a class="field-link" href="${FIELD_LINKS.schedule}" target="_blank" rel="noopener">Otakon schedule</a><a class="field-link" href="${FIELD_LINKS.map}" target="_blank" rel="noopener">Restaurant map</a><a class="field-link" href="${FIELD_LINKS.conrad}" target="_blank" rel="noopener">Conrad menus</a></nav><div class="pass-actions"><button class="pass-action primary" data-copy>Copy loadout</button><button class="pass-action" data-print>Print / PDF</button><button class="pass-action" data-export>Export backup</button><button class="pass-action" data-import>Import backup</button></div><div class="pass-serial">OTK26-DC-NR // VALID JUL30-AUG02</div><div class="pass-codebars"></div></div></section>`
+}
+function renderPasses(){
+  const html=passHTML();$('#desktopPass').innerHTML=html;$('#mobilePass').innerHTML=html;
+  document.querySelectorAll('[data-copy]').forEach(b=>b.onclick=copyPlan);
+  document.querySelectorAll('[data-print]').forEach(b=>b.onclick=()=>window.print());
+  document.querySelectorAll('[data-export]').forEach(b=>b.onclick=exportPlan);
+  document.querySelectorAll('[data-import]').forEach(b=>b.onclick=()=>$('#planInput').click());
+}
+function itineraryText(){
+  return ['OTAKON 2026 // NIGHT ROUTE DINING LOADOUT','Conrad Washington DC · Jul 30–Aug 2','',...Object.entries(DAYS).flatMap(([d,day])=>[
+    `${day.label} · ${day.date}`,
+    ...MEAL_ORDER.filter(m=>day.meals[m]).map(m=>{
+      const key=mealKey(d,m),plan=state.plans[key]&&findOption(key,state.plans[key]),alts=(state.backups[key]||[]).map(id=>findOption(key,id)).filter(Boolean);
+      return `  ${MEAL_LABEL[m]}: ${plan?plan.name:'Open'}${plan&&plan.walk?` (${plan.walk})`:''}${alts.length?` | Alternatives: ${alts.map(a=>a.name).join(', ')}`:''}${state.notes[key]?` | Note: ${state.notes[key]}`:''}`;
+    }),''
+  ])].join('\n');
+}
+async function copyPlan(){try{await navigator.clipboard.writeText(itineraryText());toast('Loadout copied')}catch(e){const t=document.createElement('textarea');t.value=itineraryText();document.body.appendChild(t);t.select();document.execCommand('copy');t.remove();toast('Loadout copied')}}
+
+
+function jumpToSlot(key){
+  const [d]=key.split('-');state.day=d;save();render();
+  requestAnimationFrame(()=>document.querySelector(`[data-meal-key="${key}"]`)?.scrollIntoView({behavior:'smooth',block:'center'}));
+}
+function jumpNextOpen(){
+  const slots=allSlots();const start=Math.max(0,slots.findIndex(k=>k.startsWith(state.day+'-')));const ordered=[...slots.slice(start),...slots.slice(0,start)];const key=ordered.find(k=>!state.plans[k]);
+  if(!key){toast('All nine meal routes are locked');return}jumpToSlot(key);
+}
+function exportPlan(){
+  const payload={planner:'Otakon 2026 Night Route Dining Planner',version:3,exportedAt:new Date().toISOString(),state:{day:state.day,plans:state.plans,backups:state.backups,notes:state.notes,custom:state.custom}};
+  const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='otakon-2026-night-route-plan.json';document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(url);toast('Planner backup exported');
+}
+function importPlan(file){
+  if(!file)return;const reader=new FileReader();reader.onload=()=>{try{const raw=JSON.parse(reader.result);const incoming=raw.state||raw;if(!incoming||typeof incoming!=='object')throw new Error('Invalid backup');state={day:DAYS[incoming.day]?incoming.day:'thu',plans:incoming.plans&&typeof incoming.plans==='object'?incoming.plans:{},backups:incoming.backups&&typeof incoming.backups==='object'?incoming.backups:{},notes:incoming.notes&&typeof incoming.notes==='object'?incoming.notes:{},custom:incoming.custom&&typeof incoming.custom==='object'?incoming.custom:{},sky:state.sky||null};save();render();toast('Planner backup imported')}catch(e){alert('That file does not look like a valid Night Route planner backup.')}};reader.readAsText(file);
+}
+$('#nextOpenBtn').onclick=jumpNextOpen;
+$('#planInput').onchange=e=>{importPlan(e.target.files[0]);e.target.value=''};
+
+$('#skyInput').onchange=e=>{const file=e.target.files[0];if(!file)return;const reader=new FileReader();reader.onload=()=>{state.sky=reader.result;save();render();toast('Skyline linked')};reader.readAsDataURL(file)};
+$('#resetBtn').onclick=()=>{if(!confirm('Clear all plans, backups, notes, custom routes, and any uploaded skyline?'))return;state={day:'thu',plans:{},backups:{},notes:{},custom:{},sky:null};save();render();toast('Planner reset')};
+const drawer=$('#mobileDrawer'),backdrop=$('#drawerBackdrop');
+$('#mobilePassButton').onclick=()=>{drawer.classList.add('open');backdrop.style.opacity='1';backdrop.style.pointerEvents='auto'};
+function closeDrawer(){drawer.classList.remove('open');backdrop.style.opacity='0';backdrop.style.pointerEvents='none'}
+$('#drawerClose').onclick=closeDrawer;backdrop.onclick=closeDrawer;
+backdrop.style.opacity='0';backdrop.style.pointerEvents='none';
+render();
+</script>
+</body>
+</html>
