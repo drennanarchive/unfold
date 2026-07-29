@@ -1,0 +1,821 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>A Little Elsewhere</title>
+  <style>
+    :root {
+      --viz-panel: #090f22;
+      --viz-accent: #b8a8ff;
+      --viz-accent-text: #0b1020;
+      --viz-accent-bg: #dcd5ff;
+      --viz-accent-bg-subtle: #242044;
+      --night-1: color-mix(in srgb, var(--viz-panel) 74%, #07152f 26%);
+      --night-2: color-mix(in srgb, var(--viz-panel) 42%, #172550 58%);
+      --water-1: color-mix(in srgb, var(--viz-accent) 22%, #071b35 78%);
+      --water-2: color-mix(in srgb, var(--viz-panel) 55%, #123c52 45%);
+      --moon: color-mix(in srgb, var(--viz-accent-bg) 60%, #fff4c7 40%);
+      --soft-light: color-mix(in srgb, var(--viz-accent) 55%, #fff6cc 45%);
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      margin: 0;
+      min-height: 100%;
+      background: #050916;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    body {
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    button, input { font: inherit; }
+
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0,0,0,0);
+      white-space: nowrap;
+      border: 0;
+    }
+
+    #elsewhere {
+      position: relative;
+      width: 100%;
+      min-height: 100vh;
+      overflow: hidden;
+      background: linear-gradient(
+        180deg,
+        var(--night-1) 0%,
+        var(--night-2) 54%,
+        var(--water-1) 55%,
+        var(--water-2) 100%
+      );
+      color: #f7f5ff;
+      isolation: isolate;
+    }
+
+    #elsewhere::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background:
+        radial-gradient(circle at 72% 18%, color-mix(in srgb, var(--viz-accent) 17%, transparent), transparent 25%),
+        radial-gradient(circle at 22% 34%, rgba(255,255,255,.05), transparent 19%),
+        linear-gradient(180deg, transparent 50%, rgba(255,255,255,.035) 51%, transparent 54%);
+      z-index: 1;
+    }
+
+    #skyCanvas,
+    #waterCanvas {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      display: block;
+      z-index: 2;
+    }
+
+    #waterCanvas {
+      pointer-events: auto;
+      cursor: crosshair;
+    }
+
+    .moon-wrap {
+      position: absolute;
+      top: 12%;
+      left: 50%;
+      width: clamp(78px, 16vw, 128px);
+      aspect-ratio: 1;
+      transform: translateX(-50%);
+      z-index: 3;
+      pointer-events: none;
+    }
+
+    .moon {
+      width: 100%;
+      height: 100%;
+      border-radius: 999px;
+      background:
+        radial-gradient(circle at 35% 30%, rgba(255,255,255,.95), transparent 14%),
+        radial-gradient(circle at 62% 68%, rgba(116,110,150,.12), transparent 19%),
+        radial-gradient(circle at 35% 64%, rgba(116,110,150,.09), transparent 13%),
+        var(--moon);
+      box-shadow:
+        0 0 32px color-mix(in srgb, var(--soft-light) 58%, transparent),
+        0 0 90px color-mix(in srgb, var(--viz-accent) 25%, transparent);
+      animation: moonDrift 9s ease-in-out infinite;
+    }
+
+    .breathing .moon {
+      animation: breatheMoon 8s ease-in-out infinite;
+    }
+
+    .moon-reflection {
+      position: absolute;
+      left: 50%;
+      top: 56%;
+      width: clamp(46px, 11vw, 88px);
+      height: 38%;
+      transform: translateX(-50%);
+      background: linear-gradient(180deg, color-mix(in srgb, var(--soft-light) 40%, transparent), transparent 82%);
+      filter: blur(10px);
+      opacity: .55;
+      clip-path: polygon(26% 0, 74% 0, 92% 100%, 8% 100%);
+      z-index: 1;
+      pointer-events: none;
+    }
+
+    .horizon {
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 51%;
+      height: 12%;
+      z-index: 3;
+      pointer-events: none;
+      opacity: .92;
+    }
+
+    .hill {
+      position: absolute;
+      bottom: 0;
+      border-radius: 50% 50% 0 0;
+      background: color-mix(in srgb, var(--viz-panel) 72%, #06142d 28%);
+    }
+
+    .hill-a { left: -9%; width: 50%; height: 58%; transform: rotate(2deg); }
+    .hill-b { right: -12%; width: 58%; height: 76%; transform: rotate(-2deg); }
+    .hill-c { left: 29%; width: 44%; height: 43%; opacity: .88; }
+
+    .shore {
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      height: 18%;
+      z-index: 4;
+      pointer-events: none;
+      background: linear-gradient(180deg, transparent, color-mix(in srgb, var(--viz-panel) 78%, #061127 22%));
+    }
+
+    .reed {
+      position: absolute;
+      bottom: 0;
+      width: 2px;
+      height: var(--h);
+      left: var(--x);
+      background: linear-gradient(
+        180deg,
+        color-mix(in srgb, var(--viz-accent) 35%, #a4b88a),
+        color-mix(in srgb, var(--viz-panel) 80%, #162b25)
+      );
+      transform-origin: bottom;
+      transform: rotate(var(--r));
+      border-radius: 999px;
+      opacity: .65;
+    }
+
+    .reed::after {
+      content: "";
+      position: absolute;
+      top: 12%;
+      left: 1px;
+      width: 13px;
+      height: 5px;
+      border-radius: 100% 0 100% 0;
+      background: color-mix(in srgb, var(--viz-accent) 28%, #7f9677);
+      transform: rotate(-27deg);
+      transform-origin: left center;
+    }
+
+    .glass-panel {
+      position: absolute;
+      z-index: 8;
+      left: 50%;
+      transform: translateX(-50%);
+      width: min(92%, 650px);
+      border: 1px solid rgba(255,255,255,.14);
+      background: rgba(7,14,34,.34);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      box-shadow: inset 0 1px rgba(255,255,255,.08);
+    }
+
+    .intro {
+      top: 4%;
+      padding: 12px 16px;
+      border-radius: 999px;
+      text-align: center;
+      font-size: .9rem;
+      letter-spacing: .025em;
+      color: rgba(255,255,255,.82);
+      pointer-events: none;
+    }
+
+    .controls {
+      bottom: 18px;
+      padding: 14px;
+      border-radius: 22px;
+    }
+
+    .control-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 9px;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .night-button {
+      border: 1px solid rgba(255,255,255,.18);
+      background: rgba(255,255,255,.07);
+      color: rgba(255,255,255,.91);
+      padding: 9px 13px;
+      border-radius: 999px;
+      font-size: .9rem;
+      cursor: pointer;
+      transition: background .2s ease, transform .2s ease, border-color .2s ease;
+    }
+
+    .night-button:hover {
+      background: rgba(255,255,255,.13);
+      transform: translateY(-1px);
+    }
+
+    .night-button:focus-visible,
+    .thought-row input:focus-visible {
+      outline: 2px solid color-mix(in srgb, var(--viz-accent) 75%, white 25%);
+      outline-offset: 2px;
+    }
+
+    .night-button[aria-pressed="true"],
+    .night-button.primary {
+      background: color-mix(in srgb, var(--viz-accent) 56%, rgba(255,255,255,.12));
+      border-color: color-mix(in srgb, var(--viz-accent) 78%, white 22%);
+      color: var(--viz-accent-text);
+    }
+
+    .thought-row {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 9px;
+      margin-top: 10px;
+    }
+
+    .thought-row input {
+      width: 100%;
+      min-width: 0;
+      border: 1px solid rgba(255,255,255,.16);
+      background: rgba(255,255,255,.07);
+      color: white;
+      border-radius: 999px;
+      padding: 10px 14px;
+      outline: none;
+    }
+
+    .thought-row input::placeholder {
+      color: rgba(255,255,255,.5);
+    }
+
+    .thought-row input:focus {
+      border-color: color-mix(in srgb, var(--viz-accent) 75%, white 25%);
+    }
+
+    #whisper {
+      min-height: 24px;
+      margin-top: 10px;
+      text-align: center;
+      color: rgba(255,255,255,.78);
+      font-size: .9rem;
+      transition: opacity .5s ease;
+    }
+
+    .lantern {
+      position: absolute;
+      z-index: 7;
+      max-width: 190px;
+      padding: 7px 11px;
+      border: 1px solid color-mix(in srgb, var(--soft-light) 56%, transparent);
+      border-radius: 999px;
+      background: color-mix(in srgb, var(--soft-light) 18%, rgba(9,17,39,.72));
+      color: rgba(255,255,255,.88);
+      font-size: .78rem;
+      text-align: center;
+      box-shadow: 0 0 24px color-mix(in srgb, var(--soft-light) 32%, transparent);
+      pointer-events: none;
+      animation: floatAway 9s ease-in forwards;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .secret-flower {
+      position: absolute;
+      z-index: 6;
+      width: 16px;
+      height: 16px;
+      pointer-events: none;
+      animation: bloom .8s ease-out both;
+    }
+
+    .secret-flower::before,
+    .secret-flower::after {
+      content: "";
+      position: absolute;
+      inset: 3px;
+      border-radius: 50% 50% 46% 54%;
+      background: color-mix(in srgb, var(--viz-accent) 62%, #fff3cc 38%);
+      box-shadow:
+        0 -7px 0 color-mix(in srgb, var(--viz-accent) 42%, #ffffff 58%),
+        0 7px 0 color-mix(in srgb, var(--viz-accent) 52%, #f5d9ff 48%);
+    }
+
+    .secret-flower::after {
+      transform: rotate(90deg);
+      opacity: .82;
+    }
+
+    .secret-flower span {
+      position: absolute;
+      left: 7px;
+      top: 13px;
+      width: 2px;
+      height: 55px;
+      border-radius: 99px;
+      background: color-mix(in srgb, var(--viz-accent) 28%, #81956d 72%);
+    }
+
+    @keyframes moonDrift {
+      0%,100% { transform: translateY(0) scale(1); }
+      50% { transform: translateY(4px) scale(1.015); }
+    }
+
+    @keyframes breatheMoon {
+      0%,100% {
+        transform: scale(.93);
+        box-shadow:
+          0 0 28px color-mix(in srgb, var(--soft-light) 50%, transparent),
+          0 0 70px color-mix(in srgb, var(--viz-accent) 19%, transparent);
+      }
+      50% {
+        transform: scale(1.08);
+        box-shadow:
+          0 0 48px color-mix(in srgb, var(--soft-light) 72%, transparent),
+          0 0 118px color-mix(in srgb, var(--viz-accent) 31%, transparent);
+      }
+    }
+
+    @keyframes floatAway {
+      0% { transform: translate(-50%, 0) scale(.94); opacity: 0; }
+      12% { opacity: 1; }
+      75% { opacity: .85; }
+      100% { transform: translate(calc(-50% + var(--drift)), -390px) scale(.72); opacity: 0; }
+    }
+
+    @keyframes bloom {
+      from { transform: translate(-50%, 20px) scale(.1) rotate(-18deg); opacity: 0; }
+      to { transform: translate(-50%, 0) scale(1) rotate(0deg); opacity: 1; }
+    }
+
+    @media (max-width: 520px) {
+      #elsewhere { min-height: 100vh; }
+      .intro { top: 3%; font-size: .8rem; }
+      .controls { bottom: 12px; }
+      .thought-row { grid-template-columns: 1fr; }
+      .thought-row .night-button { width: 100%; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .moon,
+      .breathing .moon,
+      .lantern,
+      .secret-flower {
+        animation-duration: .01ms !important;
+        animation-iteration-count: 1 !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main id="elsewhere" aria-label="An interactive moonlit garden">
+    <canvas id="skyCanvas" aria-hidden="true"></canvas>
+    <canvas id="waterCanvas" aria-label="Touch or click the water to make ripples, flowers, and light"></canvas>
+
+    <div class="moon-wrap" aria-hidden="true"><div class="moon"></div></div>
+    <div class="moon-reflection" aria-hidden="true"></div>
+
+    <div class="horizon" aria-hidden="true">
+      <div class="hill hill-a"></div>
+      <div class="hill hill-b"></div>
+      <div class="hill hill-c"></div>
+    </div>
+
+    <div class="shore" aria-hidden="true">
+      <i class="reed" style="--x:4%;--h:74px;--r:-8deg"></i>
+      <i class="reed" style="--x:8%;--h:110px;--r:5deg"></i>
+      <i class="reed" style="--x:13%;--h:88px;--r:-4deg"></i>
+      <i class="reed" style="--x:18%;--h:128px;--r:8deg"></i>
+      <i class="reed" style="--x:77%;--h:92px;--r:-7deg"></i>
+      <i class="reed" style="--x:82%;--h:126px;--r:5deg"></i>
+      <i class="reed" style="--x:88%;--h:102px;--r:-3deg"></i>
+      <i class="reed" style="--x:94%;--h:78px;--r:7deg"></i>
+    </div>
+
+    <div class="glass-panel intro">Touch the water. The night will answer.</div>
+
+    <section class="glass-panel controls" aria-label="Moon garden controls">
+      <div class="control-row">
+        <button id="wonderButton" class="night-button primary" type="button">Give me a small wonder</button>
+        <button id="breatheButton" class="night-button" type="button" aria-pressed="false">Breathe with the moon</button>
+        <button id="rainButton" class="night-button" type="button" aria-pressed="false">Silver rain</button>
+        <button id="clearButton" class="night-button" type="button">Begin again</button>
+      </div>
+
+      <div class="thought-row">
+        <label class="sr-only" for="thoughtInput">A thought to set afloat</label>
+        <input id="thoughtInput" maxlength="72" placeholder="Set one thought afloat…" autocomplete="off">
+        <button id="releaseButton" class="night-button" type="button">Release it</button>
+      </div>
+      <div id="whisper" aria-live="polite">Nothing is required of you here.</div>
+    </section>
+  </main>
+
+  <script>
+    const root = document.getElementById('elsewhere');
+    const sky = document.getElementById('skyCanvas');
+    const water = document.getElementById('waterCanvas');
+    const sctx = sky.getContext('2d');
+    const wctx = water.getContext('2d');
+    const whisper = document.getElementById('whisper');
+    const thoughtInput = document.getElementById('thoughtInput');
+    const breatheButton = document.getElementById('breatheButton');
+    const rainButton = document.getElementById('rainButton');
+
+    let width = 0;
+    let height = 0;
+    let dpr = Math.min(window.devicePixelRatio || 1, 2);
+    let stars = [];
+    let fireflies = [];
+    let ripples = [];
+    let raindrops = [];
+    let rainOn = false;
+    let lastTime = 0;
+
+    const wonders = [
+      'Somewhere tonight, a flower is opening where no one can see it.',
+      'The moon never asks the water to hold still.',
+      'You have already survived every night that once felt endless.',
+      'There are colors the sky only makes for a few quiet minutes.',
+      'A firefly is just a tiny creature carrying its own lantern.',
+      'Even the tide leaves—and still knows how to return.',
+      'You are allowed to exist without turning this moment into anything useful.',
+      'The dark is not empty. It is where small lights become visible.'
+    ];
+
+    function cssColor(name, fallback) {
+      const value = getComputedStyle(root).getPropertyValue(name).trim();
+      return value || fallback;
+    }
+
+    function resize() {
+      const rect = root.getBoundingClientRect();
+      width = rect.width;
+      height = rect.height;
+      dpr = Math.min(window.devicePixelRatio || 1, 2);
+
+      [sky, water].forEach(canvas => {
+        canvas.width = Math.round(width * dpr);
+        canvas.height = Math.round(height * dpr);
+        canvas.style.width = width + 'px';
+        canvas.style.height = height + 'px';
+      });
+
+      sctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      wctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      seedSky();
+    }
+
+    function seedSky() {
+      const count = Math.max(70, Math.round(width / 8));
+      stars = Array.from({ length: count }, () => ({
+        x: Math.random() * width,
+        y: Math.random() * height * .49,
+        r: Math.random() * 1.25 + .25,
+        a: Math.random() * .7 + .18,
+        phase: Math.random() * Math.PI * 2,
+        speed: Math.random() * .0018 + .0005
+      }));
+
+      fireflies = Array.from({ length: 18 }, () => newFirefly());
+    }
+
+    function newFirefly(x = Math.random() * width, y = height * (.43 + Math.random() * .43)) {
+      return {
+        x,
+        y,
+        homeX: x,
+        homeY: y,
+        phase: Math.random() * Math.PI * 2,
+        speed: .00045 + Math.random() * .00055,
+        radius: 1.4 + Math.random() * 1.8,
+        glow: .3 + Math.random() * .7
+      };
+    }
+
+    function drawSky(time) {
+      sctx.clearRect(0, 0, width, height);
+      const accent = cssColor('--viz-accent', '#bca7ff');
+      const soft = cssColor('--soft-light', '#fff4c2');
+
+      for (const star of stars) {
+        const pulse = .62 + Math.sin(time * star.speed + star.phase) * .34;
+        sctx.beginPath();
+        sctx.fillStyle = `rgba(255,255,255,${star.a * pulse})`;
+        sctx.arc(star.x, star.y, star.r, 0, Math.PI * 2);
+        sctx.fill();
+      }
+
+      for (const f of fireflies) {
+        f.x = f.homeX + Math.sin(time * f.speed + f.phase) * 22;
+        f.y = f.homeY + Math.cos(time * f.speed * 1.3 + f.phase) * 12;
+        const pulse = .48 + .52 * Math.sin(time * .0022 + f.phase) ** 2;
+        const glow = sctx.createRadialGradient(f.x, f.y, 0, f.x, f.y, 14 + f.radius * 4);
+        glow.addColorStop(0, soft);
+        glow.addColorStop(.16, accent);
+        glow.addColorStop(1, 'rgba(255,255,255,0)');
+        sctx.globalAlpha = pulse * f.glow;
+        sctx.fillStyle = glow;
+        sctx.beginPath();
+        sctx.arc(f.x, f.y, 15 + f.radius * 4, 0, Math.PI * 2);
+        sctx.fill();
+        sctx.globalAlpha = 1;
+      }
+
+      if (rainOn) {
+        sctx.strokeStyle = 'rgba(220,235,255,.26)';
+        sctx.lineWidth = .7;
+        for (const drop of raindrops) {
+          drop.y += drop.speed;
+          drop.x += drop.drift;
+          if (drop.y > height * .54) {
+            drop.y = -12;
+            drop.x = Math.random() * width;
+          }
+          sctx.beginPath();
+          sctx.moveTo(drop.x, drop.y);
+          sctx.lineTo(drop.x - 3, drop.y + drop.len);
+          sctx.stroke();
+        }
+      }
+    }
+
+    function drawWater(time) {
+      wctx.clearRect(0, 0, width, height);
+      const waterline = height * .54;
+      const accent = cssColor('--viz-accent', '#bca7ff');
+
+      wctx.lineWidth = .65;
+      for (let i = 0; i < 18; i++) {
+        const y = waterline + 12 + i * ((height - waterline) / 21);
+        const sway = Math.sin(time * .00055 + i * .7) * (6 + i * .35);
+        wctx.strokeStyle = `rgba(255,255,255,${.035 + i * .0018})`;
+        wctx.beginPath();
+        for (let x = -10; x <= width + 10; x += 12) {
+          const py = y + Math.sin(x * .026 + time * .0008 + i) * 1.6;
+          if (x === -10) wctx.moveTo(x + sway, py);
+          else wctx.lineTo(x + sway, py);
+        }
+        wctx.stroke();
+      }
+
+      ripples = ripples.filter(r => r.alpha > .01 && r.radius < r.max);
+      for (const ripple of ripples) {
+        ripple.radius += ripple.speed;
+        ripple.alpha *= .982;
+        wctx.strokeStyle = accent;
+        wctx.globalAlpha = ripple.alpha;
+        wctx.lineWidth = 1.2;
+        wctx.beginPath();
+        wctx.ellipse(ripple.x, ripple.y, ripple.radius, ripple.radius * .28, 0, 0, Math.PI * 2);
+        wctx.stroke();
+        wctx.globalAlpha = 1;
+      }
+    }
+
+    function animate(time) {
+      const delta = time - lastTime;
+      lastTime = time;
+      drawSky(time, delta);
+      drawWater(time, delta);
+      requestAnimationFrame(animate);
+    }
+
+    function addRipple(x, y, strength = 1) {
+      if (y < height * .51) y = height * .57;
+      ripples.push({
+        x,
+        y,
+        radius: 3,
+        alpha: .55 * strength,
+        speed: 1.15 + strength * .45,
+        max: 82 + strength * 28
+      });
+
+      setTimeout(() => {
+        ripples.push({
+          x,
+          y,
+          radius: 4,
+          alpha: .3 * strength,
+          speed: .92,
+          max: 68
+        });
+      }, 130);
+    }
+
+    function plantFlower(x, y) {
+      if (y < height * .61) return;
+      const flower = document.createElement('div');
+      flower.className = 'secret-flower';
+      flower.style.left = `${x}px`;
+      flower.style.top = `${Math.min(y, height - 95)}px`;
+      flower.style.transform = `translateX(-50%) rotate(${Math.random() * 24 - 12}deg)`;
+      flower.innerHTML = '<span></span>';
+      root.appendChild(flower);
+      setTimeout(() => flower.remove(), 18000);
+    }
+
+    function releaseLantern(text) {
+      const lantern = document.createElement('div');
+      lantern.className = 'lantern';
+      lantern.textContent = text;
+      lantern.style.left = `${18 + Math.random() * 64}%`;
+      lantern.style.top = `${61 + Math.random() * 17}%`;
+      lantern.style.setProperty('--drift', `${Math.round(Math.random() * 90 - 45)}px`);
+      root.appendChild(lantern);
+      setTimeout(() => lantern.remove(), 9300);
+    }
+
+    function makeConstellation() {
+      const centerX = width * (.25 + Math.random() * .5);
+      const centerY = height * (.16 + Math.random() * .22);
+      const points = Array.from({ length: 5 + Math.floor(Math.random() * 3) }, (_, i) => ({
+        x: centerX + (i - 2.5) * 24 + Math.random() * 26 - 13,
+        y: centerY + Math.sin(i * 1.45) * 24 + Math.random() * 18 - 9
+      }));
+
+      let life = 1;
+
+      function drawConstellation() {
+        if (life <= 0) return;
+
+        sctx.save();
+        sctx.globalAlpha = life * .7;
+        sctx.strokeStyle = cssColor('--viz-accent', '#bca7ff');
+        sctx.fillStyle = 'white';
+        sctx.lineWidth = .8;
+        sctx.beginPath();
+        points.forEach((p, i) => i ? sctx.lineTo(p.x, p.y) : sctx.moveTo(p.x, p.y));
+        sctx.stroke();
+
+        points.forEach(p => {
+          sctx.beginPath();
+          sctx.arc(p.x, p.y, 2.1, 0, Math.PI * 2);
+          sctx.fill();
+        });
+
+        sctx.restore();
+        life -= .0035;
+        requestAnimationFrame(drawConstellation);
+      }
+
+      drawConstellation();
+    }
+
+    water.addEventListener('pointerdown', event => {
+      const rect = water.getBoundingClientRect();
+      const x = event.clientX - rect.left;
+      const y = event.clientY - rect.top;
+
+      addRipple(x, y, 1.15);
+
+      if (y > height * .62 && Math.random() > .28) {
+        plantFlower(x, y);
+      }
+
+      fireflies.push(newFirefly(x + Math.random() * 40 - 20, y - 35));
+
+      if (fireflies.length > 42) {
+        fireflies.shift();
+      }
+    });
+
+    document.getElementById('wonderButton').addEventListener('click', () => {
+      const wonder = wonders[Math.floor(Math.random() * wonders.length)];
+      whisper.style.opacity = '0';
+
+      setTimeout(() => {
+        whisper.textContent = wonder;
+        whisper.style.opacity = '1';
+      }, 250);
+
+      makeConstellation();
+
+      for (let i = 0; i < 4; i++) {
+        setTimeout(() => {
+          fireflies.push(newFirefly(
+            width * (.22 + Math.random() * .56),
+            height * (.45 + Math.random() * .25)
+          ));
+        }, i * 150);
+      }
+    });
+
+    breatheButton.addEventListener('click', () => {
+      const on = breatheButton.getAttribute('aria-pressed') !== 'true';
+      breatheButton.setAttribute('aria-pressed', String(on));
+      breatheButton.textContent = on ? 'Breathing… in, then out' : 'Breathe with the moon';
+      root.classList.toggle('breathing', on);
+      whisper.textContent = on
+        ? 'Follow the light: four counts in, four counts out.'
+        : 'Nothing is required of you here.';
+    });
+
+    rainButton.addEventListener('click', () => {
+      rainOn = !rainOn;
+      rainButton.setAttribute('aria-pressed', String(rainOn));
+      rainButton.textContent = rainOn ? 'Let the rain pass' : 'Silver rain';
+
+      if (rainOn && !raindrops.length) {
+        raindrops = Array.from(
+          { length: Math.max(55, Math.floor(width / 8)) },
+          () => ({
+            x: Math.random() * width,
+            y: Math.random() * height * .55,
+            len: 7 + Math.random() * 11,
+            speed: 2.1 + Math.random() * 2.5,
+            drift: -.18 - Math.random() * .18
+          })
+        );
+      }
+
+      whisper.textContent = rainOn
+        ? 'Some weather only needs somewhere gentle to land.'
+        : 'The sky is clearing again.';
+    });
+
+    document.getElementById('clearButton').addEventListener('click', () => {
+      root.querySelectorAll('.lantern, .secret-flower').forEach(el => el.remove());
+      ripples = [];
+      fireflies = Array.from({ length: 18 }, () => newFirefly());
+      rainOn = false;
+
+      rainButton.setAttribute('aria-pressed', 'false');
+      rainButton.textContent = 'Silver rain';
+
+      root.classList.remove('breathing');
+      breatheButton.setAttribute('aria-pressed', 'false');
+      breatheButton.textContent = 'Breathe with the moon';
+
+      whisper.textContent = 'A fresh night. No explanations needed.';
+    });
+
+    function handleRelease() {
+      const text = thoughtInput.value.trim();
+
+      if (!text) {
+        whisper.textContent = 'You can leave it unnamed, too.';
+        addRipple(width * .5, height * .73, .8);
+        return;
+      }
+
+      releaseLantern(text);
+      thoughtInput.value = '';
+      whisper.textContent = 'It can be held by the sky for a while.';
+      addRipple(width * .5, height * .72, 1.4);
+    }
+
+    document.getElementById('releaseButton').addEventListener('click', handleRelease);
+
+    thoughtInput.addEventListener('keydown', event => {
+      if (event.key === 'Enter') {
+        handleRelease();
+      }
+    });
+
+    new ResizeObserver(resize).observe(root);
+    resize();
+    requestAnimationFrame(animate);
+  </script>
+</body>
+</html>
