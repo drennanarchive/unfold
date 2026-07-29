@@ -146,8 +146,6 @@
     .mobile-route-tool:nth-child(2){color:#86efff;border-color:rgba(0,217,255,.4)}
     .mobile-route-tool:nth-child(3){color:#ffd08d;border-color:rgba(244,163,64,.4)}
     .mobile-route-tool:hover{background:rgba(var(--day-rgb),.09);border-color:var(--day)}
-    .sky-upload{cursor:pointer;color:var(--cyan)}
-    #skyInput{display:none}
     .sky-layer{position:absolute;z-index:1;inset:0 0 0 42%;opacity:.78;pointer-events:none;overflow:hidden;mask-image:linear-gradient(90deg,transparent,#000 22%);-webkit-mask-image:linear-gradient(90deg,transparent,#000 22%)}
     .sky-image{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center;display:none;filter:saturate(1.15) contrast(1.08)}
     .sky-layer.has-image .sky-image{display:block}
@@ -243,7 +241,7 @@
       .meal-route{padding-left:22px}.meal-route::before{left:7px}.meal-station::before{left:-21px;width:11px;height:11px}.station-head{grid-template-columns:auto 1fr;padding:14px 12px}.station-name{font-size:20px}.station-state{display:none}
       .lane{grid-template-columns:1fr}.lane-label{padding:10px 12px;border-right:0;border-bottom:1px solid var(--line);display:grid;grid-template-columns:auto 1fr;align-items:center;gap:10px}.lane-label::after{left:0;right:auto;width:2px}.lane-name{margin:0;font-size:14px}.lane-help{display:none}.option-strip{grid-template-columns:1fr;padding:9px}.place-card{min-height:0}.station-footer{grid-template-columns:1fr}.custom-wrap{display:grid;grid-template-columns:1fr auto}.note-toggle{width:100%}
     }
-    @media(max-width:430px){.route-title{font-size:40px}.route-header{min-height:265px}.meta-tag:not(.sky-url-action):nth-last-child(-n+2){display:none}.mobile-route-tools{gap:4px}.mobile-route-tool{min-height:34px;padding:6px 4px;font-size:6.5px;letter-spacing:.035em}.progress-label{display:none}.progress-track{gap:2px}.progress-next{width:29px;padding:0;font-size:0}.progress-next::after{content:'↘';font-size:11px}.station-number{display:none}.station-head{grid-template-columns:1fr}.day-name{font-size:13px}.field-links{grid-template-columns:1fr}.manifest-meal{grid-template-columns:58px 1fr}}
+    @media(max-width:430px){.route-title{font-size:40px}.route-header{min-height:265px}.mobile-route-tools{gap:4px}.mobile-route-tool{min-height:34px;padding:6px 4px;font-size:6.5px;letter-spacing:.035em}.progress-label{display:none}.progress-track{gap:2px}.progress-next{width:29px;padding:0;font-size:0}.progress-next::after{content:'↘';font-size:11px}.station-number{display:none}.station-head{grid-template-columns:1fr}.day-name{font-size:13px}.field-links{grid-template-columns:1fr}.manifest-meal{grid-template-columns:58px 1fr}}
 
     @media (prefers-reduced-motion:reduce){.route-sheen,.pass-foil::after{animation:none;display:none}}
 
@@ -306,7 +304,6 @@
   <button class="mobile-pass-button" id="mobilePassButton">Open weekend loadout <span id="mobileCount">0/9</span></button>
   <div class="drawer-backdrop" id="drawerBackdrop"></div>
   <div class="mobile-drawer" id="mobileDrawer"><button class="drawer-close" id="drawerClose" aria-label="Close weekend pass">×</button><div id="mobilePass"></div></div>
-  <input type="file" id="skyInput" accept="image/*" />
   <input type="file" id="planInput" accept="application/json,.json" hidden />
   <div class="toast" id="toast"></div>
 
@@ -359,12 +356,19 @@ const DAYS = {
 const MEAL_LABEL={breakfast:'Breakfast',lunch:'Lunch',dinner:'Dinner'};
 const MEAL_ORDER=['breakfast','lunch','dinner'];
 const STORAGE='otakon-night-route-v2';
-const DEFAULT_SKYLINE_FILE='ChatGPTskylineDC.png'; // Preferred exact, case-sensitive filename.
-const DEFAULT_SKYLINE_NAMES=['ChatGPTskylineDC.png','ChatGPTSkylineDC.png','chatgptskylinedc.png','ChatGPTskylineDC.PNG'];
 const ORIGIN='Conrad Washington DC, 950 New York Ave NW, Washington, DC 20001';
 const FIELD_LINKS={schedule:'https://conventions.leapevent.tech/schedules/frontend/Otakon_2026',map:'https://www.google.com/maps/search/restaurants/@38.9012,-77.0247,16z',conrad:'https://conradwashingtondc.com/dine/'};
-let state={day:'thu',plans:{},backups:{},notes:{},custom:{},sky:null,skyUrl:null};
-try{state={...state,...JSON.parse(localStorage.getItem(STORAGE)||'{}')}}catch(e){}
+let state={day:'thu',plans:{},backups:{},notes:{},custom:{}};
+try{
+  const stored=JSON.parse(localStorage.getItem(STORAGE)||'{}');
+  state={
+    day:DAYS[stored.day]?stored.day:'thu',
+    plans:stored.plans&&typeof stored.plans==='object'?stored.plans:{},
+    backups:stored.backups&&typeof stored.backups==='object'?stored.backups:{},
+    notes:stored.notes&&typeof stored.notes==='object'?stored.notes:{},
+    custom:stored.custom&&typeof stored.custom==='object'?stored.custom:{}
+  };
+}catch(e){}
 
 const $=s=>document.querySelector(s);
 const save=()=>{try{localStorage.setItem(STORAGE,JSON.stringify(state))}catch(e){console.warn('Planner state could not be persisted',e)}};
@@ -381,42 +385,6 @@ const getOptions=(d,m)=>{
 const findOption=(key,id)=>{const [d,m]=key.split('-');return getOptions(d,m).find(o=>o.id===id)};
 const directionsURL=address=>`https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(ORIGIN)}&destination=${encodeURIComponent(address)}&travelmode=walking`;
 const slotLabel=key=>{const [d,m]=key.split('-');return `${DAYS[d].label} ${MEAL_LABEL[m]}`};
-function normalizeSkylineURL(value){
-  const raw=String(value||'').trim();
-  if(!raw)return null;
-  // GitHub's normal file page is HTML, not the image itself. Convert common blob links to raw content.
-  const blob=raw.match(/^https:\/\/github\.com\/([^/]+)\/([^/]+)\/blob\/([^/]+)\/(.+)$/i);
-  if(blob)return `https://raw.githubusercontent.com/${blob[1]}/${blob[2]}/${blob[3]}/${blob[4]}`;
-  try{return new URL(raw,document.baseURI).href}catch(e){return null}
-}
-function skylineCandidates(){
-  const urls=[];const add=value=>{const u=normalizeSkylineURL(value);if(u&&!urls.includes(u))urls.push(u)};
-  // Same folder first, including the few likely filename-case variations.
-  DEFAULT_SKYLINE_NAMES.forEach(name=>add('./'+name));
-  add('./images/'+DEFAULT_SKYLINE_FILE);
-  add('./assets/'+DEFAULT_SKYLINE_FILE);
-
-  if(location.hostname.endsWith('.github.io')){
-    const owner=location.hostname.split('.')[0];
-    const parts=location.pathname.split('/').filter(Boolean);
-    const isProjectSite=parts.length>0;
-    const repo=isProjectSite?parts[0]:`${owner}.github.io`;
-    const repoRoot=isProjectSite?`${location.origin}/${repo}/`:`${location.origin}/`;
-    add(repoRoot+DEFAULT_SKYLINE_FILE);
-    add(repoRoot+'images/'+DEFAULT_SKYLINE_FILE);
-    add(repoRoot+'assets/'+DEFAULT_SKYLINE_FILE);
-
-    // A few direct raw fallbacks for the most common publishing branches/folders.
-    const relativeDir=isProjectSite?parts.slice(1,-1).join('/'):(parts.slice(0,-1).join('/'));
-    ['main','master','gh-pages'].forEach(branch=>{
-      const prefix=`https://raw.githubusercontent.com/${owner}/${repo}/${branch}/`;
-      if(relativeDir)add(prefix+relativeDir+'/'+DEFAULT_SKYLINE_FILE);
-      add(prefix+DEFAULT_SKYLINE_FILE);
-      add(prefix+'docs/'+DEFAULT_SKYLINE_FILE);
-    });
-  }
-  return urls;
-}
 function toast(msg){const t=$('#toast');t.textContent=msg;t.classList.add('show');clearTimeout(toast.timer);toast.timer=setTimeout(()=>t.classList.remove('show'),1800)}
 
 function render(){
@@ -441,50 +409,23 @@ function renderDays(){
   document.querySelectorAll('[data-day]').forEach(b=>b.onclick=()=>{state.day=b.dataset.day;save();render();window.scrollTo({top:0,behavior:'smooth'})});
 }
 function renderHeader(){
-  const d=DAYS[state.day];$('#routeCode').textContent=d.code;$('#routeTitle').innerHTML=`${d.label}<span>${d.date}</span>`;$('#routeSub').textContent=d.sub;
-  const expectedSkyline=new URL('./'+DEFAULT_SKYLINE_FILE,document.baseURI).href;
+  const d=DAYS[state.day];
+  $('#routeCode').textContent=d.code;
+  $('#routeTitle').innerHTML=`${d.label}<span>${d.date}</span>`;
+  $('#routeSub').textContent=d.sub;
   $('#routeMeta').innerHTML=d.meta.map(x=>`<span class="meta-tag">${x}</span>`).join('')
-    +`<a class="meta-tag" href="https://conradwashingtondc.com/dine/" target="_blank" rel="noopener">Conrad dining + menus ↗</a>`
-    +`<label class="meta-tag sky-upload" for="skyInput">${state.sky?'Replace local skyline':'Use local image'}</label>`
-    +`<button class="meta-tag sky-upload sky-url-action" id="setSkyUrl">Link GitHub image</button>`
-    +`<a class="meta-tag sky-url-action" href="${expectedSkyline}" target="_blank" rel="noopener" title="Open the exact same-folder image address the planner tries first">Check image path ↗</a>`
-    +`${state.sky||state.skyUrl?'<button class="meta-tag sky-upload sky-url-action" id="clearSky">Return to automatic image</button>':''}`;
-
-  const layer=$('#skyLayer');
-  const img=$('#skyImage');
-  const candidates=state.sky?[state.sky]:(state.skyUrl?[state.skyUrl,...skylineCandidates()]:skylineCandidates());
-  let candidateIndex=0;
-  const loadCandidate=()=>{
-    const source=candidates[candidateIndex];
-    if(!source){
-      layer.classList.remove('has-image');
-      img.removeAttribute('src');
-      console.warn(`Skyline image not found after trying repository-relative and GitHub raw paths. Preferred filename: ${DEFAULT_SKYLINE_FILE}. Page folder:`,new URL('.',document.baseURI).href,'Tried:',candidates);
-      return;
-    }
-    img.onload=()=>{
-      if(img.src!==source)return;
-      layer.classList.add('has-image');
-    };
-    img.onerror=()=>{
-      if(img.src!==source)return;
-      candidateIndex+=1;
-      loadCandidate();
-    };
-    img.src=source;
-  };
-  loadCandidate();
-
-  if($('#setSkyUrl'))$('#setSkyUrl').onclick=()=>{
-    const current=state.skyUrl||expectedSkyline;
-    const value=prompt('Paste the direct public image URL, a GitHub file URL, or a repository-relative path such as ./ChatGPTskylineDC.png',current);
-    if(value===null)return;
-    const normalized=normalizeSkylineURL(value);
-    if(!normalized){toast('That image address was not valid');return}
-    state.sky=null;state.skyUrl=normalized;save();render();toast('GitHub skyline linked');
-  };
-  if($('#clearSky'))$('#clearSky').onclick=()=>{state.sky=null;state.skyUrl=null;save();render();toast('Automatic skyline search restored')};
+    +`<a class="meta-tag" href="${FIELD_LINKS.conrad}" target="_blank" rel="noopener">Conrad dining + menus ↗</a>`;
 }
+
+function initSkyline(){
+  const layer=$('#skyLayer');
+  const image=$('#skyImage');
+  const sync=()=>layer.classList.toggle('has-image',image.complete&&image.naturalWidth>0);
+  image.addEventListener('load',sync);
+  image.addEventListener('error',()=>layer.classList.remove('has-image'));
+  sync();
+}
+
 function laneHTML(d,m,group,label,help,color){
   const options=getOptions(d,m).filter(o=>o.group===group);
   if(!options.length)return'';
@@ -595,18 +536,18 @@ function exportPlan(){
   const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='otakon-2026-night-route-plan.json';document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(url);toast('Planner backup exported');
 }
 function importPlan(file){
-  if(!file)return;const reader=new FileReader();reader.onload=()=>{try{const raw=JSON.parse(reader.result);const incoming=raw.state||raw;if(!incoming||typeof incoming!=='object')throw new Error('Invalid backup');state={day:DAYS[incoming.day]?incoming.day:'thu',plans:incoming.plans&&typeof incoming.plans==='object'?incoming.plans:{},backups:incoming.backups&&typeof incoming.backups==='object'?incoming.backups:{},notes:incoming.notes&&typeof incoming.notes==='object'?incoming.notes:{},custom:incoming.custom&&typeof incoming.custom==='object'?incoming.custom:{},sky:state.sky||null,skyUrl:state.skyUrl||null};save();render();toast('Planner backup imported')}catch(e){alert('That file does not look like a valid Night Route planner backup.')}};reader.readAsText(file);
+  if(!file)return;const reader=new FileReader();reader.onload=()=>{try{const raw=JSON.parse(reader.result);const incoming=raw.state||raw;if(!incoming||typeof incoming!=='object')throw new Error('Invalid backup');state={day:DAYS[incoming.day]?incoming.day:'thu',plans:incoming.plans&&typeof incoming.plans==='object'?incoming.plans:{},backups:incoming.backups&&typeof incoming.backups==='object'?incoming.backups:{},notes:incoming.notes&&typeof incoming.notes==='object'?incoming.notes:{},custom:incoming.custom&&typeof incoming.custom==='object'?incoming.custom:{}};save();render();toast('Planner backup imported')}catch(e){alert('That file does not look like a valid Night Route planner backup.')}};reader.readAsText(file);
 }
 $('#nextOpenBtn').onclick=jumpNextOpen;
 $('#planInput').onchange=e=>{importPlan(e.target.files[0]);e.target.value=''};
 
-$('#skyInput').onchange=e=>{const file=e.target.files[0];if(!file)return;const reader=new FileReader();reader.onload=()=>{state.sky=reader.result;state.skyUrl=null;save();render();toast('Local skyline linked')};reader.readAsDataURL(file)};
-$('#resetBtn').onclick=()=>{if(!confirm('Clear all plans, backups, notes, custom routes, and any uploaded skyline?'))return;state={day:'thu',plans:{},backups:{},notes:{},custom:{},sky:null,skyUrl:null};save();render();toast('Planner reset')};
+$('#resetBtn').onclick=()=>{if(!confirm('Clear all plans, alternatives, notes, and custom routes?'))return;state={day:'thu',plans:{},backups:{},notes:{},custom:{}};save();render();toast('Planner reset')};
 const drawer=$('#mobileDrawer'),backdrop=$('#drawerBackdrop');
 $('#mobilePassButton').onclick=()=>{drawer.classList.add('open');backdrop.style.opacity='1';backdrop.style.pointerEvents='auto'};
 function closeDrawer(){drawer.classList.remove('open');backdrop.style.opacity='0';backdrop.style.pointerEvents='none'}
 $('#drawerClose').onclick=closeDrawer;backdrop.onclick=closeDrawer;
 backdrop.style.opacity='0';backdrop.style.pointerEvents='none';
+initSkyline();
 render();
 </script>
 </body>
