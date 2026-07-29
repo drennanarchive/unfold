@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="theme-color" content="#070b18" />
+  <meta name="build" content="unfold-personal-2026-07-29-gridless-orbit-v2" />
   <meta name="description" content="Unfold // Personal — a living atlas of useful things, quiet places, experiments, and small worlds." />
   <title>Unfold // Personal</title>
   <style>
@@ -42,10 +43,14 @@
       min-height: 100vh;
       color: var(--text);
       font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      background:
-        radial-gradient(circle at 15% -5%, rgba(61, 84, 169, 0.24), transparent 34%),
-        radial-gradient(circle at 85% 8%, rgba(181, 60, 148, 0.13), transparent 26%),
-        linear-gradient(180deg, #070b18 0%, #081020 45%, #071019 100%);
+      background-color: var(--ink);
+      background-image:
+        radial-gradient(ellipse at 12% 2%, rgba(61, 84, 169, 0.27), transparent 40%),
+        radial-gradient(ellipse at 88% 7%, rgba(181, 60, 148, 0.14), transparent 32%),
+        radial-gradient(ellipse at 48% 62%, rgba(34, 105, 128, 0.09), transparent 48%);
+      background-repeat: no-repeat;
+      background-size: 100% 100%;
+      background-attachment: fixed;
       overflow-x: hidden;
     }
 
@@ -53,30 +58,142 @@
     body::after {
       content: "";
       position: fixed;
-      inset: 0;
+      inset: -8%;
       pointer-events: none;
-      z-index: -1;
+      z-index: 0;
     }
 
     body::before {
-      opacity: 0.34;
-      background-image:
-        radial-gradient(circle, rgba(255,255,255,.72) 0 1px, transparent 1.4px),
-        radial-gradient(circle, rgba(127,208,255,.42) 0 1px, transparent 1.5px);
-      background-size: 92px 92px, 157px 157px;
-      background-position: 14px 17px, 31px 71px;
-      mask-image: linear-gradient(to bottom, #000 0%, rgba(0,0,0,.5) 48%, transparent 100%);
+      background:
+        radial-gradient(ellipse at 12% 16%, rgba(78, 104, 184, .18), transparent 34%),
+        radial-gradient(ellipse at 86% 10%, rgba(181, 60, 148, .10), transparent 28%),
+        radial-gradient(ellipse at 72% 70%, rgba(53, 145, 151, .08), transparent 38%),
+        radial-gradient(ellipse at 20% 82%, rgba(232, 187, 112, .05), transparent 30%);
+      filter: blur(22px);
+      animation: haze-drift 30s ease-in-out infinite alternate;
     }
 
     body::after {
-      background: linear-gradient(90deg, rgba(255,255,255,.016) 1px, transparent 1px),
-                  linear-gradient(rgba(255,255,255,.012) 1px, transparent 1px);
-      background-size: 56px 56px;
-      mask-image: radial-gradient(circle at center top, black, transparent 72%);
+      inset: 0;
+      background: radial-gradient(ellipse at 50% 18%, transparent 0 24%, rgba(3, 6, 15, .08) 62%, rgba(2, 4, 11, .38) 100%);
+    }
+
+    .night-sky {
+      position: fixed;
+      inset: 0;
+      overflow: hidden;
+      pointer-events: none;
+      z-index: 0;
+      mask-image: linear-gradient(to bottom, #000 0%, rgba(0,0,0,.78) 54%, rgba(0,0,0,.18) 88%, transparent 100%);
+    }
+
+    .star {
+      position: absolute;
+      width: var(--size, 1px);
+      height: var(--size, 1px);
+      border-radius: 50%;
+      background: rgba(244, 248, 255, var(--opacity, .55));
+      box-shadow: 0 0 calc(var(--size, 1px) * 5) rgba(143, 202, 255, .38);
+      animation: star-breathe var(--duration, 5s) ease-in-out var(--delay, 0s) infinite;
+    }
+
+    .star.warm {
+      background: rgba(255, 229, 182, var(--opacity, .62));
+      box-shadow: 0 0 calc(var(--size, 1px) * 6) rgba(232, 187, 112, .38);
+    }
+
+    .skip-link,
+    .hero,
+    .collection-nav-wrap,
+    main,
+    footer {
+      position: relative;
+      z-index: 1;
+    }
+
+    @keyframes haze-drift {
+      from { transform: translate3d(-1.5%, -1%, 0) scale(1); opacity: .82; }
+      to { transform: translate3d(1.5%, 1.2%, 0) scale(1.04); opacity: 1; }
+    }
+
+    @keyframes star-breathe {
+      0%, 100% { opacity: .34; transform: scale(.82); }
+      50% { opacity: 1; transform: scale(1.14); }
     }
 
     a { color: inherit; }
     button { font: inherit; }
+
+    .sound-toggle {
+      position: fixed;
+      top: 18px;
+      right: 18px;
+      z-index: 60;
+      display: inline-flex;
+      align-items: center;
+      gap: 9px;
+      min-height: 42px;
+      padding: 9px 13px;
+      border: 1px solid rgba(232, 216, 180, .18);
+      border-radius: 999px;
+      color: #b8c1d2;
+      background: rgba(8, 13, 27, .64);
+      backdrop-filter: blur(16px);
+      box-shadow: 0 10px 32px rgba(0,0,0,.22);
+      cursor: pointer;
+      transition: color .25s ease, border-color .25s ease, background .25s ease, transform .25s ease;
+    }
+
+    .sound-toggle:hover {
+      color: var(--text);
+      border-color: rgba(232, 187, 112, .42);
+      transform: translateY(-1px);
+    }
+
+    .sound-toggle:focus-visible {
+      outline: 3px solid var(--gold-soft);
+      outline-offset: 3px;
+    }
+
+    .sound-toggle[aria-pressed="true"] {
+      color: var(--gold-soft);
+      border-color: rgba(232, 187, 112, .42);
+      background: rgba(20, 23, 38, .78);
+    }
+
+    .sound-icon {
+      position: relative;
+      width: 17px;
+      height: 17px;
+      flex: 0 0 17px;
+    }
+
+    .sound-icon svg { width: 100%; height: 100%; }
+
+    .sound-toggle[aria-pressed="true"] .sound-icon::after {
+      content: "";
+      position: absolute;
+      right: -4px;
+      top: -3px;
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: var(--gold);
+      box-shadow: 0 0 10px rgba(232, 187, 112, .9);
+      animation: sound-pulse 2.4s ease-in-out infinite;
+    }
+
+    .sound-label {
+      font-size: .66rem;
+      letter-spacing: .13em;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+
+    @keyframes sound-pulse {
+      0%, 100% { opacity: .45; transform: scale(.8); }
+      50% { opacity: 1; transform: scale(1.15); }
+    }
 
     .shell {
       width: min(var(--max), calc(100% - 40px));
@@ -156,15 +273,35 @@
       margin-top: 28px;
       color: var(--gold-soft);
       font-family: Georgia, "Times New Roman", serif;
-      font-size: 1.15rem;
       font-style: italic;
     }
 
     .signature::before {
       content: "";
+      flex: 0 0 48px;
       width: 48px;
       height: 1px;
       background: linear-gradient(90deg, transparent, var(--gold));
+    }
+
+    .signature-credit {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .signature-name {
+      font-size: 1.15rem;
+    }
+
+    .signature-partners {
+      color: #9fa9bb;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-size: 0.72rem;
+      font-style: normal;
+      letter-spacing: 0.09em;
+      line-height: 1.5;
+      text-transform: uppercase;
     }
 
     .hero-orbit {
@@ -179,24 +316,87 @@
       position: absolute;
       border: 1px solid rgba(207, 219, 255, .14);
       border-radius: 50%;
-      animation: spin 42s linear infinite;
+      pointer-events: none;
     }
 
     .orbit.one { width: 410px; height: 410px; }
-    .orbit.two { width: 292px; height: 292px; animation-direction: reverse; animation-duration: 30s; }
-    .orbit.three { width: 510px; height: 200px; transform: rotate(-20deg); animation-duration: 58s; }
+    .orbit.two { width: 292px; height: 292px; }
+    .orbit.three { width: 510px; height: 200px; transform: rotate(-20deg); }
 
-    .orbit::after {
-      content: "";
+    .atlas-satellite {
+      --satellite-color: var(--gold);
       position: absolute;
+      left: 50%;
       top: 50%;
-      left: -5px;
-      width: 10px;
-      height: 10px;
-      border-radius: 50%;
-      background: var(--gold);
-      box-shadow: 0 0 22px rgba(232, 187, 112, .85);
+      z-index: 8;
+      display: inline-flex;
+      align-items: center;
+      gap: 9px;
+      min-width: 30px;
+      min-height: 30px;
+      padding: 5px 9px 5px 6px;
+      border: 1px solid transparent;
+      border-radius: 999px;
+      color: var(--satellite-color);
+      background: rgba(7, 11, 24, .12);
+      cursor: pointer;
+      transform: translate(-50%, -50%);
+      transition: background .26s ease, border-color .26s ease, box-shadow .26s ease;
+      will-change: transform;
     }
+
+    .atlas-satellite:hover,
+    .atlas-satellite:focus-visible,
+    .atlas-satellite.is-paused {
+      border-color: color-mix(in srgb, var(--satellite-color) 46%, transparent);
+      background: rgba(9, 14, 29, .9);
+      box-shadow: 0 10px 32px rgba(0, 0, 0, .32), 0 0 26px color-mix(in srgb, var(--satellite-color) 28%, transparent);
+      outline: none;
+    }
+
+    .satellite-dot {
+      flex: 0 0 auto;
+      width: 12px;
+      height: 12px;
+      border: 1px solid currentColor;
+      border-radius: 50%;
+      background: color-mix(in srgb, currentColor 26%, #070b18);
+      box-shadow: 0 0 17px currentColor;
+      transition: transform .25s ease, background .25s ease;
+    }
+
+    .atlas-satellite:hover .satellite-dot,
+    .atlas-satellite:focus-visible .satellite-dot,
+    .atlas-satellite.is-paused .satellite-dot {
+      transform: scale(1.12);
+      background: currentColor;
+    }
+
+    .satellite-word {
+      max-width: 0;
+      overflow: hidden;
+      opacity: 0;
+      color: currentColor;
+      font-size: .69rem;
+      letter-spacing: .15em;
+      text-transform: uppercase;
+      white-space: nowrap;
+      transform: translateX(-5px);
+      transition: none;
+    }
+
+    .atlas-satellite:hover .satellite-word,
+    .atlas-satellite:focus-visible .satellite-word,
+    .atlas-satellite.is-paused .satellite-word {
+      max-width: 130px;
+      opacity: 1;
+      transform: translateX(0);
+    }
+
+    .atlas-satellite.signal { --satellite-color: var(--magenta); }
+    .atlas-satellite.wonder { --satellite-color: var(--cyan); }
+    .atlas-satellite.shelter { --satellite-color: var(--amber); }
+    .atlas-satellite.elsewhere { --satellite-color: var(--teal); }
 
     .atlas-core {
       position: relative;
@@ -242,33 +442,115 @@
       line-height: 1.6;
     }
 
-    .hero-marker {
+    .atlas-dialog {
+      --dialog-accent: var(--gold);
+      width: min(590px, calc(100% - 28px));
+      padding: 0;
+      overflow: hidden;
+      border: 1px solid color-mix(in srgb, var(--dialog-accent) 34%, rgba(255,255,255,.08));
+      border-radius: 28px;
+      color: var(--text);
+      background:
+        radial-gradient(circle at 88% 4%, color-mix(in srgb, var(--dialog-accent) 20%, transparent), transparent 36%),
+        rgba(10, 15, 31, .97);
+      box-shadow: 0 40px 120px rgba(0, 0, 0, .68), 0 0 60px color-mix(in srgb, var(--dialog-accent) 11%, transparent);
+    }
+
+    .atlas-dialog::backdrop {
+      background: rgba(3, 5, 13, .76);
+      backdrop-filter: blur(12px);
+    }
+
+    .dialog-inner {
+      position: relative;
+      padding: 42px;
+    }
+
+    .dialog-close {
       position: absolute;
-      display: flex;
-      align-items: center;
-      gap: 8px;
+      top: 18px;
+      right: 18px;
+      display: grid;
+      place-items: center;
+      width: 38px;
+      height: 38px;
+      border: 1px solid rgba(255,255,255,.13);
+      border-radius: 50%;
       color: var(--muted);
-      font-size: .72rem;
-      letter-spacing: .12em;
+      background: rgba(255,255,255,.035);
+      cursor: pointer;
+    }
+
+    .dialog-close:hover,
+    .dialog-close:focus-visible {
+      color: var(--text);
+      border-color: color-mix(in srgb, var(--dialog-accent) 55%, transparent);
+      outline: none;
+    }
+
+    .dialog-symbol {
+      display: grid;
+      place-items: center;
+      width: 62px;
+      height: 62px;
+      margin-bottom: 26px;
+      border: 1px solid color-mix(in srgb, var(--dialog-accent) 48%, transparent);
+      border-radius: 50%;
+      color: var(--dialog-accent);
+      box-shadow: inset 0 0 25px color-mix(in srgb, var(--dialog-accent) 12%, transparent), 0 0 28px color-mix(in srgb, var(--dialog-accent) 16%, transparent);
+      font-size: 1.15rem;
+    }
+
+    .dialog-kicker {
+      margin: 0 0 10px;
+      color: var(--dialog-accent);
+      font-size: .68rem;
+      letter-spacing: .22em;
       text-transform: uppercase;
     }
 
-    .hero-marker::before {
-      content: "";
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-      border: 1px solid currentColor;
-      box-shadow: 0 0 12px currentColor;
+    .atlas-dialog h2 {
+      margin: 0;
+      font-size: clamp(2.3rem, 8vw, 4.1rem);
+      line-height: .96;
+      letter-spacing: -.04em;
     }
 
-    .hero-marker.signal { top: 16%; right: 4%; color: var(--magenta); }
-    .hero-marker.wonder { top: 34%; left: 1%; color: var(--cyan); }
-    .hero-marker.shelter { bottom: 18%; right: 2%; color: var(--amber); }
-    .hero-marker.elsewhere { bottom: 5%; left: 10%; color: var(--teal); }
+    .dialog-copy {
+      margin: 22px 0 0;
+      color: #c6cedd;
+      font-size: 1rem;
+      line-height: 1.75;
+    }
 
-    @keyframes spin {
-      to { transform: rotate(360deg); }
+    .dialog-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-top: 30px;
+    }
+
+    .dialog-action {
+      min-height: 44px;
+      padding: 11px 17px;
+      border: 1px solid rgba(255,255,255,.13);
+      border-radius: 999px;
+      color: var(--text);
+      background: rgba(255,255,255,.035);
+      cursor: pointer;
+    }
+
+    .dialog-action.primary {
+      border-color: transparent;
+      color: #071019;
+      background: var(--dialog-accent);
+    }
+
+    .dialog-action:hover,
+    .dialog-action:focus-visible {
+      transform: translateY(-1px);
+      outline: none;
+      box-shadow: 0 10px 24px rgba(0,0,0,.24);
     }
 
     .collection-nav-wrap {
@@ -790,6 +1072,8 @@
 
     @media (max-width: 640px) {
       .shell { width: min(100% - 24px, var(--max)); }
+      .sound-toggle { top: 12px; right: 12px; padding: 9px 11px; }
+      .sound-label { display: none; }
       .hero { padding-top: 76px; }
       h1 { font-size: clamp(3.15rem, 18vw, 5.4rem); }
       .hero-copy { font-size: 1rem; }
@@ -798,7 +1082,9 @@
       .orbit.one { width: 320px; height: 320px; }
       .orbit.two { width: 230px; height: 230px; }
       .orbit.three { width: 340px; height: 150px; }
-      .hero-marker { display: none; }
+      .atlas-satellite { padding-right: 6px; }
+      .satellite-word { display: none; }
+      .dialog-inner { padding: 34px 26px 28px; }
       .collection-nav { justify-content: flex-start; overflow-x: auto; flex-wrap: nowrap; padding: 8px; scrollbar-width: none; }
       .collection-nav::-webkit-scrollbar { display: none; }
       .filter-button { white-space: nowrap; }
@@ -818,10 +1104,23 @@
       html { scroll-behavior: auto; }
       *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
       .world-card { opacity: 1; transform: none; }
+      .star, .sound-toggle[aria-pressed="true"] .sound-icon::after { animation: none !important; }
     }
   </style>
 </head>
 <body>
+  <div class="night-sky" aria-hidden="true"></div>
+
+  <button class="sound-toggle" id="sound-toggle" type="button" aria-pressed="false" aria-label="Turn on soft night soundscape" title="Soft night soundscape — sound is off">
+    <span class="sound-icon" aria-hidden="true">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+        <path d="M5 9v6h4l5 4V5L9 9H5Z" />
+        <path d="M17 9.5c.9.8 1.4 1.6 1.4 2.5S17.9 13.7 17 14.5" />
+      </svg>
+    </span>
+    <span class="sound-label">Sound off</span>
+  </button>
+
   <a class="skip-link" href="#collection">Skip to collection</a>
 
   <header class="hero">
@@ -832,10 +1131,15 @@
         <p class="hero-copy">
           The personal side of Unfold: useful things, quiet places, experiments, and small worlds—made to help me navigate, wonder, rest, or simply feel somewhere else for a little while.
         </p>
-        <div class="signature">Clara</div>
+        <div class="signature">
+          <div class="signature-credit">
+            <span class="signature-name">Clara</span>
+            <span class="signature-partners">In creative partnership with AI collaborators Cari (ChatGPT) + CJ (Claude)</span>
+          </div>
+        </div>
       </div>
 
-      <div class="hero-orbit" aria-label="A visual atlas of Signal, Wonder, Lanternlight, and Elsewhere">
+      <div class="hero-orbit" aria-label="An interactive visual atlas of Signal, Wonder, Lanternlight, and Elsewhere">
         <div class="orbit one" aria-hidden="true"></div>
         <div class="orbit two" aria-hidden="true"></div>
         <div class="orbit three" aria-hidden="true"></div>
@@ -846,13 +1150,35 @@
             <p>Organized enough to find. Open enough to keep becoming.</p>
           </div>
         </div>
-        <div class="hero-marker signal">Signal</div>
-        <div class="hero-marker wonder">Wonder</div>
-        <div class="hero-marker shelter">Lanternlight</div>
-        <div class="hero-marker elsewhere">Elsewhere</div>
+        <button class="atlas-satellite signal" type="button" data-atlas-category="signal" aria-label="Learn about Signal">
+          <span class="satellite-dot" aria-hidden="true"></span><span class="satellite-word">Signal</span>
+        </button>
+        <button class="atlas-satellite wonder" type="button" data-atlas-category="wonder" aria-label="Learn about Wonder">
+          <span class="satellite-dot" aria-hidden="true"></span><span class="satellite-word">Wonder</span>
+        </button>
+        <button class="atlas-satellite shelter" type="button" data-atlas-category="lanternlight" aria-label="Learn about Lanternlight">
+          <span class="satellite-dot" aria-hidden="true"></span><span class="satellite-word">Lanternlight</span>
+        </button>
+        <button class="atlas-satellite elsewhere" type="button" data-atlas-category="elsewhere" aria-label="Learn about Elsewhere">
+          <span class="satellite-dot" aria-hidden="true"></span><span class="satellite-word">Elsewhere</span>
+        </button>
       </div>
     </div>
   </header>
+
+  <dialog class="atlas-dialog" id="atlas-dialog" aria-labelledby="dialog-title" aria-describedby="dialog-copy">
+    <div class="dialog-inner">
+      <button class="dialog-close" id="dialog-close" type="button" aria-label="Close category message">×</button>
+      <div class="dialog-symbol" id="dialog-symbol" aria-hidden="true">✦</div>
+      <p class="dialog-kicker" id="dialog-kicker">A part of the atlas</p>
+      <h2 id="dialog-title">Signal</h2>
+      <p class="dialog-copy" id="dialog-copy"></p>
+      <div class="dialog-actions">
+        <button class="dialog-action primary" id="dialog-go" type="button">Enter this collection</button>
+        <button class="dialog-action" id="dialog-stay" type="button">Stay with the atlas</button>
+      </div>
+    </div>
+  </dialog>
 
   <div class="collection-nav-wrap" aria-label="Collection filters">
     <div class="shell">
@@ -1062,6 +1388,335 @@
     const filterButtons = Array.from(document.querySelectorAll('.filter-button'));
     const sections = Array.from(document.querySelectorAll('.section[data-category]'));
     const cards = Array.from(document.querySelectorAll('.world-card'));
+    const nightSky = document.querySelector('.night-sky');
+    const soundToggle = document.querySelector('#sound-toggle');
+    const soundLabel = soundToggle.querySelector('.sound-label');
+    const heroOrbit = document.querySelector('.hero-orbit');
+    const satellites = Array.from(document.querySelectorAll('.atlas-satellite'));
+    const atlasDialog = document.querySelector('#atlas-dialog');
+    const dialogClose = document.querySelector('#dialog-close');
+    const dialogStay = document.querySelector('#dialog-stay');
+    const dialogGo = document.querySelector('#dialog-go');
+    const dialogKicker = document.querySelector('#dialog-kicker');
+    const dialogTitle = document.querySelector('#dialog-title');
+    const dialogCopy = document.querySelector('#dialog-copy');
+    const dialogSymbol = document.querySelector('#dialog-symbol');
+
+    // A genuinely irregular sky: each star receives its own position, size,
+    // warmth, brightness, and breathing rhythm instead of repeating in a grid.
+    const starCount = window.innerWidth < 640 ? 62 : 108;
+    const starFragment = document.createDocumentFragment();
+    for (let index = 0; index < starCount; index += 1) {
+      const star = document.createElement('span');
+      const size = Math.random() < 0.12 ? 2 + Math.random() * 1.8 : 0.65 + Math.random() * 1.25;
+      star.className = `star${Math.random() < 0.14 ? ' warm' : ''}`;
+      star.style.left = `${Math.random() * 100}%`;
+      star.style.top = `${Math.random() * 92}%`;
+      star.style.setProperty('--size', `${size.toFixed(2)}px`);
+      star.style.setProperty('--opacity', (0.32 + Math.random() * 0.56).toFixed(2));
+      star.style.setProperty('--duration', `${3.8 + Math.random() * 6.8}s`);
+      star.style.setProperty('--delay', `${-Math.random() * 8}s`);
+      starFragment.appendChild(star);
+    }
+    nightSky.appendChild(starFragment);
+
+    const atlasCategories = {
+      signal: {
+        title: 'Signal',
+        kicker: 'Navigate / organize / move',
+        symbol: '⌁',
+        accent: '#ff4db8',
+        copy: 'Signal is the practical pulse of the archive: routes, systems, plans, and useful things made vivid enough to feel like an experience—not merely a utility.'
+      },
+      wonder: {
+        title: 'Wonder',
+        kicker: 'Notice / discover / look longer',
+        symbol: '✦',
+        accent: '#51dcff',
+        copy: 'Wonder is where curiosity gets room to breathe. These worlds invite discovery slowly, letting beauty and learning arrive together rather than competing for attention.'
+      },
+      lanternlight: {
+        title: 'Lanternlight',
+        kicker: 'Rest / soften / return',
+        symbol: '⌂',
+        accent: '#ffbf68',
+        copy: 'Lanternlight gathers the warm thresholds: places that leave a light on, help the day loosen its grip, and make returning to yourself feel a little more possible.'
+      },
+      elsewhere: {
+        title: 'Elsewhere',
+        kicker: 'Drift / exhale / step away',
+        symbol: '≈',
+        accent: '#6ad9d0',
+        copy: 'Elsewhere holds the small departures—quiet landscapes, still water, and in-between places made for the moments when the ordinary world feels a little too loud.'
+      }
+    };
+
+    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const satelliteMotion = [
+      { category: 'signal', rx: .47, ry: .19, speed: .11, angle: -.35 },
+      { category: 'wonder', rx: .39, ry: .39, speed: -.082, angle: 2.8 },
+      { category: 'lanternlight', rx: .29, ry: .29, speed: .13, angle: 4.45 },
+      { category: 'elsewhere', rx: .44, ry: .26, speed: -.064, angle: 1.5 }
+    ].map((settings) => ({
+      ...settings,
+      element: satellites.find((item) => item.dataset.atlasCategory === settings.category),
+      paused: reducedMotion
+    }));
+
+    function placeSatellites(force = false) {
+      if (!heroOrbit) return;
+      const rect = heroOrbit.getBoundingClientRect();
+      const base = Math.min(rect.width, rect.height);
+      satelliteMotion.forEach((satellite) => {
+        if (satellite.paused && !force) return;
+        const x = Math.cos(satellite.angle) * base * satellite.rx;
+        const y = Math.sin(satellite.angle) * base * satellite.ry;
+        satellite.element.style.transform = `translate(-50%, -50%) translate(${x.toFixed(2)}px, ${y.toFixed(2)}px)`;
+      });
+    }
+
+    let previousFrame = performance.now();
+    function animateSatellites(now) {
+      const deltaSeconds = Math.min((now - previousFrame) / 1000, .05);
+      previousFrame = now;
+      satelliteMotion.forEach((satellite) => {
+        if (!satellite.paused) satellite.angle += satellite.speed * deltaSeconds;
+      });
+      placeSatellites();
+      window.requestAnimationFrame(animateSatellites);
+    }
+
+    satelliteMotion.forEach((satellite) => {
+      const element = satellite.element;
+      element.addEventListener('pointerenter', () => {
+        satellite.paused = true;
+        element.classList.add('is-paused');
+      });
+      element.addEventListener('pointerleave', () => {
+        if (!element.matches(':focus-visible')) element.classList.remove('is-paused');
+        if (!element.matches(':focus-visible') && !reducedMotion) satellite.paused = false;
+      });
+      element.addEventListener('focus', () => {
+        satellite.paused = true;
+        element.classList.add('is-paused');
+      });
+      element.addEventListener('blur', () => {
+        if (!element.matches(':hover')) element.classList.remove('is-paused');
+        if (!element.matches(':hover') && !reducedMotion) satellite.paused = false;
+      });
+    });
+
+    window.addEventListener('resize', () => placeSatellites(true));
+    placeSatellites(true);
+    if (!reducedMotion) window.requestAnimationFrame(animateSatellites);
+
+    let activeDialogCategory = 'signal';
+
+    function playUiChime(category) {
+      if (!audioContext || !masterGain || audioContext.state === 'closed') return;
+      const phrases = {
+        signal: [659.25, 987.77],
+        wonder: [783.99, 1174.66],
+        lanternlight: [523.25, 659.25],
+        elsewhere: [587.33, 880]
+      };
+      const notes = phrases[category] || phrases.signal;
+      const now = audioContext.currentTime;
+
+      notes.forEach((frequency, index) => {
+        const oscillator = audioContext.createOscillator();
+        const gain = audioContext.createGain();
+        const start = now + (index * 0.11);
+        oscillator.type = index === 0 ? 'sine' : 'triangle';
+        oscillator.frequency.value = frequency;
+        gain.gain.setValueAtTime(0.0001, start);
+        gain.gain.exponentialRampToValueAtTime(index === 0 ? 0.055 : 0.035, start + 0.035);
+        gain.gain.exponentialRampToValueAtTime(0.0001, start + 1.35);
+        oscillator.connect(gain).connect(masterGain);
+        oscillator.start(start);
+        oscillator.stop(start + 1.4);
+      });
+    }
+
+    function openAtlasDialog(category) {
+      const content = atlasCategories[category];
+      if (!content || !atlasDialog) return;
+      activeDialogCategory = category;
+      atlasDialog.style.setProperty('--dialog-accent', content.accent);
+      dialogKicker.textContent = content.kicker;
+      dialogTitle.textContent = content.title;
+      dialogCopy.textContent = content.copy;
+      dialogSymbol.textContent = content.symbol;
+      atlasDialog.showModal();
+      playUiChime(category);
+    }
+
+    satellites.forEach((satellite) => {
+      satellite.addEventListener('click', () => openAtlasDialog(satellite.dataset.atlasCategory));
+    });
+
+    dialogClose.addEventListener('click', () => atlasDialog.close());
+    dialogStay.addEventListener('click', () => atlasDialog.close());
+    atlasDialog.addEventListener('click', (event) => {
+      if (event.target === atlasDialog) atlasDialog.close();
+    });
+    dialogGo.addEventListener('click', () => {
+      atlasDialog.close();
+      const targetFilter = filterButtons.find((button) => button.dataset.filter === activeDialogCategory);
+      if (targetFilter) targetFilter.click();
+    });
+
+    let audioContext = null;
+    let masterGain = null;
+    let chimeTimer = null;
+    let ambientNodes = [];
+
+    function createNoiseBuffer(context) {
+      const seconds = 3;
+      const buffer = context.createBuffer(1, context.sampleRate * seconds, context.sampleRate);
+      const data = buffer.getChannelData(0);
+      let last = 0;
+      for (let i = 0; i < data.length; i += 1) {
+        const white = Math.random() * 2 - 1;
+        last = (last + (0.018 * white)) / 1.018;
+        data[i] = last * 3.2;
+      }
+      return buffer;
+    }
+
+    function scheduleChime() {
+      if (!audioContext || audioContext.state === 'closed' || !masterGain) return;
+      const wait = 4500 + Math.random() * 7000;
+      chimeTimer = window.setTimeout(() => {
+        if (!audioContext || audioContext.state === 'closed' || !masterGain) return;
+        const now = audioContext.currentTime;
+        const oscillator = audioContext.createOscillator();
+        const gain = audioContext.createGain();
+        const filter = audioContext.createBiquadFilter();
+        const notes = [523.25, 659.25, 783.99, 880, 1046.5];
+        oscillator.type = Math.random() < 0.35 ? 'triangle' : 'sine';
+        oscillator.frequency.value = notes[Math.floor(Math.random() * notes.length)];
+        oscillator.detune.value = (Math.random() - 0.5) * 8;
+        filter.type = 'lowpass';
+        filter.frequency.value = 2600;
+        gain.gain.setValueAtTime(0.0001, now);
+        gain.gain.exponentialRampToValueAtTime(0.042, now + 0.06);
+        gain.gain.exponentialRampToValueAtTime(0.0001, now + 2.9);
+        oscillator.connect(filter).connect(gain).connect(masterGain);
+        oscillator.start(now);
+        oscillator.stop(now + 3.05);
+        oscillator.addEventListener('ended', () => {
+          oscillator.disconnect();
+          filter.disconnect();
+          gain.disconnect();
+        });
+        scheduleChime();
+      }, wait);
+    }
+
+    function playSoundStateCue(isOn) {
+      if (!audioContext || !masterGain || audioContext.state === 'closed') return;
+      const notes = isOn ? [392, 523.25, 659.25] : [659.25, 523.25];
+      const now = audioContext.currentTime;
+
+      notes.forEach((frequency, index) => {
+        const oscillator = audioContext.createOscillator();
+        const gain = audioContext.createGain();
+        const start = now + (index * 0.1);
+        oscillator.type = index % 2 === 0 ? 'sine' : 'triangle';
+        oscillator.frequency.value = frequency;
+        gain.gain.setValueAtTime(0.0001, start);
+        gain.gain.exponentialRampToValueAtTime(0.065, start + 0.025);
+        gain.gain.exponentialRampToValueAtTime(0.0001, start + 0.75);
+        oscillator.connect(gain).connect(masterGain);
+        oscillator.start(start);
+        oscillator.stop(start + 0.8);
+      });
+    }
+
+    async function startSoundscape() {
+      const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+      if (!AudioContextClass) {
+        soundToggle.disabled = true;
+        soundToggle.title = 'This browser does not support the soundscape';
+        return;
+      }
+
+      audioContext = new AudioContextClass();
+      await audioContext.resume();
+      masterGain = audioContext.createGain();
+      masterGain.gain.setValueAtTime(0.0001, audioContext.currentTime);
+      masterGain.gain.exponentialRampToValueAtTime(0.13, audioContext.currentTime + 1.15);
+      masterGain.connect(audioContext.destination);
+
+      const padFilter = audioContext.createBiquadFilter();
+      padFilter.type = 'lowpass';
+      padFilter.frequency.value = 1100;
+      padFilter.Q.value = 0.45;
+      padFilter.connect(masterGain);
+      ambientNodes.push(padFilter);
+
+      // Midrange harmonics remain audible on laptop and phone speakers.
+      [174.61, 261.63, 392].forEach((frequency, index) => {
+        const oscillator = audioContext.createOscillator();
+        const gain = audioContext.createGain();
+        oscillator.type = index === 1 ? 'triangle' : 'sine';
+        oscillator.frequency.value = frequency;
+        oscillator.detune.value = [-6, 3, 7][index];
+        gain.gain.value = [0.043, 0.019, 0.009][index];
+        oscillator.connect(gain).connect(padFilter);
+        oscillator.start();
+        ambientNodes.push(oscillator, gain);
+      });
+
+      const noise = audioContext.createBufferSource();
+      const noiseHighpass = audioContext.createBiquadFilter();
+      const noiseFilter = audioContext.createBiquadFilter();
+      const noiseGain = audioContext.createGain();
+      noise.buffer = createNoiseBuffer(audioContext);
+      noise.loop = true;
+      noiseHighpass.type = 'highpass';
+      noiseHighpass.frequency.value = 260;
+      noiseFilter.type = 'lowpass';
+      noiseFilter.frequency.value = 1800;
+      noiseGain.gain.value = 0.028;
+      noise.connect(noiseHighpass).connect(noiseFilter).connect(noiseGain).connect(masterGain);
+      noise.start();
+      ambientNodes.push(noise, noiseHighpass, noiseFilter, noiseGain);
+
+      soundToggle.setAttribute('aria-pressed', 'true');
+      soundToggle.setAttribute('aria-label', 'Turn off soft night soundscape');
+      soundToggle.title = 'Soft night soundscape — sound is on';
+      soundLabel.textContent = 'Sound on';
+      playSoundStateCue(true);
+      scheduleChime();
+    }
+
+    function stopSoundscape() {
+      window.clearTimeout(chimeTimer);
+      chimeTimer = null;
+      if (audioContext && masterGain) {
+        const closingContext = audioContext;
+        playSoundStateCue(false);
+        masterGain.gain.cancelScheduledValues(closingContext.currentTime + 0.28);
+        masterGain.gain.setValueAtTime(Math.max(masterGain.gain.value, 0.0001), closingContext.currentTime + 0.28);
+        masterGain.gain.exponentialRampToValueAtTime(0.0001, closingContext.currentTime + 1.0);
+        window.setTimeout(() => closingContext.close(), 1080);
+      }
+      ambientNodes = [];
+      audioContext = null;
+      masterGain = null;
+      soundToggle.setAttribute('aria-pressed', 'false');
+      soundToggle.setAttribute('aria-label', 'Turn on soft night soundscape');
+      soundToggle.title = 'Soft night soundscape — sound is off';
+      soundLabel.textContent = 'Sound off';
+    }
+
+    soundToggle.addEventListener('click', async () => {
+      const isOn = soundToggle.getAttribute('aria-pressed') === 'true';
+      if (isOn) stopSoundscape();
+      else await startSoundscape();
+    });
 
     function revealVisibleCards() {
       cards.forEach((card, index) => {
