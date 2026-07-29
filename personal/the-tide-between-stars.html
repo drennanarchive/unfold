@@ -1,0 +1,785 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>The Tide Between Stars</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body style="margin:0;background:#03050f;">
+<section id="tide-between-stars" class="relative w-full overflow-hidden border" aria-label="An interactive celestial ocean for breathing, reflection, and quiet play">
+  <style>
+    html, body { min-height: 100%; }
+    body { font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+
+    #tide-between-stars {
+      --night-1: #050715;
+      --night-2: #0a1230;
+      --night-3: #102d45;
+      --moon: #e8f4ff;
+      --pearl: #cfe8ff;
+      --soft: rgba(231, 244, 255, 0.76);
+      --faint: rgba(231, 244, 255, 0.48);
+      --viz-accent: #d5edff;
+      --viz-accent-text: #07101b;
+      min-height: 100vh;
+      color: var(--moon);
+      background:
+        radial-gradient(circle at 72% 19%, rgba(123, 157, 211, 0.13), transparent 27%),
+        radial-gradient(circle at 20% 35%, rgba(90, 117, 180, 0.09), transparent 34%),
+        linear-gradient(180deg, var(--night-1), var(--night-2) 48%, var(--night-3));
+      border-color: rgba(218, 235, 255, 0.12);
+      isolation: isolate;
+    }
+
+    #tide-between-stars canvas {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      touch-action: none;
+    }
+
+    #tide-between-stars .veil {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background:
+        linear-gradient(180deg, rgba(3, 5, 15, 0.08), transparent 45%, rgba(3, 7, 18, 0.25)),
+        radial-gradient(circle at 50% 45%, transparent 0 30%, rgba(3, 5, 14, 0.18) 72%, rgba(3, 5, 14, 0.46));
+    }
+
+    #tide-between-stars .moon-shell {
+      position: absolute;
+      left: 50%;
+      top: 41%;
+      width: 146px;
+      height: 146px;
+      transform: translate(-50%, -50%);
+      pointer-events: none;
+    }
+
+    #tide-between-stars .moon-ring,
+    #tide-between-stars .moon-core,
+    #tide-between-stars .moon-haze {
+      position: absolute;
+      inset: 0;
+      border-radius: 999px;
+    }
+
+    #tide-between-stars .moon-haze {
+      inset: -56px;
+      background: radial-gradient(circle, rgba(209, 236, 255, 0.18), rgba(150, 196, 233, 0.04) 47%, transparent 72%);
+      animation: tbs-drift 8s ease-in-out infinite;
+    }
+
+    #tide-between-stars .moon-ring {
+      border: 1px solid rgba(224, 243, 255, 0.34);
+      background: radial-gradient(circle at 37% 32%, rgba(255,255,255,0.97), rgba(212, 235, 252, 0.82) 38%, rgba(145, 184, 220, 0.32) 66%, rgba(110, 155, 194, 0.04));
+      animation: tbs-breathe 10s ease-in-out infinite;
+    }
+
+    #tide-between-stars .moon-core {
+      inset: 19px;
+      background:
+        radial-gradient(circle at 68% 70%, rgba(129, 163, 194, 0.12) 0 9%, transparent 10%),
+        radial-gradient(circle at 32% 38%, rgba(132, 167, 198, 0.12) 0 7%, transparent 8%),
+        radial-gradient(circle at 43% 62%, rgba(112, 152, 188, 0.10) 0 12%, transparent 13%),
+        radial-gradient(circle at 38% 29%, #ffffff, #e0f1ff 52%, #bfd8eb);
+    }
+
+    #tide-between-stars .breath-copy {
+      position: absolute;
+      left: 50%;
+      top: calc(41% + 102px);
+      transform: translateX(-50%);
+      width: min(290px, 72%);
+      text-align: center;
+      pointer-events: none;
+    }
+
+    #tide-between-stars .breath-word {
+      font-size: 0.82rem;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: var(--soft);
+    }
+
+    #tide-between-stars .breath-count {
+      margin-top: 0.4rem;
+      font-size: 0.76rem;
+      color: var(--faint);
+    }
+
+    #tide-between-stars .glass {
+      background: rgba(5, 10, 28, 0.38);
+      border: 1px solid rgba(224, 241, 255, 0.14);
+      backdrop-filter: blur(14px);
+    }
+
+    #tide-between-stars .control-button {
+      border: 1px solid rgba(225, 241, 255, 0.15);
+      background: rgba(5, 10, 27, 0.4);
+      color: rgba(239, 248, 255, 0.82);
+      transition: background 180ms ease, border-color 180ms ease, color 180ms ease;
+    }
+
+    #tide-between-stars .control-button:hover,
+    #tide-between-stars .control-button[aria-pressed="true"] {
+      background: rgba(214, 237, 255, 0.13);
+      border-color: rgba(224, 243, 255, 0.34);
+      color: #ffffff;
+    }
+
+    #tide-between-stars .release-input {
+      border: 1px solid rgba(225, 241, 255, 0.15);
+      background: rgba(3, 7, 20, 0.44);
+      color: #f1f8ff;
+    }
+
+    #tide-between-stars .release-input::placeholder {
+      color: rgba(227, 240, 252, 0.42);
+    }
+
+    #tide-between-stars .release-button {
+      color: var(--viz-accent-text, #07101b);
+      background: var(--viz-accent, #d5edff);
+      border: 1px solid rgba(255,255,255,0.25);
+    }
+
+    #tide-between-stars .mode-button {
+      color: rgba(231, 244, 255, 0.6);
+      border-bottom: 1px solid transparent;
+    }
+
+    #tide-between-stars .mode-button[aria-pressed="true"] {
+      color: #ffffff;
+      border-bottom-color: var(--viz-accent, #d5edff);
+    }
+
+    #tide-between-stars .breathing .moon-ring {
+      animation-duration: 10s;
+    }
+
+    #tide-between-stars .still .moon-ring,
+    #tide-between-stars .still .moon-haze {
+      animation-duration: 18s;
+    }
+
+    @keyframes tbs-breathe {
+      0%, 100% { transform: scale(0.88); opacity: 0.72; }
+      40% { transform: scale(1.08); opacity: 1; }
+      56% { transform: scale(1.08); opacity: 1; }
+    }
+
+    @keyframes tbs-drift {
+      0%, 100% { transform: scale(0.92); opacity: 0.58; }
+      50% { transform: scale(1.13); opacity: 0.92; }
+    }
+
+    @media (max-width: 560px) {
+      #tide-between-stars { min-height: 100vh; }
+      #tide-between-stars .moon-shell { width: 124px; height: 124px; top: 39%; }
+      #tide-between-stars .breath-copy { top: calc(39% + 91px); }
+      #tide-between-stars .desktop-hint { display: none; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      #tide-between-stars .moon-ring,
+      #tide-between-stars .moon-haze { animation: none; }
+    }
+  </style>
+
+  <canvas id="tbs-canvas" role="img" aria-label="A living night sky over a bioluminescent ocean. Moving across the sky gathers stars; touching the water creates luminous ripples."></canvas>
+  <div class="veil"></div>
+
+  <div class="relative z-10 flex min-h-screen flex-col p-4 sm:p-6 pointer-events-none">
+    <header class="flex items-start justify-between gap-4">
+      <div>
+        <p class="text-sm uppercase tracking-[0.28em] text-white/55">The quiet between stars</p>
+        <p class="mt-2 max-w-sm text-sm text-white/45 desktop-hint">Move slowly through the sky. Touch the sea. Nothing here needs to be accomplished.</p>
+      </div>
+
+      <div class="flex gap-2 pointer-events-auto">
+        <button id="tbs-sound" type="button" class="control-button rounded-full px-3 py-2 text-sm" aria-pressed="false" aria-label="Turn ambient sound on">Sound off</button>
+        <button id="tbs-clear" type="button" class="control-button rounded-full px-3 py-2 text-sm">Clear sky</button>
+      </div>
+    </header>
+
+    <div class="moon-shell" aria-hidden="true">
+      <div class="moon-haze"></div>
+      <div class="moon-ring"></div>
+      <div class="moon-core"></div>
+    </div>
+
+    <div class="breath-copy" aria-live="polite">
+      <div id="tbs-breath-word" class="breath-word">breathe naturally</div>
+      <div id="tbs-breath-count" class="breath-count">The tide will keep time for you.</div>
+    </div>
+
+    <div class="mt-auto pointer-events-auto">
+      <div class="mx-auto max-w-2xl">
+        <div class="mb-3 flex items-center justify-center gap-5 text-sm">
+          <button type="button" class="mode-button pb-1" data-mode="wander" aria-pressed="true">Wander</button>
+          <button type="button" class="mode-button pb-1" data-mode="breathe" aria-pressed="false">Breathe</button>
+          <button type="button" class="mode-button pb-1" data-mode="still" aria-pressed="false">Stillness</button>
+        </div>
+
+        <div class="glass rounded-2xl p-3 sm:p-4">
+          <div class="flex flex-col gap-3 sm:flex-row sm:items-center">
+            <label for="tbs-thought" class="sr-only">A thought to release</label>
+            <input id="tbs-thought" maxlength="72" class="release-input w-full rounded-xl px-4 py-3 text-base outline-none" placeholder="Name something you do not need to carry for the next five minutes…">
+            <button id="tbs-release" type="button" class="release-button shrink-0 rounded-xl px-5 py-3 text-sm font-medium">Release it</button>
+          </div>
+          <div class="mt-3 flex items-center justify-between gap-3 text-sm text-white/45">
+            <span id="tbs-status" aria-live="polite">Click the sky to kindle a star.</span>
+            <span><span id="tbs-light-count">0</span> lights released</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    (() => {
+      const root = document.getElementById('tide-between-stars');
+      const canvas = document.getElementById('tbs-canvas');
+      const ctx = canvas.getContext('2d');
+      const soundButton = document.getElementById('tbs-sound');
+      const clearButton = document.getElementById('tbs-clear');
+      const releaseButton = document.getElementById('tbs-release');
+      const thoughtInput = document.getElementById('tbs-thought');
+      const status = document.getElementById('tbs-status');
+      const lightCount = document.getElementById('tbs-light-count');
+      const breathWord = document.getElementById('tbs-breath-word');
+      const breathCount = document.getElementById('tbs-breath-count');
+      const modeButtons = [...root.querySelectorAll('[data-mode]')];
+
+      let width = 0;
+      let height = 0;
+      let dpr = 1;
+      let time = 0;
+      let mode = 'wander';
+      let pointer = { x: 0, y: 0, active: false };
+      let released = 0;
+      let audio = null;
+      let soundOn = false;
+      let ambientTimer = null;
+      let breathingStarted = performance.now();
+      let completedBreaths = 0;
+
+      const stars = [];
+      const ripples = [];
+      const sparks = [];
+      const lanterns = [];
+      const trails = [];
+      const hiddenNodes = [];
+
+      function random(min, max) {
+        return min + Math.random() * (max - min);
+      }
+
+      function resize() {
+        const rect = root.getBoundingClientRect();
+        width = Math.max(320, rect.width);
+        height = Math.max(620, rect.height);
+        dpr = Math.min(window.devicePixelRatio || 1, 2);
+        canvas.width = Math.round(width * dpr);
+        canvas.height = Math.round(height * dpr);
+        canvas.style.width = `${width}px`;
+        canvas.style.height = `${height}px`;
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        seedSky();
+      }
+
+      function seedSky() {
+        stars.length = 0;
+        hiddenNodes.length = 0;
+        const amount = Math.floor(width / 5.5);
+        for (let i = 0; i < amount; i++) {
+          stars.push({
+            x: Math.random() * width,
+            y: Math.random() * height * 0.58,
+            r: random(0.25, 1.35),
+            phase: Math.random() * Math.PI * 2,
+            speed: random(0.25, 0.9)
+          });
+        }
+        for (let i = 0; i < 18; i++) {
+          hiddenNodes.push({
+            x: random(width * 0.08, width * 0.92),
+            y: random(height * 0.1, height * 0.5),
+            seen: 0
+          });
+        }
+      }
+
+      function roundedGlow(x, y, radius, alpha, color = '205, 235, 255') {
+        const gradient = ctx.createRadialGradient(x, y, 0, x, y, radius);
+        gradient.addColorStop(0, `rgba(${color}, ${alpha})`);
+        gradient.addColorStop(0.35, `rgba(${color}, ${alpha * 0.35})`);
+        gradient.addColorStop(1, `rgba(${color}, 0)`);
+        ctx.fillStyle = gradient;
+        ctx.beginPath();
+        ctx.arc(x, y, radius, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      function drawSky() {
+        const sky = ctx.createLinearGradient(0, 0, 0, height);
+        sky.addColorStop(0, '#040612');
+        sky.addColorStop(0.48, '#0b1733');
+        sky.addColorStop(0.68, '#12364a');
+        sky.addColorStop(1, '#071827');
+        ctx.fillStyle = sky;
+        ctx.fillRect(0, 0, width, height);
+
+        drawAurora();
+
+        for (const star of stars) {
+          const twinkle = 0.28 + 0.58 * (0.5 + 0.5 * Math.sin(time * star.speed + star.phase));
+          ctx.fillStyle = `rgba(225, 242, 255, ${twinkle})`;
+          ctx.beginPath();
+          ctx.arc(star.x, star.y, star.r, 0, Math.PI * 2);
+          ctx.fill();
+        }
+
+        drawConstellations();
+      }
+
+      function drawAurora() {
+        const bands = [
+          { y: 0.16, amp: 20, speed: 0.18, alpha: 0.055, color: '126, 190, 204' },
+          { y: 0.22, amp: 28, speed: 0.13, alpha: 0.042, color: '155, 137, 207' },
+          { y: 0.29, amp: 18, speed: 0.21, alpha: 0.032, color: '112, 178, 181' }
+        ];
+
+        for (const band of bands) {
+          ctx.beginPath();
+          ctx.moveTo(-30, height * band.y);
+          for (let x = -30; x <= width + 30; x += 22) {
+            const y = height * band.y + Math.sin(x * 0.008 + time * band.speed) * band.amp + Math.sin(x * 0.017 - time * 0.11) * 9;
+            ctx.lineTo(x, y);
+          }
+          ctx.lineTo(width + 30, height * 0.47);
+          ctx.lineTo(-30, height * 0.47);
+          ctx.closePath();
+          const gradient = ctx.createLinearGradient(0, height * band.y, 0, height * 0.5);
+          gradient.addColorStop(0, `rgba(${band.color}, ${band.alpha})`);
+          gradient.addColorStop(1, `rgba(${band.color}, 0)`);
+          ctx.fillStyle = gradient;
+          ctx.fill();
+        }
+      }
+
+      function drawConstellations() {
+        const influence = mode === 'still' ? 150 : 105;
+        for (const node of hiddenNodes) {
+          const distance = Math.hypot(pointer.x - node.x, pointer.y - node.y);
+          const target = pointer.active && distance < influence ? 1 - distance / influence : 0;
+          node.seen += (target - node.seen) * 0.07;
+        }
+
+        ctx.lineWidth = 0.7;
+        for (let i = 0; i < hiddenNodes.length; i++) {
+          const a = hiddenNodes[i];
+          if (a.seen < 0.025) continue;
+          for (let j = i + 1; j < hiddenNodes.length; j++) {
+            const b = hiddenNodes[j];
+            const distance = Math.hypot(a.x - b.x, a.y - b.y);
+            if (distance < 130) {
+              const alpha = Math.min(a.seen, b.seen) * (1 - distance / 150) * 0.55;
+              ctx.strokeStyle = `rgba(206, 232, 255, ${alpha})`;
+              ctx.beginPath();
+              ctx.moveTo(a.x, a.y);
+              ctx.lineTo(b.x, b.y);
+              ctx.stroke();
+            }
+          }
+        }
+
+        for (const node of hiddenNodes) {
+          if (node.seen > 0.01) {
+            roundedGlow(node.x, node.y, 12, node.seen * 0.24);
+            ctx.fillStyle = `rgba(236, 248, 255, ${node.seen})`;
+            ctx.beginPath();
+            ctx.arc(node.x, node.y, 1.5 + node.seen * 1.8, 0, Math.PI * 2);
+            ctx.fill();
+          }
+        }
+      }
+
+      function drawOcean() {
+        const horizon = height * 0.61;
+        const water = ctx.createLinearGradient(0, horizon, 0, height);
+        water.addColorStop(0, 'rgba(25, 67, 84, 0.25)');
+        water.addColorStop(0.35, 'rgba(8, 34, 52, 0.72)');
+        water.addColorStop(1, 'rgba(3, 16, 29, 0.96)');
+        ctx.fillStyle = water;
+        ctx.fillRect(0, horizon, width, height - horizon);
+
+        ctx.strokeStyle = 'rgba(202, 235, 248, 0.18)';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(0, horizon);
+        ctx.lineTo(width, horizon);
+        ctx.stroke();
+
+        const moonX = width / 2;
+        const reflection = ctx.createLinearGradient(0, horizon, 0, height);
+        reflection.addColorStop(0, 'rgba(218, 241, 255, 0.20)');
+        reflection.addColorStop(1, 'rgba(174, 223, 246, 0)');
+
+        for (let row = 0; row < 23; row++) {
+          const y = horizon + 6 + row * ((height - horizon) / 23);
+          const spread = 18 + row * 7.2;
+          const offset = Math.sin(time * 0.72 + row * 0.85) * (4 + row * 0.7);
+          ctx.strokeStyle = reflection;
+          ctx.lineWidth = Math.max(0.5, 1.4 - row * 0.025);
+          ctx.beginPath();
+          ctx.moveTo(moonX - spread + offset, y);
+          ctx.lineTo(moonX + spread + offset, y);
+          ctx.stroke();
+        }
+
+        for (let row = 0; row < 18; row++) {
+          const y = horizon + row * 18 + 8;
+          ctx.strokeStyle = `rgba(126, 196, 214, ${0.035 + row * 0.0015})`;
+          ctx.lineWidth = 0.7;
+          ctx.beginPath();
+          for (let x = -20; x <= width + 20; x += 12) {
+            const wave = Math.sin(x * 0.024 + time * 0.8 + row * 0.7) * (1.7 + row * 0.06);
+            if (x === -20) ctx.moveTo(x, y + wave);
+            else ctx.lineTo(x, y + wave);
+          }
+          ctx.stroke();
+        }
+      }
+
+      function drawRipples() {
+        for (let i = ripples.length - 1; i >= 0; i--) {
+          const ripple = ripples[i];
+          ripple.life -= 0.009;
+          ripple.radius += 0.65;
+          if (ripple.life <= 0) {
+            ripples.splice(i, 1);
+            continue;
+          }
+          ctx.strokeStyle = `rgba(166, 230, 239, ${ripple.life * 0.38})`;
+          ctx.lineWidth = 1.1;
+          ctx.beginPath();
+          ctx.ellipse(ripple.x, ripple.y, ripple.radius * 1.8, ripple.radius * 0.42, 0, 0, Math.PI * 2);
+          ctx.stroke();
+        }
+      }
+
+      function drawSparks() {
+        for (let i = sparks.length - 1; i >= 0; i--) {
+          const spark = sparks[i];
+          spark.life -= 0.014;
+          spark.x += spark.vx;
+          spark.y += spark.vy;
+          spark.vy += 0.002;
+          if (spark.life <= 0) {
+            sparks.splice(i, 1);
+            continue;
+          }
+          roundedGlow(spark.x, spark.y, spark.size * 5, spark.life * 0.22);
+          ctx.fillStyle = `rgba(229, 247, 255, ${spark.life})`;
+          ctx.beginPath();
+          ctx.arc(spark.x, spark.y, spark.size, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      }
+
+      function drawTrails() {
+        for (let i = trails.length - 1; i >= 0; i--) {
+          const trail = trails[i];
+          trail.life -= 0.018;
+          if (trail.life <= 0) {
+            trails.splice(i, 1);
+            continue;
+          }
+          ctx.strokeStyle = `rgba(211, 239, 255, ${trail.life * 0.45})`;
+          ctx.lineWidth = trail.life * 1.3;
+          ctx.beginPath();
+          ctx.moveTo(trail.x, trail.y);
+          ctx.lineTo(trail.x - trail.vx * 14, trail.y - trail.vy * 14);
+          ctx.stroke();
+          trail.x += trail.vx;
+          trail.y += trail.vy;
+        }
+      }
+
+      function drawLanterns() {
+        for (let i = lanterns.length - 1; i >= 0; i--) {
+          const lantern = lanterns[i];
+          lantern.age += 1;
+          lantern.y -= lantern.speed;
+          lantern.x += Math.sin(lantern.age * 0.018 + lantern.phase) * 0.15;
+          lantern.alpha = Math.min(1, lantern.age / 70) * Math.min(1, (520 - lantern.age) / 100);
+
+          if (lantern.age > 520 || lantern.y < -30) {
+            lanterns.splice(i, 1);
+            continue;
+          }
+
+          roundedGlow(lantern.x, lantern.y, 28, lantern.alpha * 0.27, '207, 239, 255');
+          ctx.fillStyle = `rgba(239, 250, 255, ${lantern.alpha})`;
+          ctx.beginPath();
+          ctx.arc(lantern.x, lantern.y, 2.4, 0, Math.PI * 2);
+          ctx.fill();
+
+          if (lantern.text && lantern.age < 330) {
+            ctx.font = '13px system-ui, sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillStyle = `rgba(230, 243, 252, ${lantern.alpha * 0.68})`;
+            ctx.fillText(lantern.text, lantern.x, lantern.y + 25);
+          }
+        }
+      }
+
+      function updateBreathing() {
+        if (mode !== 'breathe') return;
+        const elapsed = (performance.now() - breathingStarted) / 1000;
+        const cycle = elapsed % 10;
+        const cycleNumber = Math.floor(elapsed / 10);
+        if (cycleNumber > completedBreaths) {
+          completedBreaths = cycleNumber;
+        }
+
+        if (cycle < 4) {
+          breathWord.textContent = 'breathe in';
+          breathCount.textContent = `${Math.max(1, Math.ceil(4 - cycle))}`;
+        } else if (cycle < 5.5) {
+          breathWord.textContent = 'rest here';
+          breathCount.textContent = 'nothing to hold tightly';
+        } else {
+          breathWord.textContent = 'breathe out';
+          breathCount.textContent = `${Math.max(1, Math.ceil(10 - cycle))}`;
+        }
+      }
+
+      function animate(now) {
+        time = now * 0.001;
+        ctx.clearRect(0, 0, width, height);
+        drawSky();
+        drawTrails();
+        drawOcean();
+        drawRipples();
+        drawLanterns();
+        drawSparks();
+        updateBreathing();
+        requestAnimationFrame(animate);
+      }
+
+      function localPoint(event) {
+        const rect = canvas.getBoundingClientRect();
+        return {
+          x: event.clientX - rect.left,
+          y: event.clientY - rect.top
+        };
+      }
+
+      function scatter(x, y, amount = 16) {
+        for (let i = 0; i < amount; i++) {
+          const angle = Math.random() * Math.PI * 2;
+          const speed = random(0.25, 1.55);
+          sparks.push({
+            x,
+            y,
+            vx: Math.cos(angle) * speed,
+            vy: Math.sin(angle) * speed,
+            life: random(0.55, 1),
+            size: random(0.45, 1.45)
+          });
+        }
+      }
+
+      function kindle(x, y) {
+        scatter(x, y, 22);
+        stars.push({ x, y, r: 1.8, phase: 0, speed: 0.5 });
+        if (stars.length > 280) stars.splice(0, stars.length - 280);
+        status.textContent = 'A new light is keeping your place.';
+        playChime(0.8 + Math.random() * 0.35);
+      }
+
+      function touchWater(x, y) {
+        for (let i = 0; i < 3; i++) {
+          ripples.push({ x, y, radius: i * 8 + 2, life: 1 - i * 0.16 });
+        }
+        scatter(x, y - 2, 9);
+        status.textContent = 'The sea remembers, then lets go.';
+        playChime(0.55);
+      }
+
+      canvas.addEventListener('pointermove', event => {
+        const point = localPoint(event);
+        pointer = { ...point, active: true };
+        if (event.buttons === 1 && point.y < height * 0.61) {
+          trails.push({
+            x: point.x,
+            y: point.y,
+            vx: random(0.3, 0.8),
+            vy: random(-0.12, 0.12),
+            life: 0.75
+          });
+        }
+      });
+
+      canvas.addEventListener('pointerleave', () => {
+        pointer.active = false;
+      });
+
+      canvas.addEventListener('pointerdown', event => {
+        const point = localPoint(event);
+        if (point.y > height * 0.61) touchWater(point.x, point.y);
+        else kindle(point.x, point.y);
+      });
+
+      function releaseThought() {
+        const text = thoughtInput.value.trim();
+        if (!text) {
+          status.textContent = 'You can release something unnamed, too.';
+        }
+
+        lanterns.push({
+          x: width / 2 + random(-48, 48),
+          y: height * 0.69,
+          speed: random(0.22, 0.34),
+          phase: Math.random() * Math.PI * 2,
+          age: 0,
+          alpha: 0,
+          text: text || 'something unnamed'
+        });
+
+        scatter(width / 2, height * 0.69, 28);
+        released += 1;
+        lightCount.textContent = String(released);
+        thoughtInput.value = '';
+        status.textContent = text ? 'You do not have to solve it in this moment.' : 'Even unnamed weight can be set down.';
+        playChime(1.05);
+      }
+
+      releaseButton.addEventListener('click', releaseThought);
+      thoughtInput.addEventListener('keydown', event => {
+        if (event.key === 'Enter') releaseThought();
+      });
+
+      clearButton.addEventListener('click', () => {
+        ripples.length = 0;
+        sparks.length = 0;
+        lanterns.length = 0;
+        trails.length = 0;
+        released = 0;
+        lightCount.textContent = '0';
+        seedSky();
+        status.textContent = 'A fresh sky. Nothing lost.';
+      });
+
+      modeButtons.forEach(button => {
+        button.addEventListener('click', () => {
+          mode = button.dataset.mode;
+          modeButtons.forEach(item => item.setAttribute('aria-pressed', String(item === button)));
+          root.classList.toggle('breathing', mode === 'breathe');
+          root.classList.toggle('still', mode === 'still');
+
+          if (mode === 'breathe') {
+            breathingStarted = performance.now();
+            completedBreaths = 0;
+            breathWord.textContent = 'breathe in';
+            breathCount.textContent = '4';
+            status.textContent = 'One gentle cycle is enough.';
+          } else if (mode === 'still') {
+            breathWord.textContent = 'be here';
+            breathCount.textContent = 'The hidden stars reveal themselves slowly.';
+            status.textContent = 'Move softly. The constellations are shy.';
+          } else {
+            breathWord.textContent = 'breathe naturally';
+            breathCount.textContent = 'The tide will keep time for you.';
+            status.textContent = 'Click the sky to kindle a star.';
+          }
+        });
+      });
+
+      function startAudio() {
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        if (!AudioContext) return;
+        const context = new AudioContext();
+        const master = context.createGain();
+        master.gain.value = 0.055;
+        master.connect(context.destination);
+
+        const low = context.createOscillator();
+        const lowGain = context.createGain();
+        low.type = 'sine';
+        low.frequency.value = 73.42;
+        lowGain.gain.value = 0.16;
+        low.connect(lowGain).connect(master);
+        low.start();
+
+        const high = context.createOscillator();
+        const highGain = context.createGain();
+        high.type = 'sine';
+        high.frequency.value = 146.84;
+        highGain.gain.value = 0.035;
+        high.connect(highGain).connect(master);
+        high.start();
+
+        const lfo = context.createOscillator();
+        const lfoGain = context.createGain();
+        lfo.frequency.value = 0.07;
+        lfoGain.gain.value = 0.018;
+        lfo.connect(lfoGain).connect(master.gain);
+        lfo.start();
+
+        audio = { context, master, low, high, lfo };
+        ambientTimer = window.setInterval(() => {
+          if (soundOn && Math.random() > 0.42) playChime(random(0.45, 1.15), true);
+        }, 4200);
+      }
+
+      function playChime(pitch = 1, ambient = false) {
+        if (!soundOn || !audio) return;
+        const now = audio.context.currentTime;
+        const oscillator = audio.context.createOscillator();
+        const gain = audio.context.createGain();
+        const filter = audio.context.createBiquadFilter();
+        oscillator.type = 'sine';
+        oscillator.frequency.setValueAtTime((ambient ? 293.66 : 440) * pitch, now);
+        oscillator.frequency.exponentialRampToValueAtTime((ambient ? 220 : 329.63) * pitch, now + 2.5);
+        filter.type = 'lowpass';
+        filter.frequency.value = 1800;
+        gain.gain.setValueAtTime(0.0001, now);
+        gain.gain.exponentialRampToValueAtTime(ambient ? 0.045 : 0.09, now + 0.04);
+        gain.gain.exponentialRampToValueAtTime(0.0001, now + (ambient ? 3.8 : 2.7));
+        oscillator.connect(filter).connect(gain).connect(audio.master);
+        oscillator.start(now);
+        oscillator.stop(now + 4);
+      }
+
+      soundButton.addEventListener('click', async () => {
+        if (!audio) startAudio();
+        if (!audio) {
+          status.textContent = 'Sound is not available in this browser.';
+          return;
+        }
+        if (audio.context.state === 'suspended') await audio.context.resume();
+        soundOn = !soundOn;
+        audio.master.gain.setTargetAtTime(soundOn ? 0.055 : 0.0001, audio.context.currentTime, 0.25);
+        soundButton.setAttribute('aria-pressed', String(soundOn));
+        soundButton.textContent = soundOn ? 'Sound on' : 'Sound off';
+        soundButton.setAttribute('aria-label', soundOn ? 'Turn ambient sound off' : 'Turn ambient sound on');
+        status.textContent = soundOn ? 'A distant tide has joined you.' : 'The world is quiet again.';
+        if (soundOn) playChime(0.72);
+      });
+
+      const observer = new ResizeObserver(resize);
+      observer.observe(root);
+      resize();
+      requestAnimationFrame(animate);
+    })();
+  </script>
+</section>
+</body>
+</html>
