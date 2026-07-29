@@ -1,0 +1,1991 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#070b18" />
+  <meta name="build" content="unfold-personal-2026-07-29-thematic-atlas-v4" />
+  <meta name="description" content="Unfold // Personal — a living atlas of useful things, quiet places, experiments, and small worlds." />
+  <title>Unfold // Personal</title>
+  <style>
+    :root {
+      --ink: #070b18;
+      --ink-2: #0b1124;
+      --panel: rgba(13, 20, 40, 0.78);
+      --panel-strong: rgba(15, 23, 47, 0.94);
+      --line: rgba(214, 226, 255, 0.13);
+      --line-strong: rgba(236, 214, 165, 0.36);
+      --text: #f4f0e8;
+      --muted: #aeb8cc;
+      --muted-2: #7f8ba4;
+      --gold: #e8bb70;
+      --gold-soft: #f2d8a7;
+      --cyan: #51dcff;
+      --magenta: #ff4db8;
+      --violet: #9f8cff;
+      --teal: #6ad9d0;
+      --amber: #ffbf68;
+      --radius-lg: 28px;
+      --radius-md: 20px;
+      --shadow: 0 28px 80px rgba(0, 0, 0, 0.38);
+      --max: 1180px;
+
+      /* The atlas keeps one visual language while each collection changes its climate. */
+      --theme-accent: #e8bb70;
+      --theme-accent-soft: #f2d8a7;
+      --theme-accent-rgb: 232 187 112;
+      --theme-secondary-rgb: 81 220 255;
+      --theme-core-inner: rgba(17, 28, 59, .96);
+      --theme-core-outer: rgba(7, 11, 24, .74);
+      --theme-stroke: rgba(242, 216, 167, .72);
+      --theme-line: rgba(232, 187, 112, .22);
+      --theme-panel: rgba(12, 18, 36, .78);
+      --theme-star-rgb: 244 248 255;
+      --theme-star-glow-rgb: 143 202 255;
+      --theme-warm-star-rgb: 255 229 182;
+      --theme-warm-glow-rgb: 232 187 112;
+    }
+
+    body[data-theme="signal"] {
+      --theme-accent: #ff4db8;
+      --theme-accent-soft: #ffc7e8;
+      --theme-accent-rgb: 255 77 184;
+      --theme-secondary-rgb: 81 220 255;
+      --theme-core-inner: rgba(56, 19, 70, .97);
+      --theme-core-outer: rgba(8, 11, 32, .78);
+      --theme-stroke: rgba(255, 170, 221, .78);
+      --theme-line: rgba(255, 77, 184, .25);
+      --theme-panel: rgba(25, 13, 42, .8);
+      --theme-star-rgb: 247 232 255;
+      --theme-star-glow-rgb: 255 77 184;
+      --theme-warm-star-rgb: 180 244 255;
+      --theme-warm-glow-rgb: 81 220 255;
+    }
+
+    body[data-theme="wonder"] {
+      --theme-accent: #51dcff;
+      --theme-accent-soft: #c8f5ff;
+      --theme-accent-rgb: 81 220 255;
+      --theme-secondary-rgb: 159 140 255;
+      --theme-core-inner: rgba(20, 42, 91, .97);
+      --theme-core-outer: rgba(7, 10, 31, .78);
+      --theme-stroke: rgba(172, 232, 255, .78);
+      --theme-line: rgba(81, 220, 255, .24);
+      --theme-panel: rgba(10, 24, 50, .8);
+      --theme-star-rgb: 224 247 255;
+      --theme-star-glow-rgb: 81 220 255;
+      --theme-warm-star-rgb: 221 212 255;
+      --theme-warm-glow-rgb: 159 140 255;
+    }
+
+    body[data-theme="lanternlight"] {
+      --theme-accent: #ffbf68;
+      --theme-accent-soft: #ffe0ae;
+      --theme-accent-rgb: 255 191 104;
+      --theme-secondary-rgb: 166 123 199;
+      --theme-core-inner: rgba(67, 39, 42, .97);
+      --theme-core-outer: rgba(12, 14, 27, .8);
+      --theme-stroke: rgba(255, 220, 169, .82);
+      --theme-line: rgba(255, 191, 104, .25);
+      --theme-panel: rgba(31, 22, 31, .82);
+      --theme-star-rgb: 255 241 216;
+      --theme-star-glow-rgb: 255 191 104;
+      --theme-warm-star-rgb: 255 214 153;
+      --theme-warm-glow-rgb: 255 166 94;
+    }
+
+    body[data-theme="elsewhere"] {
+      --theme-accent: #6ad9d0;
+      --theme-accent-soft: #c8f2ee;
+      --theme-accent-rgb: 106 217 208;
+      --theme-secondary-rgb: 107 154 216;
+      --theme-core-inner: rgba(16, 58, 69, .97);
+      --theme-core-outer: rgba(5, 18, 30, .8);
+      --theme-stroke: rgba(183, 239, 234, .78);
+      --theme-line: rgba(106, 217, 208, .24);
+      --theme-panel: rgba(8, 30, 39, .8);
+      --theme-star-rgb: 224 250 247;
+      --theme-star-glow-rgb: 106 217 208;
+      --theme-warm-star-rgb: 202 218 255;
+      --theme-warm-glow-rgb: 107 154 216;
+    }
+
+    * { box-sizing: border-box; }
+
+    html {
+      scroll-behavior: smooth;
+      background: var(--ink);
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--text);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: linear-gradient(180deg, #070b18 0%, #081020 48%, #071019 100%);
+      overflow-x: hidden;
+    }
+
+    body::after {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+      background: radial-gradient(ellipse at 50% 18%, transparent 0 24%, rgba(3, 6, 15, .08) 62%, rgba(2, 4, 11, .42) 100%);
+    }
+
+    .theme-veil {
+      position: fixed;
+      inset: -8%;
+      overflow: hidden;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .theme-layer {
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+      filter: blur(20px);
+      transform: scale(1.02);
+      transition: opacity 1.05s ease;
+      animation: haze-drift 30s ease-in-out infinite alternate;
+    }
+
+    .theme-layer.atlas {
+      opacity: 1;
+      background:
+        radial-gradient(ellipse at 12% 12%, rgba(78, 104, 184, .21), transparent 35%),
+        radial-gradient(ellipse at 86% 8%, rgba(181, 60, 148, .12), transparent 29%),
+        radial-gradient(ellipse at 72% 72%, rgba(53, 145, 151, .09), transparent 39%),
+        radial-gradient(ellipse at 18% 86%, rgba(232, 187, 112, .06), transparent 31%);
+    }
+
+    .theme-layer.signal {
+      background:
+        radial-gradient(ellipse at 84% 8%, rgba(255, 77, 184, .27), transparent 32%),
+        radial-gradient(ellipse at 12% 18%, rgba(81, 220, 255, .18), transparent 35%),
+        radial-gradient(ellipse at 54% 78%, rgba(111, 65, 177, .13), transparent 42%);
+    }
+
+    .theme-layer.wonder {
+      background:
+        radial-gradient(ellipse at 76% 7%, rgba(81, 220, 255, .22), transparent 34%),
+        radial-gradient(ellipse at 12% 20%, rgba(71, 97, 190, .26), transparent 39%),
+        radial-gradient(ellipse at 60% 78%, rgba(159, 140, 255, .14), transparent 43%);
+    }
+
+    .theme-layer.lanternlight {
+      background:
+        radial-gradient(ellipse at 78% 13%, rgba(255, 191, 104, .25), transparent 31%),
+        radial-gradient(ellipse at 18% 22%, rgba(126, 82, 150, .17), transparent 37%),
+        radial-gradient(ellipse at 58% 82%, rgba(46, 104, 103, .10), transparent 42%);
+    }
+
+    .theme-layer.elsewhere {
+      background:
+        radial-gradient(ellipse at 72% 72%, rgba(106, 217, 208, .19), transparent 40%),
+        radial-gradient(ellipse at 12% 15%, rgba(75, 125, 184, .23), transparent 38%),
+        radial-gradient(ellipse at 86% 8%, rgba(126, 112, 183, .12), transparent 31%);
+    }
+
+    body[data-theme="signal"] .theme-layer.atlas,
+    body[data-theme="wonder"] .theme-layer.atlas,
+    body[data-theme="lanternlight"] .theme-layer.atlas,
+    body[data-theme="elsewhere"] .theme-layer.atlas { opacity: .22; }
+    body[data-theme="signal"] .theme-layer.signal,
+    body[data-theme="wonder"] .theme-layer.wonder,
+    body[data-theme="lanternlight"] .theme-layer.lanternlight,
+    body[data-theme="elsewhere"] .theme-layer.elsewhere { opacity: 1; }
+
+    .night-sky {
+      position: fixed;
+      inset: 0;
+      overflow: hidden;
+      pointer-events: none;
+      z-index: 0;
+      mask-image: linear-gradient(to bottom, #000 0%, rgba(0,0,0,.78) 54%, rgba(0,0,0,.18) 88%, transparent 100%);
+    }
+
+    .star {
+      position: absolute;
+      width: var(--size, 1px);
+      height: var(--size, 1px);
+      border-radius: 50%;
+      background: rgb(var(--theme-star-rgb) / var(--opacity, .55));
+      box-shadow: 0 0 calc(var(--size, 1px) * 5) rgb(var(--theme-star-glow-rgb) / .38);
+      transition: background .9s ease, box-shadow .9s ease;
+      animation: star-breathe var(--duration, 5s) ease-in-out var(--delay, 0s) infinite;
+    }
+
+    .star.warm {
+      background: rgb(var(--theme-warm-star-rgb) / var(--opacity, .62));
+      box-shadow: 0 0 calc(var(--size, 1px) * 6) rgb(var(--theme-warm-glow-rgb) / .38);
+    }
+
+    .skip-link,
+    .hero,
+    .collection-nav-wrap,
+    main,
+    footer {
+      position: relative;
+      z-index: 1;
+    }
+
+    @keyframes haze-drift {
+      from { transform: translate3d(-1.5%, -1%, 0) scale(1); opacity: .82; }
+      to { transform: translate3d(1.5%, 1.2%, 0) scale(1.04); opacity: 1; }
+    }
+
+    @keyframes star-breathe {
+      0%, 100% { opacity: .34; transform: scale(.82); }
+      50% { opacity: 1; transform: scale(1.14); }
+    }
+
+    a { color: inherit; }
+    button { font: inherit; }
+
+    .sound-toggle {
+      position: fixed;
+      top: 18px;
+      right: 18px;
+      z-index: 60;
+      display: inline-flex;
+      align-items: center;
+      gap: 9px;
+      min-height: 42px;
+      padding: 9px 13px;
+      border: 1px solid rgba(232, 216, 180, .18);
+      border-radius: 999px;
+      color: #b8c1d2;
+      background: rgba(8, 13, 27, .64);
+      backdrop-filter: blur(16px);
+      box-shadow: 0 10px 32px rgba(0,0,0,.22);
+      cursor: pointer;
+      transition: color .25s ease, border-color .25s ease, background .25s ease, transform .25s ease;
+    }
+
+    .sound-toggle:hover {
+      color: var(--text);
+      border-color: rgb(var(--theme-accent-rgb) / .46);
+      transform: translateY(-1px);
+    }
+
+    .sound-toggle:focus-visible {
+      outline: 3px solid var(--theme-accent-soft);
+      outline-offset: 3px;
+    }
+
+    .sound-toggle[aria-pressed="true"] {
+      color: var(--theme-accent-soft);
+      border-color: rgb(var(--theme-accent-rgb) / .46);
+      background: rgba(20, 23, 38, .78);
+    }
+
+    .sound-icon {
+      position: relative;
+      width: 17px;
+      height: 17px;
+      flex: 0 0 17px;
+    }
+
+    .sound-icon svg { width: 100%; height: 100%; }
+
+    .sound-toggle[aria-pressed="true"] .sound-icon::after {
+      content: "";
+      position: absolute;
+      right: -4px;
+      top: -3px;
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: var(--theme-accent);
+      box-shadow: 0 0 10px rgb(var(--theme-accent-rgb) / .9);
+      animation: sound-pulse 2.4s ease-in-out infinite;
+    }
+
+    .sound-label {
+      font-size: .66rem;
+      letter-spacing: .13em;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+
+    @keyframes sound-pulse {
+      0%, 100% { opacity: .45; transform: scale(.8); }
+      50% { opacity: 1; transform: scale(1.15); }
+    }
+
+    .shell {
+      width: min(var(--max), calc(100% - 40px));
+      margin: 0 auto;
+    }
+
+    .skip-link {
+      position: fixed;
+      top: 12px;
+      left: 12px;
+      padding: 10px 14px;
+      border-radius: 999px;
+      color: #081020;
+      background: var(--theme-accent-soft);
+      transform: translateY(-150%);
+      z-index: 100;
+    }
+
+    .skip-link:focus { transform: translateY(0); }
+
+    .hero {
+      min-height: 92vh;
+      display: grid;
+      align-items: center;
+      padding: 64px 0 42px;
+      position: relative;
+    }
+
+    .hero-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1.1fr) minmax(330px, .9fr);
+      gap: 64px;
+      align-items: center;
+    }
+
+    .eyebrow {
+      margin: 0 0 18px;
+      color: var(--theme-accent);
+      font-size: .78rem;
+      transition: color .75s ease;
+      letter-spacing: .27em;
+      text-transform: uppercase;
+    }
+
+    h1, h2, h3 {
+      font-family: Georgia, "Times New Roman", serif;
+      font-weight: 400;
+    }
+
+    h1 {
+      max-width: 760px;
+      margin: 0;
+      font-size: clamp(3.25rem, 9vw, 7.5rem);
+      line-height: .9;
+      letter-spacing: -.055em;
+    }
+
+    h1 span {
+      display: block;
+      margin-top: .16em;
+      color: transparent;
+      -webkit-text-stroke: 1px var(--theme-stroke);
+      text-stroke: 1px var(--theme-stroke);
+      transition: -webkit-text-stroke-color .75s ease;
+    }
+
+    .hero-copy {
+      max-width: 640px;
+      margin: 28px 0 0;
+      color: #c8d0df;
+      font-size: clamp(1.02rem, 2vw, 1.26rem);
+      line-height: 1.75;
+    }
+
+    .signature {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      margin-top: 28px;
+      color: var(--theme-accent-soft);
+      font-family: Georgia, "Times New Roman", serif;
+      font-style: italic;
+    }
+
+    .signature::before {
+      content: "";
+      flex: 0 0 48px;
+      width: 48px;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--theme-accent));
+      transition: background .75s ease;
+    }
+
+    .signature-credit {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .signature-name {
+      font-size: 1.15rem;
+    }
+
+    .signature-partners {
+      color: #9fa9bb;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-size: 0.72rem;
+      font-style: normal;
+      letter-spacing: 0.09em;
+      line-height: 1.5;
+      text-transform: uppercase;
+    }
+
+    .hero-orbit {
+      position: relative;
+      min-height: 520px;
+      display: grid;
+      place-items: center;
+      isolation: isolate;
+    }
+
+    .orbit {
+      position: absolute;
+      border: 1px solid color-mix(in srgb, var(--theme-accent) 20%, rgba(207, 219, 255, .10));
+      border-radius: 50%;
+      pointer-events: none;
+      transition: border-color .8s ease, box-shadow .8s ease;
+    }
+
+    .orbit.one { width: 410px; height: 410px; }
+    .orbit.two { width: 292px; height: 292px; }
+    .orbit.three { width: 510px; height: 200px; transform: rotate(-20deg); }
+
+    .atlas-satellite {
+      --satellite-color: var(--gold);
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      z-index: 8;
+      display: inline-flex;
+      align-items: center;
+      gap: 9px;
+      min-width: 30px;
+      min-height: 30px;
+      padding: 5px 9px 5px 6px;
+      border: 1px solid transparent;
+      border-radius: 999px;
+      color: var(--satellite-color);
+      background: rgba(7, 11, 24, .12);
+      cursor: pointer;
+      transform: translate(-50%, -50%);
+      opacity: .82;
+      transition: background .26s ease, border-color .26s ease, box-shadow .26s ease, opacity .5s ease;
+      will-change: transform;
+    }
+
+    .atlas-satellite:hover,
+    .atlas-satellite:focus-visible,
+    .atlas-satellite.is-paused {
+      border-color: color-mix(in srgb, var(--satellite-color) 46%, transparent);
+      background: rgba(9, 14, 29, .9);
+      box-shadow: 0 10px 32px rgba(0, 0, 0, .32), 0 0 26px color-mix(in srgb, var(--satellite-color) 28%, transparent);
+      outline: none;
+    }
+
+    .satellite-dot {
+      flex: 0 0 auto;
+      width: 12px;
+      height: 12px;
+      border: 1px solid currentColor;
+      border-radius: 50%;
+      background: color-mix(in srgb, currentColor 26%, #070b18);
+      box-shadow: 0 0 17px currentColor;
+      transition: transform .25s ease, background .25s ease;
+    }
+
+    .atlas-satellite:hover .satellite-dot,
+    .atlas-satellite:focus-visible .satellite-dot,
+    .atlas-satellite.is-paused .satellite-dot {
+      transform: scale(1.12);
+      background: currentColor;
+    }
+
+    .satellite-word {
+      max-width: 0;
+      overflow: hidden;
+      opacity: 0;
+      color: currentColor;
+      font-size: .69rem;
+      letter-spacing: .15em;
+      text-transform: uppercase;
+      white-space: nowrap;
+      transform: translateX(-5px);
+      transition: none;
+    }
+
+    .atlas-satellite:hover .satellite-word,
+    .atlas-satellite:focus-visible .satellite-word,
+    .atlas-satellite.is-paused .satellite-word {
+      max-width: 130px;
+      opacity: 1;
+      transform: translateX(0);
+    }
+
+    .atlas-satellite.signal { --satellite-color: var(--magenta); }
+    .atlas-satellite.wonder { --satellite-color: var(--cyan); }
+    .atlas-satellite.shelter { --satellite-color: var(--amber); }
+    .atlas-satellite.elsewhere { --satellite-color: var(--teal); }
+
+    body:not([data-theme="all"]) .atlas-satellite:not(.is-active):not(:hover):not(:focus-visible):not(.is-paused) {
+      opacity: .48;
+    }
+
+    .atlas-satellite.is-active {
+      z-index: 10;
+      opacity: 1;
+      border-color: color-mix(in srgb, var(--satellite-color) 60%, transparent);
+      background: rgba(9, 14, 29, .88);
+      box-shadow: 0 12px 34px rgba(0, 0, 0, .34), 0 0 34px color-mix(in srgb, var(--satellite-color) 36%, transparent);
+    }
+
+    .atlas-satellite.is-active .satellite-dot {
+      transform: scale(1.18);
+      background: currentColor;
+      animation: active-satellite-pulse 2.8s ease-in-out infinite;
+    }
+
+    .atlas-satellite.is-active .satellite-word {
+      max-width: 130px;
+      opacity: 1;
+      transform: translateX(0);
+    }
+
+    @keyframes active-satellite-pulse {
+      0%, 100% { box-shadow: 0 0 13px currentColor; }
+      50% { box-shadow: 0 0 25px currentColor; }
+    }
+
+    .atlas-core {
+      position: relative;
+      width: min(360px, 80vw);
+      aspect-ratio: 1;
+      border-radius: 50%;
+      border: 1px solid color-mix(in srgb, var(--theme-accent) 28%, rgba(227, 211, 174, .10));
+      background:
+        radial-gradient(circle at 63% 37%, rgba(255,255,255,.88) 0 1px, transparent 2px),
+        radial-gradient(circle at 34% 64%, rgb(var(--theme-secondary-rgb) / .72) 0 1px, transparent 2px),
+        radial-gradient(circle at 50% 50%, rgb(var(--theme-accent-rgb) / .11), transparent 48%),
+        radial-gradient(circle at center, var(--theme-core-inner), var(--theme-core-outer) 68%, transparent 69%);
+      box-shadow: inset 0 0 90px rgb(var(--theme-accent-rgb) / .10), 0 0 100px rgb(var(--theme-accent-rgb) / .11);
+      transition: border-color .85s ease, background .85s ease, box-shadow .85s ease;
+      display: grid;
+      place-items: center;
+    }
+
+    .core-text {
+      width: 68%;
+      text-align: center;
+    }
+
+    .core-text small {
+      display: block;
+      color: var(--theme-accent);
+      letter-spacing: .22em;
+      transition: color .75s ease;
+      text-transform: uppercase;
+      font-size: .66rem;
+    }
+
+    .core-text strong {
+      display: block;
+      margin-top: 14px;
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: clamp(1.45rem, 4vw, 2.4rem);
+      font-weight: 400;
+      line-height: 1.15;
+      transition: color .65s ease, opacity .35s ease;
+    }
+
+    .core-text p {
+      color: var(--muted);
+      font-size: .88rem;
+      line-height: 1.6;
+    }
+
+    .atlas-dialog {
+      --dialog-accent: var(--gold);
+      width: min(590px, calc(100% - 28px));
+      padding: 0;
+      overflow: hidden;
+      border: 1px solid color-mix(in srgb, var(--dialog-accent) 34%, rgba(255,255,255,.08));
+      border-radius: 28px;
+      color: var(--text);
+      background:
+        radial-gradient(circle at 88% 4%, color-mix(in srgb, var(--dialog-accent) 20%, transparent), transparent 36%),
+        rgba(10, 15, 31, .97);
+      box-shadow: 0 40px 120px rgba(0, 0, 0, .68), 0 0 60px color-mix(in srgb, var(--dialog-accent) 11%, transparent);
+    }
+
+    .atlas-dialog::backdrop {
+      background: rgba(3, 5, 13, .76);
+      backdrop-filter: blur(12px);
+    }
+
+    .dialog-inner {
+      position: relative;
+      padding: 42px;
+    }
+
+    .dialog-close {
+      position: absolute;
+      top: 18px;
+      right: 18px;
+      display: grid;
+      place-items: center;
+      width: 38px;
+      height: 38px;
+      border: 1px solid rgba(255,255,255,.13);
+      border-radius: 50%;
+      color: var(--muted);
+      background: rgba(255,255,255,.035);
+      cursor: pointer;
+    }
+
+    .dialog-close:hover,
+    .dialog-close:focus-visible {
+      color: var(--text);
+      border-color: color-mix(in srgb, var(--dialog-accent) 55%, transparent);
+      outline: none;
+    }
+
+    .dialog-symbol {
+      display: grid;
+      place-items: center;
+      width: 62px;
+      height: 62px;
+      margin-bottom: 26px;
+      border: 1px solid color-mix(in srgb, var(--dialog-accent) 48%, transparent);
+      border-radius: 50%;
+      color: var(--dialog-accent);
+      box-shadow: inset 0 0 25px color-mix(in srgb, var(--dialog-accent) 12%, transparent), 0 0 28px color-mix(in srgb, var(--dialog-accent) 16%, transparent);
+      font-size: 1.15rem;
+    }
+
+    .dialog-kicker {
+      margin: 0 0 10px;
+      color: var(--dialog-accent);
+      font-size: .68rem;
+      letter-spacing: .22em;
+      text-transform: uppercase;
+    }
+
+    .atlas-dialog h2 {
+      margin: 0;
+      font-size: clamp(2.3rem, 8vw, 4.1rem);
+      line-height: .96;
+      letter-spacing: -.04em;
+    }
+
+    .dialog-copy {
+      margin: 22px 0 0;
+      color: #c6cedd;
+      font-size: 1rem;
+      line-height: 1.75;
+    }
+
+    .dialog-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-top: 30px;
+    }
+
+    .dialog-action {
+      min-height: 44px;
+      padding: 11px 17px;
+      border: 1px solid rgba(255,255,255,.13);
+      border-radius: 999px;
+      color: var(--text);
+      background: rgba(255,255,255,.035);
+      cursor: pointer;
+    }
+
+    .dialog-action.primary {
+      border-color: transparent;
+      color: #071019;
+      background: var(--dialog-accent);
+    }
+
+    .dialog-action:hover,
+    .dialog-action:focus-visible {
+      transform: translateY(-1px);
+      outline: none;
+      box-shadow: 0 10px 24px rgba(0,0,0,.24);
+    }
+
+    .collection-nav-wrap {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      padding: 14px 0;
+      background: linear-gradient(180deg, rgba(7,11,24,.92), rgba(7,11,24,.72) 76%, transparent);
+      backdrop-filter: blur(18px);
+    }
+
+    .collection-nav {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+      justify-content: center;
+      padding: 10px;
+      border: 1px solid var(--theme-line);
+      border-radius: 999px;
+      background: var(--theme-panel);
+      transition: border-color .75s ease, background .75s ease;
+      box-shadow: 0 12px 40px rgba(0,0,0,.18);
+    }
+
+    .filter-button {
+      border: 0;
+      border-radius: 999px;
+      padding: 10px 15px;
+      color: var(--muted);
+      background: transparent;
+      cursor: pointer;
+      letter-spacing: .08em;
+      font-size: .72rem;
+      text-transform: uppercase;
+      transition: color .25s ease, background .25s ease, transform .25s ease;
+    }
+
+    .filter-button:hover { color: var(--text); transform: translateY(-1px); }
+    .filter-button[aria-pressed="true"] {
+      color: #111522;
+      background: var(--theme-accent-soft);
+      box-shadow: 0 0 24px rgb(var(--theme-accent-rgb) / .13);
+    }
+
+    main { padding: 72px 0 120px; }
+
+    .section {
+      display: grid;
+      grid-template-columns: 190px minmax(0, 1fr);
+      gap: 46px;
+      padding: 78px 0;
+      border-top: 1px solid var(--theme-line);
+      scroll-margin-top: 110px;
+      transition: border-color .75s ease;
+    }
+
+    .section[hidden] { display: none; }
+
+    .section-meta {
+      position: sticky;
+      top: 112px;
+      align-self: start;
+    }
+
+    .section-number {
+      color: color-mix(in srgb, var(--theme-accent) 38%, var(--muted-2));
+      font-family: Georgia, "Times New Roman", serif;
+      transition: color .75s ease;
+      font-size: 2rem;
+    }
+
+    .section-kicker {
+      margin: 18px 0 0;
+      font-size: .72rem;
+      letter-spacing: .22em;
+      text-transform: uppercase;
+    }
+
+    .section-meta p {
+      margin: 16px 0 0;
+      color: var(--muted);
+      line-height: 1.7;
+      font-size: .9rem;
+    }
+
+    .section-title {
+      margin: 0 0 30px;
+      font-size: clamp(2.2rem, 5vw, 4.6rem);
+      line-height: .96;
+      letter-spacing: -.04em;
+    }
+
+    .section-subtitle {
+      max-width: 690px;
+      margin: -10px 0 34px;
+      color: var(--muted);
+      line-height: 1.75;
+    }
+
+    .cards {
+      display: grid;
+      gap: 18px;
+    }
+
+    .cards.two { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .cards.three { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+
+    .world-card {
+      position: relative;
+      min-height: 330px;
+      overflow: hidden;
+      border: 1px solid var(--line);
+      border-radius: var(--radius-lg);
+      color: var(--text);
+      text-decoration: none;
+      background: var(--panel-strong);
+      box-shadow: var(--shadow);
+      isolation: isolate;
+      transform: translateY(18px);
+      opacity: 0;
+      transition: transform .7s cubic-bezier(.2,.7,.2,1), opacity .7s ease, border-color .35s ease;
+    }
+
+    .world-card.revealed { transform: translateY(0); opacity: 1; }
+
+    .world-card::before,
+    .world-card::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+    }
+
+    .world-card::after {
+      background: linear-gradient(180deg, rgba(4,7,16,.02) 0%, rgba(4,7,16,.24) 46%, rgba(4,7,16,.94) 100%);
+      z-index: -1;
+    }
+
+    .world-card:hover {
+      transform: translateY(-5px);
+      border-color: var(--line-strong);
+    }
+
+    .world-card:focus-visible {
+      outline: 3px solid var(--theme-accent-soft);
+      outline-offset: 4px;
+    }
+
+    .world-card.featured { min-height: 460px; }
+
+    .world-card-content {
+      position: absolute;
+      inset: auto 0 0;
+      padding: 30px;
+      z-index: 2;
+    }
+
+    .world-meta {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      margin-bottom: 14px;
+      color: var(--muted);
+      font-size: .68rem;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+    }
+
+    .world-label {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .world-label::before {
+      content: "";
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: currentColor;
+      box-shadow: 0 0 14px currentColor;
+    }
+
+    .world-card h3 {
+      margin: 0;
+      font-size: clamp(1.7rem, 3vw, 3rem);
+      line-height: 1.03;
+      letter-spacing: -.03em;
+    }
+
+    .world-card:not(.featured) h3 { font-size: clamp(1.45rem, 2.2vw, 2.2rem); }
+
+    .world-card p {
+      max-width: 620px;
+      margin: 14px 0 0;
+      color: #c0c8d7;
+      line-height: 1.65;
+      font-size: .94rem;
+    }
+
+    .enter {
+      position: absolute;
+      top: 24px;
+      right: 24px;
+      display: grid;
+      place-items: center;
+      width: 46px;
+      height: 46px;
+      border: 1px solid rgba(255,255,255,.18);
+      border-radius: 50%;
+      background: rgba(8, 13, 27, .38);
+      backdrop-filter: blur(12px);
+      transition: transform .3s ease, background .3s ease;
+      z-index: 3;
+    }
+
+    .world-card:hover .enter {
+      transform: translate(3px, -3px);
+      background: rgba(232,187,112,.18);
+    }
+
+    .enter svg { width: 19px; height: 19px; }
+
+    /* Scene artwork — all CSS, no external image dependencies. */
+    .scene-night-route::before {
+      background:
+        linear-gradient(90deg, transparent 0 8%, rgba(255,77,184,.48) 8.5% 9.2%, transparent 9.8% 17%, rgba(81,220,255,.36) 17.4% 18%, transparent 18.5% 31%, rgba(255,77,184,.24) 31.5% 33%, transparent 33.5% 66%, rgba(81,220,255,.2) 66.4% 67.2%, transparent 67.8%),
+        linear-gradient(180deg, transparent 0 37%, rgba(6,8,21,.08) 38%, rgba(7,9,20,.92) 100%),
+        radial-gradient(circle at 76% 24%, rgba(255,77,184,.28), transparent 24%),
+        radial-gradient(circle at 20% 10%, rgba(81,220,255,.22), transparent 28%),
+        linear-gradient(135deg, #121436 0%, #0b1029 45%, #150b27 100%);
+    }
+
+    .scene-night-route .city {
+      position: absolute;
+      inset: 14% 2% 18%;
+      z-index: 0;
+      opacity: .9;
+      background:
+        linear-gradient(90deg,
+          transparent 0 3%, #0c1023 3% 12%, transparent 12% 14%, #11152b 14% 24%, transparent 24% 26%, #0f1329 26% 34%, transparent 34% 38%, #14172d 38% 49%, transparent 49% 53%, #0d1127 53% 62%, transparent 62% 65%, #15142c 65% 76%, transparent 76% 79%, #111428 79% 91%, transparent 91%);
+      clip-path: polygon(0 72%, 6% 72%, 6% 28%, 10% 28%, 10% 42%, 15% 42%, 15% 18%, 20% 18%, 20% 56%, 27% 56%, 27% 33%, 32% 33%, 32% 12%, 38% 12%, 38% 49%, 45% 49%, 45% 27%, 51% 27%, 51% 62%, 58% 62%, 58% 20%, 64% 20%, 64% 45%, 70% 45%, 70% 8%, 76% 8%, 76% 54%, 83% 54%, 83% 31%, 89% 31%, 89% 58%, 96% 58%, 96% 39%, 100% 39%, 100% 100%, 0 100%);
+      box-shadow: 0 20px 60px rgba(0,0,0,.75);
+    }
+
+    .scene-night-route .route-line {
+      position: absolute;
+      left: 9%;
+      right: 8%;
+      top: 44%;
+      height: 2px;
+      z-index: 1;
+      background: linear-gradient(90deg, var(--magenta), var(--cyan), var(--gold));
+      box-shadow: 0 0 22px rgba(81,220,255,.62);
+      transform: rotate(-6deg);
+    }
+
+    .scene-night-route .route-line::before,
+    .scene-night-route .route-line::after {
+      content: "";
+      position: absolute;
+      top: 50%;
+      width: 14px;
+      height: 14px;
+      border: 2px solid currentColor;
+      border-radius: 50%;
+      background: #0a1023;
+      transform: translateY(-50%);
+      box-shadow: 0 0 18px currentColor;
+    }
+
+    .scene-night-route .route-line::before { left: 18%; color: var(--magenta); }
+    .scene-night-route .route-line::after { right: 21%; color: var(--cyan); }
+
+    .scene-observatory::before {
+      background:
+        radial-gradient(circle at 62% 22%, rgba(255,255,255,.9) 0 1px, transparent 2px),
+        radial-gradient(circle at 28% 28%, rgba(132,158,255,.8) 0 1px, transparent 2px),
+        radial-gradient(circle at 75% 46%, rgba(255,255,255,.7) 0 1px, transparent 2px),
+        radial-gradient(circle at 50% 46%, rgba(62,94,183,.28), transparent 25%),
+        linear-gradient(180deg, #111833 0%, #0b1026 62%, #090d1c 100%);
+      background-size: auto, auto, auto, auto, auto;
+    }
+
+    .scene-observatory .dome {
+      position: absolute;
+      left: 50%;
+      bottom: 23%;
+      width: 220px;
+      height: 130px;
+      border-radius: 220px 220px 20px 20px;
+      transform: translateX(-50%);
+      background: linear-gradient(180deg, #2a3155 0%, #141a34 72%);
+      border: 1px solid rgba(190,209,255,.22);
+      box-shadow: inset 0 18px 35px rgba(133,159,255,.08), 0 20px 70px rgba(0,0,0,.55);
+      z-index: 0;
+    }
+
+    .scene-observatory .dome::before {
+      content: "";
+      position: absolute;
+      left: 50%;
+      top: 8px;
+      width: 4px;
+      height: 112px;
+      background: linear-gradient(var(--cyan), transparent);
+      transform-origin: bottom;
+      transform: translateX(-50%) rotate(29deg);
+      box-shadow: 0 0 16px rgba(81,220,255,.72);
+    }
+
+    .scene-observatory .dome::after {
+      content: "";
+      position: absolute;
+      left: 10%;
+      right: 10%;
+      bottom: -16px;
+      height: 26px;
+      background: #10162d;
+      border: 1px solid rgba(190,209,255,.16);
+      border-radius: 6px;
+    }
+
+    .scene-lantern::before {
+      background:
+        radial-gradient(circle at 48% 35%, rgba(255,191,104,.34), transparent 16%),
+        linear-gradient(180deg, rgba(14,34,35,.1), rgba(5,11,17,.35)),
+        linear-gradient(145deg, #102523 0%, #0d181a 48%, #130e13 100%);
+    }
+
+    .scene-lantern .cabin {
+      position: absolute;
+      left: 11%;
+      right: 12%;
+      bottom: 22%;
+      height: 42%;
+      background: linear-gradient(180deg, #2a2019, #171311);
+      clip-path: polygon(0 37%, 50% 0, 100% 37%, 100% 100%, 0 100%);
+      border-bottom: 1px solid rgba(255,191,104,.15);
+    }
+
+    .scene-lantern .cabin::before,
+    .scene-lantern .cabin::after {
+      content: "";
+      position: absolute;
+      bottom: 16%;
+      width: 17%;
+      height: 28%;
+      background: #ffc56e;
+      box-shadow: 0 0 24px rgba(255,191,104,.68);
+    }
+
+    .scene-lantern .cabin::before { left: 23%; }
+    .scene-lantern .cabin::after { right: 23%; }
+
+    .scene-lantern-alt::before {
+      background:
+        radial-gradient(circle at 70% 18%, rgba(202,178,255,.14), transparent 26%),
+        radial-gradient(circle at 30% 40%, rgba(255,191,104,.22), transparent 15%),
+        linear-gradient(155deg, #17152d 0%, #10192c 48%, #0b1118 100%);
+    }
+
+    .scene-lantern-alt .window {
+      position: absolute;
+      left: 50%;
+      top: 21%;
+      width: 42%;
+      height: 38%;
+      transform: translateX(-50%);
+      border: 8px solid #17151a;
+      border-radius: 48% 48% 6px 6px;
+      background:
+        linear-gradient(90deg, transparent 48%, rgba(36,24,20,.75) 49% 52%, transparent 53%),
+        linear-gradient(transparent 48%, rgba(36,24,20,.75) 49% 52%, transparent 53%),
+        radial-gradient(circle at 50% 50%, #ffe0a3, #d99345 70%);
+      box-shadow: 0 0 42px rgba(255,191,104,.48);
+    }
+
+    .scene-elsewhere::before {
+      background:
+        radial-gradient(circle at 78% 21%, rgba(255,222,182,.66) 0 16px, transparent 17px),
+        linear-gradient(180deg, #2b315b 0%, #51445e 38%, #23324d 64%, #0b1725 100%);
+    }
+
+    .scene-elsewhere .horizon {
+      position: absolute;
+      inset: 44% -10% 0;
+      background:
+        linear-gradient(180deg, rgba(87,115,142,.45), rgba(7,17,28,.75)),
+        repeating-linear-gradient(176deg, rgba(255,255,255,.05) 0 2px, transparent 2px 15px);
+      clip-path: polygon(0 35%, 12% 25%, 24% 42%, 35% 28%, 48% 38%, 63% 22%, 77% 35%, 90% 20%, 100% 32%, 100% 100%, 0 100%);
+    }
+
+    .scene-stillwater::before {
+      background:
+        radial-gradient(circle at 67% 19%, rgba(255,230,189,.82) 0 18px, transparent 19px),
+        linear-gradient(180deg, #17243c 0%, #193348 46%, #0a222c 100%);
+    }
+
+    .scene-stillwater .water {
+      position: absolute;
+      inset: 54% 0 0;
+      background:
+        radial-gradient(ellipse at 68% 0%, rgba(255,222,174,.18), transparent 34%),
+        repeating-linear-gradient(178deg, rgba(255,255,255,.055) 0 2px, transparent 2px 12px),
+        linear-gradient(180deg, #11303b, #07151e);
+    }
+
+    .scene-stillwater .water::before {
+      content: "";
+      position: absolute;
+      left: 9%;
+      bottom: 16%;
+      width: 38%;
+      height: 26%;
+      border-radius: 50% 50% 0 0;
+      background: #07141a;
+      clip-path: polygon(0 100%, 15% 40%, 28% 70%, 43% 12%, 57% 70%, 72% 38%, 100% 100%);
+    }
+
+    .scene-tide::before {
+      background:
+        radial-gradient(circle at 18% 17%, rgba(125,217,208,.12), transparent 22%),
+        radial-gradient(circle at 80% 22%, rgba(159,140,255,.2), transparent 26%),
+        linear-gradient(180deg, #0d1b2e 0%, #0e2738 45%, #071720 100%);
+    }
+
+    .scene-tide .beam {
+      position: absolute;
+      top: 14%;
+      left: 55%;
+      width: 4px;
+      height: 48%;
+      background: linear-gradient(rgba(145,227,255,.9), transparent);
+      box-shadow: 0 0 18px rgba(81,220,255,.68);
+      transform: rotate(16deg);
+    }
+
+    .scene-tide .sea {
+      position: absolute;
+      inset: 48% 0 0;
+      background:
+        repeating-linear-gradient(174deg, rgba(255,255,255,.06) 0 2px, transparent 2px 16px),
+        linear-gradient(180deg, rgba(39,104,120,.38), #06141d);
+    }
+
+    .signal-color { color: var(--magenta); }
+    .wonder-color { color: var(--cyan); }
+    .shelter-color { color: var(--amber); }
+    .elsewhere-color { color: var(--teal); }
+
+    .archive-note {
+      margin-top: 80px;
+      padding: 34px;
+      border: 1px solid var(--theme-line);
+      border-radius: var(--radius-lg);
+      background: linear-gradient(135deg, rgb(var(--theme-accent-rgb) / .08), rgba(8,15,29,.82));
+      transition: border-color .75s ease, background .75s ease;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 28px;
+    }
+
+    .archive-note h2 {
+      margin: 0;
+      font-size: clamp(1.7rem, 3.5vw, 3rem);
+    }
+
+    .archive-note p {
+      max-width: 650px;
+      margin: 10px 0 0;
+      color: var(--muted);
+      line-height: 1.7;
+    }
+
+    .archive-symbol {
+      flex: 0 0 auto;
+      width: 92px;
+      height: 92px;
+      border: 1px solid rgb(var(--theme-accent-rgb) / .36);
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      color: var(--theme-accent);
+      font-size: 2.1rem;
+      box-shadow: inset 0 0 30px rgb(var(--theme-accent-rgb) / .10);
+      transition: color .75s ease, border-color .75s ease, box-shadow .75s ease;
+    }
+
+    footer {
+      padding: 10px 0 54px;
+      color: var(--muted-2);
+      font-size: .82rem;
+    }
+
+    .footer-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 24px;
+      padding-top: 28px;
+      border-top: 1px solid var(--theme-line);
+      transition: border-color .75s ease;
+    }
+
+    .footer-row em {
+      color: var(--theme-accent-soft);
+      font-family: Georgia, "Times New Roman", serif;
+      font-weight: 400;
+    }
+
+    @media (max-width: 900px) {
+      .hero { min-height: auto; padding-top: 110px; }
+      .hero-grid { grid-template-columns: 1fr; gap: 28px; }
+      .hero-orbit { min-height: 430px; }
+      .section { grid-template-columns: 1fr; gap: 24px; }
+      .section-meta { position: static; display: grid; grid-template-columns: 64px 1fr; column-gap: 18px; }
+      .section-kicker { margin-top: 6px; }
+      .section-meta p { grid-column: 2; margin-top: 8px; }
+      .cards.three { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .cards.three .world-card:last-child { grid-column: 1 / -1; }
+    }
+
+    @media (max-width: 640px) {
+      .shell { width: min(100% - 24px, var(--max)); }
+      .sound-toggle { top: 12px; right: 12px; padding: 9px 11px; }
+      .sound-label { display: none; }
+      .hero { padding-top: 76px; }
+      h1 { font-size: clamp(3.15rem, 18vw, 5.4rem); }
+      .hero-copy { font-size: 1rem; }
+      .hero-orbit { min-height: 350px; }
+      .atlas-core { width: min(280px, 80vw); }
+      .orbit.one { width: 320px; height: 320px; }
+      .orbit.two { width: 230px; height: 230px; }
+      .orbit.three { width: 340px; height: 150px; }
+      .atlas-satellite { padding-right: 6px; }
+      .satellite-word { display: none; }
+      .dialog-inner { padding: 34px 26px 28px; }
+      .collection-nav { justify-content: flex-start; overflow-x: auto; flex-wrap: nowrap; padding: 8px; scrollbar-width: none; }
+      .collection-nav::-webkit-scrollbar { display: none; }
+      .filter-button { white-space: nowrap; }
+      main { padding-top: 34px; }
+      .section { padding: 54px 0; }
+      .cards.two, .cards.three { grid-template-columns: 1fr; }
+      .cards.three .world-card:last-child { grid-column: auto; }
+      .world-card, .world-card.featured { min-height: 380px; }
+      .world-card-content { padding: 24px; }
+      .enter { top: 18px; right: 18px; }
+      .archive-note { align-items: flex-start; flex-direction: column; }
+      .archive-symbol { width: 68px; height: 68px; }
+      .footer-row { align-items: flex-start; flex-direction: column; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
+      .world-card { opacity: 1; transform: none; }
+      .star, .sound-toggle[aria-pressed="true"] .sound-icon::after, .atlas-satellite.is-active .satellite-dot { animation: none !important; }
+    }
+  </style>
+</head>
+<body data-theme="all">
+  <div class="theme-veil" aria-hidden="true">
+    <div class="theme-layer atlas"></div>
+    <div class="theme-layer signal"></div>
+    <div class="theme-layer wonder"></div>
+    <div class="theme-layer lanternlight"></div>
+    <div class="theme-layer elsewhere"></div>
+  </div>
+  <div class="night-sky" aria-hidden="true"></div>
+
+  <button class="sound-toggle" id="sound-toggle" type="button" aria-pressed="false" aria-label="Turn on soft night soundscape" title="Soft night soundscape — sound is off">
+    <span class="sound-icon" aria-hidden="true">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+        <path d="M5 9v6h4l5 4V5L9 9H5Z" />
+        <path d="M17 9.5c.9.8 1.4 1.6 1.4 2.5S17.9 13.7 17 14.5" />
+      </svg>
+    </span>
+    <span class="sound-label">Sound off</span>
+  </button>
+
+  <a class="skip-link" href="#collection">Skip to collection</a>
+
+  <header class="hero">
+    <div class="shell hero-grid">
+      <div>
+        <p class="eyebrow">Unfold / Personal Archive</p>
+        <h1>Places I make.<span>Ways I return.</span></h1>
+        <p class="hero-copy">
+          The personal side of Unfold: useful things, quiet places, experiments, and small worlds—made to help me navigate, wonder, rest, or simply feel somewhere else for a little while.
+        </p>
+        <div class="signature">
+          <div class="signature-credit">
+            <span class="signature-name">Clara</span>
+            <span class="signature-partners">In creative partnership with AI collaborators Cari (ChatGPT) + CJ (Claude)</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="hero-orbit" aria-label="An interactive visual atlas of Signal, Wonder, Lanternlight, and Elsewhere">
+        <div class="orbit one" aria-hidden="true"></div>
+        <div class="orbit two" aria-hidden="true"></div>
+        <div class="orbit three" aria-hidden="true"></div>
+        <div class="atlas-core">
+          <div class="core-text">
+            <small id="core-kicker">A living atlas</small>
+            <strong id="core-title">Structure for the things that refuse to be ordinary.</strong>
+            <p id="core-copy">Organized enough to find. Open enough to keep becoming.</p>
+          </div>
+        </div>
+        <button class="atlas-satellite signal" type="button" data-atlas-category="signal" aria-label="Learn about Signal">
+          <span class="satellite-dot" aria-hidden="true"></span><span class="satellite-word">Signal</span>
+        </button>
+        <button class="atlas-satellite wonder" type="button" data-atlas-category="wonder" aria-label="Learn about Wonder">
+          <span class="satellite-dot" aria-hidden="true"></span><span class="satellite-word">Wonder</span>
+        </button>
+        <button class="atlas-satellite shelter" type="button" data-atlas-category="lanternlight" aria-label="Learn about Lanternlight">
+          <span class="satellite-dot" aria-hidden="true"></span><span class="satellite-word">Lanternlight</span>
+        </button>
+        <button class="atlas-satellite elsewhere" type="button" data-atlas-category="elsewhere" aria-label="Learn about Elsewhere">
+          <span class="satellite-dot" aria-hidden="true"></span><span class="satellite-word">Elsewhere</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <dialog class="atlas-dialog" id="atlas-dialog" aria-labelledby="dialog-title" aria-describedby="dialog-copy">
+    <div class="dialog-inner">
+      <button class="dialog-close" id="dialog-close" type="button" aria-label="Close category message">×</button>
+      <div class="dialog-symbol" id="dialog-symbol" aria-hidden="true">✦</div>
+      <p class="dialog-kicker" id="dialog-kicker">A part of the atlas</p>
+      <h2 id="dialog-title">Signal</h2>
+      <p class="dialog-copy" id="dialog-copy"></p>
+      <div class="dialog-actions">
+        <button class="dialog-action primary" id="dialog-go" type="button">Enter this collection</button>
+        <button class="dialog-action" id="dialog-stay" type="button">Stay with the atlas</button>
+      </div>
+    </div>
+  </dialog>
+
+  <div class="collection-nav-wrap" aria-label="Collection filters">
+    <div class="shell">
+      <nav class="collection-nav">
+        <button class="filter-button" type="button" data-filter="all" aria-pressed="true">All worlds</button>
+        <button class="filter-button" type="button" data-filter="signal" aria-pressed="false">Signal</button>
+        <button class="filter-button" type="button" data-filter="wonder" aria-pressed="false">Wonder</button>
+        <button class="filter-button" type="button" data-filter="lanternlight" aria-pressed="false">Lanternlight</button>
+        <button class="filter-button" type="button" data-filter="elsewhere" aria-pressed="false">Elsewhere</button>
+      </nav>
+    </div>
+  </div>
+
+  <main id="collection" class="shell">
+    <section class="section" id="signal" data-category="signal">
+      <div class="section-meta">
+        <div class="section-number">01</div>
+        <div>
+          <div class="section-kicker signal-color">Signal</div>
+          <p>Systems, routes, and useful things with a pulse.</p>
+        </div>
+      </div>
+
+      <div>
+        <h2 class="section-title">Navigate the night.</h2>
+        <p class="section-subtitle">The sharper edge of the collection—where planning, movement, and visual identity become part of the experience.</p>
+
+        <div class="cards">
+          <a class="world-card featured scene-night-route" href="otakon_night_route_dining_planner.html">
+            <span class="city" aria-hidden="true"></span>
+            <span class="route-line" aria-hidden="true"></span>
+            <span class="enter" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+            </span>
+            <div class="world-card-content">
+              <div class="world-meta">
+                <span class="world-label signal-color">City after dark</span>
+                <span>DC / 2026</span>
+              </div>
+              <h3>NIGHT ROUTE: OTAKON // DC // 2026</h3>
+              <p>A tactical dining credential for moving through convention weekend with style, options, and a little neon.</p>
+            </div>
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="wonder" data-category="wonder">
+      <div class="section-meta">
+        <div class="section-number">02</div>
+        <div>
+          <div class="section-kicker wonder-color">Wonder</div>
+          <p>Curiosity, discovery, and looking a little longer.</p>
+        </div>
+      </div>
+
+      <div>
+        <h2 class="section-title">Look up.</h2>
+        <p class="section-subtitle">A place where learning feels discovered rather than presented—and atmosphere matters as much as information.</p>
+
+        <div class="cards">
+          <a class="world-card featured scene-observatory" href="the-observatory.html">
+            <span class="dome" aria-hidden="true"></span>
+            <span class="enter" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+            </span>
+            <div class="world-card-content">
+              <div class="world-meta">
+                <span class="world-label wonder-color">Celestial fieldwork</span>
+                <span>Interactive</span>
+              </div>
+              <h3>The Observatory</h3>
+              <p>A quiet digital observatory where beauty, curiosity, and learning coexist beneath one patient sky.</p>
+            </div>
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="lanternlight" data-category="lanternlight">
+      <div class="section-meta">
+        <div class="section-number">03</div>
+        <div>
+          <div class="section-kicker shelter-color">Lanternlight</div>
+          <p>Warm rooms, bedtime thresholds, and places made for returning.</p>
+        </div>
+      </div>
+
+      <div>
+        <h2 class="section-title">A light left on.</h2>
+        <p class="section-subtitle">Two sibling inns: related in spirit, distinct in the way each welcomes you home.</p>
+
+        <div class="cards two">
+          <a class="world-card scene-lantern" href="starlight-deep-twilight-lanternlight.html">
+            <span class="cabin" aria-hidden="true"></span>
+            <span class="enter" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+            </span>
+            <div class="world-card-content">
+              <div class="world-meta">
+                <span class="world-label shelter-color">Lanternlight study I</span>
+                <span>Inn</span>
+              </div>
+              <h3>Deep Twilight Inn</h3>
+              <p>A warm waypoint at the edge of evening.</p>
+            </div>
+          </a>
+
+          <a class="world-card scene-lantern-alt" href="starlight-landing-sequence-storybook-lanternlight-trigger.html">
+            <span class="window" aria-hidden="true"></span>
+            <span class="enter" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+            </span>
+            <div class="world-card-content">
+              <div class="world-meta">
+                <span class="world-label shelter-color">Lanternlight study II</span>
+                <span>Storybook</span>
+              </div>
+              <h3>Starlight Landing Inn</h3>
+              <p>A softer arrival sequence for leaving the day behind.</p>
+            </div>
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="elsewhere" data-category="elsewhere">
+      <div class="section-meta">
+        <div class="section-number">04</div>
+        <div>
+          <div class="section-kicker elsewhere-color">Elsewhere</div>
+          <p>Small departures for when the ordinary world is too loud.</p>
+        </div>
+      </div>
+
+      <div>
+        <h2 class="section-title">Exhale somewhere else.</h2>
+        <p class="section-subtitle">Three quiet worlds with different horizons: twilight, still water, and the strange calm between sea and stars.</p>
+
+        <div class="cards three">
+          <a class="world-card scene-elsewhere" href="a-little-elsewhere.html">
+            <span class="horizon" aria-hidden="true"></span>
+            <span class="enter" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+            </span>
+            <div class="world-card-content">
+              <div class="world-meta">
+                <span class="world-label elsewhere-color">Twilight retreat</span>
+                <span>Quiet place</span>
+              </div>
+              <h3>A Little Elsewhere</h3>
+              <p>A small pocket of beauty and distance.</p>
+            </div>
+          </a>
+
+          <a class="world-card scene-stillwater" href="stillwater.html">
+            <span class="water" aria-hidden="true"></span>
+            <span class="enter" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+            </span>
+            <div class="world-card-content">
+              <div class="world-meta">
+                <span class="world-label elsewhere-color">Stillwater</span>
+                <span>Return</span>
+              </div>
+              <h3>A Quiet Place To Return To</h3>
+              <p>Still water, soft edges, and room to arrive.</p>
+            </div>
+          </a>
+
+          <a class="world-card scene-tide" href="the-tide-between-stars.html">
+            <span class="beam" aria-hidden="true"></span>
+            <span class="sea" aria-hidden="true"></span>
+            <span class="enter" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+            </span>
+            <div class="world-card-content">
+              <div class="world-meta">
+                <span class="world-label elsewhere-color">Ocean between stars</span>
+                <span>Drift</span>
+              </div>
+              <h3>The Quiet Between Stars</h3>
+              <p>For the in-between hours, where the tide holds the sky.</p>
+            </div>
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <aside class="archive-note">
+      <div>
+        <h2>Made to keep unfolding.</h2>
+        <p>New work can join an existing constellation—or become the beginning of a new one. The archive stays orderly without asking every world to look the same.</p>
+      </div>
+      <div class="archive-symbol" aria-hidden="true">✦</div>
+    </aside>
+  </main>
+
+  <footer>
+    <div class="shell footer-row">
+      <span>UNFOLD // PERSONAL</span>
+      <em>Built through curiosity, systems thinking, and an unreasonable refusal to leave useful things ugly.</em>
+    </div>
+  </footer>
+
+  <script>
+    const filterButtons = Array.from(document.querySelectorAll('.filter-button'));
+    const sections = Array.from(document.querySelectorAll('.section[data-category]'));
+    const cards = Array.from(document.querySelectorAll('.world-card'));
+    const nightSky = document.querySelector('.night-sky');
+    const soundToggle = document.querySelector('#sound-toggle');
+    const soundLabel = soundToggle.querySelector('.sound-label');
+    const heroOrbit = document.querySelector('.hero-orbit');
+    const satellites = Array.from(document.querySelectorAll('.atlas-satellite'));
+    const atlasDialog = document.querySelector('#atlas-dialog');
+    const dialogClose = document.querySelector('#dialog-close');
+    const dialogStay = document.querySelector('#dialog-stay');
+    const dialogGo = document.querySelector('#dialog-go');
+    const dialogKicker = document.querySelector('#dialog-kicker');
+    const dialogTitle = document.querySelector('#dialog-title');
+    const dialogCopy = document.querySelector('#dialog-copy');
+    const dialogSymbol = document.querySelector('#dialog-symbol');
+    const coreKicker = document.querySelector('#core-kicker');
+    const coreTitle = document.querySelector('#core-title');
+    const coreCopy = document.querySelector('#core-copy');
+    const browserThemeColor = document.querySelector('meta[name="theme-color"]');
+
+    // A genuinely irregular sky: each star receives its own position, size,
+    // warmth, brightness, and breathing rhythm instead of repeating in a grid.
+    const starCount = window.innerWidth < 640 ? 62 : 108;
+    const starFragment = document.createDocumentFragment();
+    for (let index = 0; index < starCount; index += 1) {
+      const star = document.createElement('span');
+      const size = Math.random() < 0.12 ? 2 + Math.random() * 1.8 : 0.65 + Math.random() * 1.25;
+      star.className = `star${Math.random() < 0.14 ? ' warm' : ''}`;
+      star.style.left = `${Math.random() * 100}%`;
+      star.style.top = `${Math.random() * 92}%`;
+      star.style.setProperty('--size', `${size.toFixed(2)}px`);
+      star.style.setProperty('--opacity', (0.32 + Math.random() * 0.56).toFixed(2));
+      star.style.setProperty('--duration', `${3.8 + Math.random() * 6.8}s`);
+      star.style.setProperty('--delay', `${-Math.random() * 8}s`);
+      starFragment.appendChild(star);
+    }
+    nightSky.appendChild(starFragment);
+
+    const atlasCategories = {
+      signal: {
+        title: 'Signal',
+        kicker: 'Navigate / organize / move',
+        symbol: '⌁',
+        accent: '#ff4db8',
+        copy: 'Signal is the practical pulse of the archive: routes, systems, plans, and useful things made vivid enough to feel like an experience—not merely a utility.'
+      },
+      wonder: {
+        title: 'Wonder',
+        kicker: 'Notice / discover / look longer',
+        symbol: '✦',
+        accent: '#51dcff',
+        copy: 'Wonder is where curiosity gets room to breathe. These worlds invite discovery slowly, letting beauty and learning arrive together rather than competing for attention.'
+      },
+      lanternlight: {
+        title: 'Lanternlight',
+        kicker: 'Rest / soften / return',
+        symbol: '⌂',
+        accent: '#ffbf68',
+        copy: 'Lanternlight gathers the warm thresholds: places that leave a light on, help the day loosen its grip, and make returning to yourself feel a little more possible.'
+      },
+      elsewhere: {
+        title: 'Elsewhere',
+        kicker: 'Drift / exhale / step away',
+        symbol: '≈',
+        accent: '#6ad9d0',
+        copy: 'Elsewhere holds the small departures—quiet landscapes, still water, and in-between places made for the moments when the ordinary world feels a little too loud.'
+      }
+    };
+
+    const atlasThemes = {
+      all: {
+        kicker: 'A living atlas',
+        title: 'Structure for the things that refuse to be ordinary.',
+        copy: 'Organized enough to find. Open enough to keep becoming.',
+        browserColor: '#070b18'
+      },
+      signal: {
+        kicker: 'Signal field',
+        title: 'Useful things with a pulse.',
+        copy: 'Neon routes, systems, and movement—clear enough to navigate, vivid enough to remember.',
+        browserColor: '#160c25'
+      },
+      wonder: {
+        kicker: 'Wonder field',
+        title: 'Curiosity with room to breathe.',
+        copy: 'Indigo depth, cyan starlight, and discoveries that arrive slowly.',
+        browserColor: '#091631'
+      },
+      lanternlight: {
+        kicker: 'Lanternlight field',
+        title: 'A light left on.',
+        copy: 'Amber warmth, deep violet evening, and soft thresholds made for returning.',
+        browserColor: '#211522'
+      },
+      elsewhere: {
+        kicker: 'Elsewhere field',
+        title: 'Quiet horizons for stepping away.',
+        copy: 'Ocean teal, moonlit blue, and enough distance for the world to soften.',
+        browserColor: '#071f27'
+      }
+    };
+
+    function applyAtlasTheme(category) {
+      const theme = atlasThemes[category] || atlasThemes.all;
+      document.body.dataset.theme = category in atlasThemes ? category : 'all';
+      if (browserThemeColor) browserThemeColor.setAttribute('content', theme.browserColor);
+      if (coreKicker) coreKicker.textContent = theme.kicker;
+      if (coreTitle) coreTitle.textContent = theme.title;
+      if (coreCopy) coreCopy.textContent = theme.copy;
+
+      satellites.forEach((satellite) => {
+        satellite.classList.toggle('is-active', category !== 'all' && satellite.dataset.atlasCategory === category);
+        satellite.setAttribute('aria-current', category !== 'all' && satellite.dataset.atlasCategory === category ? 'true' : 'false');
+      });
+    }
+
+    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const satelliteMotion = [
+      { category: 'signal', rx: .47, ry: .19, speed: .11, angle: -.35 },
+      { category: 'wonder', rx: .39, ry: .39, speed: -.082, angle: 2.8 },
+      { category: 'lanternlight', rx: .29, ry: .29, speed: .13, angle: 4.45 },
+      { category: 'elsewhere', rx: .44, ry: .26, speed: -.064, angle: 1.5 }
+    ].map((settings) => ({
+      ...settings,
+      element: satellites.find((item) => item.dataset.atlasCategory === settings.category),
+      paused: reducedMotion
+    }));
+
+    function placeSatellites(force = false) {
+      if (!heroOrbit) return;
+      const rect = heroOrbit.getBoundingClientRect();
+      const base = Math.min(rect.width, rect.height);
+      satelliteMotion.forEach((satellite) => {
+        if (satellite.paused && !force) return;
+        const x = Math.cos(satellite.angle) * base * satellite.rx;
+        const y = Math.sin(satellite.angle) * base * satellite.ry;
+        satellite.element.style.transform = `translate(-50%, -50%) translate(${x.toFixed(2)}px, ${y.toFixed(2)}px)`;
+      });
+    }
+
+    let previousFrame = performance.now();
+    function animateSatellites(now) {
+      const deltaSeconds = Math.min((now - previousFrame) / 1000, .05);
+      previousFrame = now;
+      satelliteMotion.forEach((satellite) => {
+        if (!satellite.paused) satellite.angle += satellite.speed * deltaSeconds;
+      });
+      placeSatellites();
+      window.requestAnimationFrame(animateSatellites);
+    }
+
+    satelliteMotion.forEach((satellite) => {
+      const element = satellite.element;
+      element.addEventListener('pointerenter', () => {
+        satellite.paused = true;
+        element.classList.add('is-paused');
+      });
+      element.addEventListener('pointerleave', () => {
+        if (!element.matches(':focus-visible')) element.classList.remove('is-paused');
+        if (!element.matches(':focus-visible') && !reducedMotion) satellite.paused = false;
+      });
+      element.addEventListener('focus', () => {
+        satellite.paused = true;
+        element.classList.add('is-paused');
+      });
+      element.addEventListener('blur', () => {
+        if (!element.matches(':hover')) element.classList.remove('is-paused');
+        if (!element.matches(':hover') && !reducedMotion) satellite.paused = false;
+      });
+    });
+
+    window.addEventListener('resize', () => placeSatellites(true));
+    placeSatellites(true);
+    if (!reducedMotion) window.requestAnimationFrame(animateSatellites);
+
+    let activeDialogCategory = 'signal';
+
+    function playUiChime(category) {
+      if (!audioContext || !masterGain || audioContext.state === 'closed') return;
+      const phrases = {
+        signal: [659.25, 987.77],
+        wonder: [783.99, 1174.66],
+        lanternlight: [523.25, 659.25],
+        elsewhere: [587.33, 880]
+      };
+      const notes = phrases[category] || phrases.signal;
+      const now = audioContext.currentTime;
+
+      notes.forEach((frequency, index) => {
+        const oscillator = audioContext.createOscillator();
+        const gain = audioContext.createGain();
+        const start = now + (index * 0.11);
+        oscillator.type = index === 0 ? 'sine' : 'triangle';
+        oscillator.frequency.value = frequency;
+        gain.gain.setValueAtTime(0.0001, start);
+        gain.gain.exponentialRampToValueAtTime(index === 0 ? 0.055 : 0.035, start + 0.035);
+        gain.gain.exponentialRampToValueAtTime(0.0001, start + 1.35);
+        oscillator.connect(gain).connect(masterGain);
+        oscillator.start(start);
+        oscillator.stop(start + 1.4);
+      });
+    }
+
+    function openAtlasDialog(category) {
+      const content = atlasCategories[category];
+      if (!content || !atlasDialog) return;
+      activeDialogCategory = category;
+      atlasDialog.style.setProperty('--dialog-accent', content.accent);
+      dialogKicker.textContent = content.kicker;
+      dialogTitle.textContent = content.title;
+      dialogCopy.textContent = content.copy;
+      dialogSymbol.textContent = content.symbol;
+      atlasDialog.showModal();
+      playUiChime(category);
+    }
+
+    satellites.forEach((satellite) => {
+      satellite.addEventListener('click', () => openAtlasDialog(satellite.dataset.atlasCategory));
+    });
+
+    dialogClose.addEventListener('click', () => atlasDialog.close());
+    dialogStay.addEventListener('click', () => atlasDialog.close());
+    atlasDialog.addEventListener('click', (event) => {
+      if (event.target === atlasDialog) atlasDialog.close();
+    });
+    dialogGo.addEventListener('click', () => {
+      atlasDialog.close();
+      const targetFilter = filterButtons.find((button) => button.dataset.filter === activeDialogCategory);
+      if (targetFilter) targetFilter.click();
+    });
+
+    let audioContext = null;
+    let masterGain = null;
+    let chimeTimer = null;
+    let ambientNodes = [];
+
+    function createNoiseBuffer(context) {
+      const seconds = 3;
+      const buffer = context.createBuffer(1, context.sampleRate * seconds, context.sampleRate);
+      const data = buffer.getChannelData(0);
+      let last = 0;
+      for (let i = 0; i < data.length; i += 1) {
+        const white = Math.random() * 2 - 1;
+        last = (last + (0.018 * white)) / 1.018;
+        data[i] = last * 3.2;
+      }
+      return buffer;
+    }
+
+    function scheduleChime() {
+      if (!audioContext || audioContext.state === 'closed' || !masterGain) return;
+      const wait = 4500 + Math.random() * 7000;
+      chimeTimer = window.setTimeout(() => {
+        if (!audioContext || audioContext.state === 'closed' || !masterGain) return;
+        const now = audioContext.currentTime;
+        const oscillator = audioContext.createOscillator();
+        const gain = audioContext.createGain();
+        const filter = audioContext.createBiquadFilter();
+        const notes = [523.25, 659.25, 783.99, 880, 1046.5];
+        oscillator.type = Math.random() < 0.35 ? 'triangle' : 'sine';
+        oscillator.frequency.value = notes[Math.floor(Math.random() * notes.length)];
+        oscillator.detune.value = (Math.random() - 0.5) * 8;
+        filter.type = 'lowpass';
+        filter.frequency.value = 2600;
+        gain.gain.setValueAtTime(0.0001, now);
+        gain.gain.exponentialRampToValueAtTime(0.042, now + 0.06);
+        gain.gain.exponentialRampToValueAtTime(0.0001, now + 2.9);
+        oscillator.connect(filter).connect(gain).connect(masterGain);
+        oscillator.start(now);
+        oscillator.stop(now + 3.05);
+        oscillator.addEventListener('ended', () => {
+          oscillator.disconnect();
+          filter.disconnect();
+          gain.disconnect();
+        });
+        scheduleChime();
+      }, wait);
+    }
+
+    function playSoundStateCue(isOn) {
+      if (!audioContext || !masterGain || audioContext.state === 'closed') return;
+      const notes = isOn ? [392, 523.25, 659.25] : [659.25, 523.25];
+      const now = audioContext.currentTime;
+
+      notes.forEach((frequency, index) => {
+        const oscillator = audioContext.createOscillator();
+        const gain = audioContext.createGain();
+        const start = now + (index * 0.1);
+        oscillator.type = index % 2 === 0 ? 'sine' : 'triangle';
+        oscillator.frequency.value = frequency;
+        gain.gain.setValueAtTime(0.0001, start);
+        gain.gain.exponentialRampToValueAtTime(0.065, start + 0.025);
+        gain.gain.exponentialRampToValueAtTime(0.0001, start + 0.75);
+        oscillator.connect(gain).connect(masterGain);
+        oscillator.start(start);
+        oscillator.stop(start + 0.8);
+      });
+    }
+
+    async function startSoundscape() {
+      const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+      if (!AudioContextClass) {
+        soundToggle.disabled = true;
+        soundToggle.title = 'This browser does not support the soundscape';
+        return;
+      }
+
+      audioContext = new AudioContextClass();
+      await audioContext.resume();
+      masterGain = audioContext.createGain();
+      masterGain.gain.setValueAtTime(0.0001, audioContext.currentTime);
+      masterGain.gain.exponentialRampToValueAtTime(0.13, audioContext.currentTime + 1.15);
+      masterGain.connect(audioContext.destination);
+
+      const padFilter = audioContext.createBiquadFilter();
+      padFilter.type = 'lowpass';
+      padFilter.frequency.value = 1100;
+      padFilter.Q.value = 0.45;
+      padFilter.connect(masterGain);
+      ambientNodes.push(padFilter);
+
+      // Midrange harmonics remain audible on laptop and phone speakers.
+      [174.61, 261.63, 392].forEach((frequency, index) => {
+        const oscillator = audioContext.createOscillator();
+        const gain = audioContext.createGain();
+        oscillator.type = index === 1 ? 'triangle' : 'sine';
+        oscillator.frequency.value = frequency;
+        oscillator.detune.value = [-6, 3, 7][index];
+        gain.gain.value = [0.043, 0.019, 0.009][index];
+        oscillator.connect(gain).connect(padFilter);
+        oscillator.start();
+        ambientNodes.push(oscillator, gain);
+      });
+
+      const noise = audioContext.createBufferSource();
+      const noiseHighpass = audioContext.createBiquadFilter();
+      const noiseFilter = audioContext.createBiquadFilter();
+      const noiseGain = audioContext.createGain();
+      noise.buffer = createNoiseBuffer(audioContext);
+      noise.loop = true;
+      noiseHighpass.type = 'highpass';
+      noiseHighpass.frequency.value = 260;
+      noiseFilter.type = 'lowpass';
+      noiseFilter.frequency.value = 1800;
+      noiseGain.gain.value = 0.028;
+      noise.connect(noiseHighpass).connect(noiseFilter).connect(noiseGain).connect(masterGain);
+      noise.start();
+      ambientNodes.push(noise, noiseHighpass, noiseFilter, noiseGain);
+
+      soundToggle.setAttribute('aria-pressed', 'true');
+      soundToggle.setAttribute('aria-label', 'Turn off soft night soundscape');
+      soundToggle.title = 'Soft night soundscape — sound is on';
+      soundLabel.textContent = 'Sound on';
+      playSoundStateCue(true);
+      scheduleChime();
+    }
+
+    function stopSoundscape() {
+      window.clearTimeout(chimeTimer);
+      chimeTimer = null;
+      if (audioContext && masterGain) {
+        const closingContext = audioContext;
+        playSoundStateCue(false);
+        masterGain.gain.cancelScheduledValues(closingContext.currentTime + 0.28);
+        masterGain.gain.setValueAtTime(Math.max(masterGain.gain.value, 0.0001), closingContext.currentTime + 0.28);
+        masterGain.gain.exponentialRampToValueAtTime(0.0001, closingContext.currentTime + 1.0);
+        window.setTimeout(() => closingContext.close(), 1080);
+      }
+      ambientNodes = [];
+      audioContext = null;
+      masterGain = null;
+      soundToggle.setAttribute('aria-pressed', 'false');
+      soundToggle.setAttribute('aria-label', 'Turn on soft night soundscape');
+      soundToggle.title = 'Soft night soundscape — sound is off';
+      soundLabel.textContent = 'Sound off';
+    }
+
+    soundToggle.addEventListener('click', async () => {
+      const isOn = soundToggle.getAttribute('aria-pressed') === 'true';
+      if (isOn) stopSoundscape();
+      else await startSoundscape();
+    });
+
+    function revealVisibleCards() {
+      cards.forEach((card, index) => {
+        window.setTimeout(() => card.classList.add('revealed'), index * 55);
+      });
+    }
+
+    filterButtons.forEach((button) => {
+      button.addEventListener('click', () => {
+        const filter = button.dataset.filter;
+        applyAtlasTheme(filter);
+
+        filterButtons.forEach((item) => {
+          item.setAttribute('aria-pressed', String(item === button));
+        });
+
+        sections.forEach((section) => {
+          section.hidden = filter !== 'all' && section.dataset.category !== filter;
+        });
+
+        requestAnimationFrame(() => {
+          const firstVisible = sections.find((section) => !section.hidden);
+          if (firstVisible && filter !== 'all') {
+            firstVisible.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }
+        });
+      });
+    });
+
+    applyAtlasTheme('all');
+
+    if ('IntersectionObserver' in window) {
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('revealed');
+            observer.unobserve(entry.target);
+          }
+        });
+      }, { threshold: 0.16 });
+
+      cards.forEach((card) => observer.observe(card));
+    } else {
+      revealVisibleCards();
+    }
+  </script>
+</body>
+</html>
