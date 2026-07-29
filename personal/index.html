@@ -4,8 +4,8 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="theme-color" content="#070b18" />
-  <meta name="build" content="unfold-personal-2026-07-29-thematic-atlas-v4" />
   <meta name="description" content="Unfold // Personal — a living atlas of useful things, quiet places, experiments, and small worlds." />
+  <meta name="build" content="thematic-atlas-mobile-smooth-2026-07-29" />
   <title>Unfold // Personal</title>
   <style>
     :root {
@@ -1266,6 +1266,105 @@
       .footer-row { align-items: flex-start; flex-direction: column; }
     }
 
+
+
+    /* Mobile performance pass: preserve the atmosphere while avoiding the
+       expensive combination of full-screen blur, dozens of shadow repaints,
+       continuous 60fps motion, and smooth scrolling during a theme change. */
+    @media (max-width: 700px), (pointer: coarse) {
+      .theme-veil {
+        inset: 0;
+        contain: strict;
+      }
+
+      .theme-layer {
+        filter: none;
+        transform: none;
+        animation: none;
+        transition-duration: .48s;
+        will-change: opacity;
+      }
+
+      .night-sky {
+        mask-image: linear-gradient(to bottom, #000 0%, rgba(0,0,0,.68) 58%, rgba(0,0,0,.12) 90%, transparent 100%);
+      }
+
+      .star {
+        transition: none;
+        box-shadow: 0 0 4px rgb(var(--theme-star-glow-rgb) / .24);
+      }
+
+      .star.warm {
+        box-shadow: 0 0 5px rgb(var(--theme-warm-glow-rgb) / .24);
+      }
+
+      .star:nth-child(3n) {
+        animation: none;
+        opacity: .58;
+      }
+
+      .sound-toggle,
+      .collection-nav-wrap,
+      .enter {
+        backdrop-filter: none;
+      }
+
+      .sound-toggle {
+        background: rgba(8, 13, 27, .95);
+      }
+
+      .collection-nav-wrap {
+        background: rgba(7, 11, 24, .96);
+      }
+
+      .collection-nav {
+        box-shadow: 0 8px 24px rgba(0,0,0,.16);
+        transition-duration: .45s;
+      }
+
+      .orbit {
+        transition-duration: .45s;
+      }
+
+      .atlas-core {
+        box-shadow: inset 0 0 48px rgb(var(--theme-accent-rgb) / .08), 0 0 42px rgb(var(--theme-accent-rgb) / .07);
+        transition: border-color .48s ease, background .48s ease;
+      }
+
+      .atlas-satellite {
+        transition: background .18s ease, border-color .18s ease, opacity .28s ease;
+      }
+
+      .atlas-satellite:hover,
+      .atlas-satellite:focus-visible,
+      .atlas-satellite.is-paused,
+      .atlas-satellite.is-active {
+        box-shadow: 0 8px 22px rgba(0, 0, 0, .28), 0 0 18px color-mix(in srgb, var(--satellite-color) 24%, transparent);
+      }
+
+      .atlas-satellite.is-active .satellite-dot {
+        animation: none;
+        box-shadow: 0 0 18px currentColor;
+      }
+
+      .atlas-dialog::backdrop {
+        backdrop-filter: none;
+      }
+
+      .section {
+        content-visibility: auto;
+        contain-intrinsic-size: 760px;
+      }
+
+      .world-card {
+        box-shadow: 0 18px 48px rgba(0, 0, 0, .30);
+      }
+
+      body.theme-changing .atlas-satellite {
+        pointer-events: none;
+      }
+    }
+
     @media (prefers-reduced-motion: reduce) {
       html { scroll-behavior: auto; }
       *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
@@ -1578,10 +1677,14 @@
     const coreTitle = document.querySelector('#core-title');
     const coreCopy = document.querySelector('#core-copy');
     const browserThemeColor = document.querySelector('meta[name="theme-color"]');
+    const mobilePerformanceMode = window.matchMedia('(max-width: 700px), (pointer: coarse)').matches;
+    document.documentElement.classList.toggle('mobile-performance', mobilePerformanceMode);
+    let themeSettleTimer = null;
+    let satellitesTemporarilyPaused = false;
 
     // A genuinely irregular sky: each star receives its own position, size,
     // warmth, brightness, and breathing rhythm instead of repeating in a grid.
-    const starCount = window.innerWidth < 640 ? 62 : 108;
+    const starCount = mobilePerformanceMode ? 34 : (window.innerWidth < 900 ? 72 : 108);
     const starFragment = document.createDocumentFragment();
     for (let index = 0; index < starCount; index += 1) {
       const star = document.createElement('span');
@@ -1663,6 +1766,13 @@
 
     function applyAtlasTheme(category) {
       const theme = atlasThemes[category] || atlasThemes.all;
+
+      if (mobilePerformanceMode) {
+        window.clearTimeout(themeSettleTimer);
+        document.body.classList.add('theme-changing');
+        satellitesTemporarilyPaused = true;
+      }
+
       document.body.dataset.theme = category in atlasThemes ? category : 'all';
       if (browserThemeColor) browserThemeColor.setAttribute('content', theme.browserColor);
       if (coreKicker) coreKicker.textContent = theme.kicker;
@@ -1673,6 +1783,14 @@
         satellite.classList.toggle('is-active', category !== 'all' && satellite.dataset.atlasCategory === category);
         satellite.setAttribute('aria-current', category !== 'all' && satellite.dataset.atlasCategory === category ? 'true' : 'false');
       });
+
+      if (mobilePerformanceMode) {
+        themeSettleTimer = window.setTimeout(() => {
+          document.body.classList.remove('theme-changing');
+          satellitesTemporarilyPaused = false;
+          previousFrame = performance.now();
+        }, 520);
+      }
     }
 
     const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -1700,13 +1818,24 @@
     }
 
     let previousFrame = performance.now();
+    let lastSatellitePaint = 0;
     function animateSatellites(now) {
-      const deltaSeconds = Math.min((now - previousFrame) / 1000, .05);
-      previousFrame = now;
-      satelliteMotion.forEach((satellite) => {
-        if (!satellite.paused) satellite.angle += satellite.speed * deltaSeconds;
-      });
-      placeSatellites();
+      const minimumFrameGap = mobilePerformanceMode ? 40 : 0;
+
+      if ((now - lastSatellitePaint) >= minimumFrameGap) {
+        const deltaSeconds = Math.min((now - previousFrame) / 1000, .06);
+        previousFrame = now;
+
+        if (!satellitesTemporarilyPaused) {
+          satelliteMotion.forEach((satellite) => {
+            if (!satellite.paused) satellite.angle += satellite.speed * deltaSeconds;
+          });
+          placeSatellites();
+        }
+
+        lastSatellitePaint = now;
+      }
+
       window.requestAnimationFrame(animateSatellites);
     }
 
@@ -1964,7 +2093,7 @@
         requestAnimationFrame(() => {
           const firstVisible = sections.find((section) => !section.hidden);
           if (firstVisible && filter !== 'all') {
-            firstVisible.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            firstVisible.scrollIntoView({ behavior: mobilePerformanceMode ? 'auto' : 'smooth', block: 'start' });
           }
         });
       });
