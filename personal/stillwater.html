@@ -1,0 +1,405 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Stillwater — A Quiet Place to Return To</title>
+  <style>
+    *{box-sizing:border-box}
+    html,body{margin:0;min-height:100%;background:#071218}
+    body{font-family:ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+    button,input,textarea,select{font:inherit}
+    #stillwater{isolation:isolate;position:relative;width:100%;min-height:100vh;overflow:hidden;background:#071218;color:#edf7f5}
+    #stillwater .sky{position:absolute;inset:0;overflow:hidden;background:
+      radial-gradient(circle at 72% 17%,rgba(189,232,220,.13),transparent 27%),
+      radial-gradient(circle at 25% 35%,rgba(80,132,143,.18),transparent 34%),
+      linear-gradient(180deg,#071218 0%,#0b2229 46%,#102f35 68%,#071a20 100%)}
+    #stillwater .aurora{position:absolute;width:88%;height:42%;left:6%;top:-10%;filter:blur(34px);opacity:.45;background:radial-gradient(ellipse,rgba(119,217,190,.28),transparent 62%);animation:drift 14s ease-in-out infinite alternate}
+    #stillwater .moon{position:absolute;right:9%;top:8%;width:92px;height:92px;border-radius:999px;background:radial-gradient(circle at 35% 32%,#fffdf2,#dcece5 58%,#a8c6bf);box-shadow:0 0 48px rgba(222,244,235,.22)}
+    #stillwater .moon:after{content:"";position:absolute;width:21px;height:21px;border-radius:50%;background:rgba(118,151,147,.16);left:23px;top:18px;box-shadow:30px 31px 0 5px rgba(118,151,147,.1),12px 48px 0 1px rgba(118,151,147,.1)}
+    #stillwater .stars{position:absolute;inset:0;background-image:radial-gradient(circle,rgba(238,255,250,.75) 0 1px,transparent 1.4px);background-size:59px 59px;opacity:.35;animation:twinkle 6s ease-in-out infinite alternate}
+    #stillwater .horizon{position:absolute;left:-5%;right:-5%;bottom:22%;height:31%;border-radius:50% 50% 0 0;background:linear-gradient(180deg,rgba(51,114,118,.2),rgba(7,26,32,.75))}
+    #stillwater .water{position:absolute;left:0;right:0;bottom:0;height:34%;background:linear-gradient(180deg,rgba(22,67,72,.66),#07161b 88%);overflow:hidden}
+    #stillwater .water:before,#stillwater .water:after{content:"";position:absolute;left:-20%;width:140%;height:55px;border-radius:50%;border-top:1px solid rgba(207,244,234,.12)}
+    #stillwater .water:before{top:18%;animation:ripple 9s ease-in-out infinite}
+    #stillwater .water:after{top:47%;animation:ripple 13s ease-in-out infinite reverse}
+    #stillwater .reflection{position:absolute;right:10.5%;top:0;width:55px;height:85%;background:linear-gradient(180deg,rgba(230,252,244,.18),transparent);filter:blur(9px);clip-path:polygon(42% 0,58% 0,84% 100%,16% 100%);animation:shimmer 4s ease-in-out infinite alternate}
+    #stillwater .glass{background:rgba(5,21,26,.49);border:1px solid rgba(211,242,235,.14);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px)}
+    #stillwater .soft-button{border:1px solid rgba(214,242,235,.16);background:rgba(225,250,243,.065);color:#edf7f5;transition:.25s ease;cursor:pointer}
+    #stillwater .soft-button:hover{background:rgba(225,250,243,.13);transform:translateY(-1px)}
+    #stillwater .soft-button.active{background:rgba(190,239,225,.18);border-color:rgba(190,239,225,.38)}
+    #stillwater .primary{background:linear-gradient(135deg,rgba(188,236,223,.94),rgba(139,204,192,.88));color:#092027;border:0;box-shadow:0 10px 30px rgba(82,162,149,.18);transition:.25s ease;cursor:pointer}
+    #stillwater .primary:hover{transform:translateY(-1px);filter:brightness(1.04)}
+    #stillwater .breath-wrap{position:relative;width:190px;height:190px;display:grid;place-items:center}
+    #stillwater .breath-ring{position:absolute;inset:19px;border-radius:50%;border:1px solid rgba(211,247,237,.25);box-shadow:inset 0 0 30px rgba(176,231,216,.08),0 0 34px rgba(130,213,194,.09);transition:transform 4s ease-in-out,opacity 1s ease}
+    #stillwater .breath-core{width:92px;height:92px;border-radius:50%;display:grid;place-items:center;text-align:center;background:radial-gradient(circle at 35% 30%,rgba(240,255,250,.92),rgba(151,218,202,.47) 32%,rgba(75,139,137,.2) 71%,rgba(11,41,48,.12));box-shadow:0 0 52px rgba(146,228,208,.24);transition:transform 4s ease-in-out}
+    #stillwater .inhale .breath-ring{transform:scale(1.3);opacity:1}
+    #stillwater .inhale .breath-core{transform:scale(1.16)}
+    #stillwater .exhale .breath-ring{transform:scale(.83);opacity:.55;transition-duration:6s}
+    #stillwater .exhale .breath-core{transform:scale(.88);transition-duration:6s}
+    #stillwater textarea,#stillwater input,#stillwater select{color:#eff9f6;background:rgba(225,250,243,.055);border:1px solid rgba(211,242,235,.15);outline:none}
+    #stillwater textarea:focus,#stillwater input:focus,#stillwater select:focus{border-color:rgba(190,239,225,.48);box-shadow:0 0 0 3px rgba(190,239,225,.08)}
+    #stillwater textarea::placeholder,#stillwater input::placeholder{color:rgba(226,245,239,.43)}
+    #stillwater .released{animation:release 1.6s ease forwards}
+    #stillwater .firefly{position:absolute;width:3px;height:3px;border-radius:50%;background:#d9fff2;box-shadow:0 0 9px #baf5df;opacity:0;animation:floatUp var(--dur) ease-in infinite;left:var(--x);bottom:17%}
+    .shell{position:relative;z-index:10;min-height:100vh;display:flex;flex-direction:column;padding:28px}
+    header{display:flex;align-items:flex-start;justify-content:space-between;gap:16px}
+    .eyebrow{font-size:12px;text-transform:uppercase;letter-spacing:.3em;color:rgba(218,242,235,.62);margin:0}
+    h1{margin:8px 0 0;font-size:clamp(28px,4vw,44px);font-weight:500;letter-spacing:-.03em;max-width:850px}
+    .subtle{color:rgba(226,245,239,.66);font-size:14px;line-height:1.6}
+    .main-grid{margin-top:28px;display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);gap:20px;flex:1}
+    section{border-radius:28px;padding:24px}
+    .ritual{display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center}
+    .timer{font-size:36px;font-weight:300;font-variant-numeric:tabular-nums;margin-top:4px}
+    .mode-row,.control-row{display:flex;flex-wrap:wrap;justify-content:center;gap:8px}
+    .mode-row{margin-top:20px}
+    button{border-radius:999px;padding:10px 16px}
+    .control-row{margin-top:16px;align-items:center}
+    select{border-radius:12px;padding:9px 12px}
+    .page{display:flex;flex-direction:column}
+    .page-head{display:flex;align-items:center;justify-content:space-between;gap:12px}
+    h2{margin:0;font-size:20px;font-weight:500}
+    .badge{border-radius:999px;padding:6px 11px;font-size:12px;background:rgba(194,238,225,.1);color:rgba(229,249,243,.72)}
+    label{font-size:14px;font-weight:500;margin-top:18px}
+    textarea,input{width:100%;border-radius:16px;padding:13px 14px;margin-top:8px;font-size:16px}
+    textarea{resize:none}
+    .divider{height:1px;background:rgba(219,246,239,.1);margin:20px 0}
+    .kept{margin-top:20px;border-radius:16px;border:1px solid rgba(208,244,234,.13);background:rgba(208,244,234,.055);padding:16px}
+    .hidden{display:none}
+    footer{margin-top:18px;display:flex;align-items:center;justify-content:space-between;gap:12px;color:rgba(220,242,236,.52);font-size:14px}
+    @keyframes drift{to{transform:translate(5%,7%) scale(1.12)}}
+    @keyframes twinkle{to{opacity:.54}}
+    @keyframes ripple{50%{transform:translateX(5%) scaleY(.72)}}
+    @keyframes shimmer{to{opacity:.55;transform:scaleX(1.2)}}
+    @keyframes floatUp{0%{opacity:0;transform:translateY(0)}20%{opacity:.8}80%{opacity:.35}100%{opacity:0;transform:translateY(-310px) translateX(35px)}}
+    @keyframes release{0%{opacity:1;transform:translateY(0);filter:blur(0)}100%{opacity:0;transform:translateY(-35px);filter:blur(7px)}}
+    @media(max-width:760px){
+      .shell{padding:20px}
+      header{flex-direction:column}
+      .main-grid{grid-template-columns:1fr}
+      .moon{width:68px!important;height:68px!important}
+      footer{align-items:flex-start;flex-direction:column}
+    }
+    @media(prefers-reduced-motion:reduce){#stillwater *,#stillwater *:before,#stillwater *:after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
+  </style>
+</head>
+<body>
+<div id="stillwater">
+  <div class="sky" aria-hidden="true">
+    <div class="aurora"></div><div class="stars"></div><div class="moon"></div><div class="horizon"></div>
+    <div class="water"><div class="reflection"></div></div>
+    <span class="firefly" style="--x:8%;--dur:9s;animation-delay:1s"></span>
+    <span class="firefly" style="--x:21%;--dur:13s;animation-delay:4s"></span>
+    <span class="firefly" style="--x:43%;--dur:11s;animation-delay:2s"></span>
+    <span class="firefly" style="--x:64%;--dur:14s;animation-delay:6s"></span>
+    <span class="firefly" style="--x:87%;--dur:10s;animation-delay:3s"></span>
+  </div>
+
+  <div class="shell">
+    <header>
+      <div>
+        <p class="eyebrow">A quiet place to return to</p>
+        <h1>You do not have to solve everything tonight.</h1>
+        <p id="whisper" class="subtle">For the next few minutes, let the water hold what you cannot.</p>
+      </div>
+      <button id="soundButton" type="button" class="soft-button" aria-pressed="false">♪ Sound asleep</button>
+    </header>
+
+    <div class="main-grid">
+      <section class="glass ritual">
+        <div id="breathWrap" class="breath-wrap exhale" aria-live="polite">
+          <div class="breath-ring"></div>
+          <div class="breath-core">
+            <div>
+              <div id="breathWord" style="font-size:14px;font-weight:500">Arrive</div>
+              <div id="breathCount" style="margin-top:4px;font-size:12px;color:rgba(9,32,39,.7)">gently</div>
+            </div>
+          </div>
+        </div>
+        <div id="timerDisplay" class="timer">05:00</div>
+        <p id="modeDescription" class="subtle" style="max-width:320px">A slow 4-in, 6-out breath to help your body soften.</p>
+
+        <div class="mode-row" role="group" aria-label="Choose a ritual">
+          <button type="button" class="mode soft-button active" data-mode="breathe">Breathe</button>
+          <button type="button" class="mode soft-button" data-mode="unclench">Unclench</button>
+          <button type="button" class="mode soft-button" data-mode="focus">Focus</button>
+        </div>
+
+        <div class="control-row">
+          <label for="duration" style="margin:0;color:rgba(226,245,239,.62)">Minutes</label>
+          <select id="duration">
+            <option value="3">3</option>
+            <option value="5" selected>5</option>
+            <option value="10">10</option>
+            <option value="15">15</option>
+          </select>
+          <button id="startButton" type="button" class="primary">Begin</button>
+        </div>
+      </section>
+
+      <section class="glass page">
+        <div class="page-head">
+          <div>
+            <h2>The moonlit page</h2>
+            <p class="subtle" style="margin:4px 0 0">Name what is here. Keep only what helps.</p>
+          </div>
+          <span id="statusBadge" class="badge">nothing required</span>
+        </div>
+
+        <label for="releaseText">Something I can set down for now</label>
+        <textarea id="releaseText" rows="4" placeholder="A worry, a decision, a difficult moment…"></textarea>
+        <button id="releaseButton" type="button" class="soft-button" style="margin-top:12px;align-self:flex-start;border-radius:12px">Release it to the water</button>
+
+        <div class="divider"></div>
+
+        <label for="nextStep" style="margin-top:0">One small kindness for tomorrow-me</label>
+        <input id="nextStep" placeholder="Drink water. Send one message. Rest without guilt.">
+        <button id="keepButton" type="button" class="primary" style="margin-top:12px;align-self:flex-start;border-radius:12px">Keep this one</button>
+
+        <div id="keptNote" class="kept hidden" aria-live="polite">
+          <p style="margin:0;font-size:12px;text-transform:uppercase;letter-spacing:.2em;color:rgba(216,241,234,.5)">A lantern for tomorrow</p>
+          <p id="keptText" style="margin:8px 0 0"></p>
+        </div>
+      </section>
+    </div>
+
+    <footer>
+      <span id="footerMessage">Stay until your shoulders remember they can come down.</span>
+      <button id="newWhisper" type="button" class="soft-button">Give me another thought</button>
+    </footer>
+  </div>
+</div>
+
+<script>
+  const root = document.getElementById('stillwater');
+  const breathWrap = document.getElementById('breathWrap');
+  const breathWord = document.getElementById('breathWord');
+  const breathCount = document.getElementById('breathCount');
+  const timerDisplay = document.getElementById('timerDisplay');
+  const modeDescription = document.getElementById('modeDescription');
+  const startButton = document.getElementById('startButton');
+  const durationSelect = document.getElementById('duration');
+  const modeButtons = [...root.querySelectorAll('.mode')];
+  const soundButton = document.getElementById('soundButton');
+  const whisper = document.getElementById('whisper');
+  const footerMessage = document.getElementById('footerMessage');
+
+  const modes = {
+    breathe:{description:'A slow 4-in, 6-out breath to help your body soften.', inhale:4, exhale:6},
+    unclench:{description:'A gentle scan: jaw, shoulders, hands, belly, eyes.', prompts:['Unclench your jaw','Let your tongue rest','Drop your shoulders','Open your hands','Soften your belly','Relax behind your eyes']},
+    focus:{description:'One small pocket of time. One thing only.', prompts:['Choose the next visible step','Let everything else wait','Return to the one thing','Small and steady is enough']}
+  };
+
+  const whispers = [
+    'Nothing is asking you to be impressive here.',
+    'You are allowed to pause before you understand.',
+    'Let this moment be smaller than the whole story.',
+    'Rest is not a reward for finishing everything.',
+    'Some things become clearer when we stop gripping them.',
+    'You have survived every unfinished day so far.',
+    'Tonight, being here is enough.'
+  ];
+
+  const footers = [
+    'Stay until your shoulders remember they can come down.',
+    'The night is not empty. It is making room.',
+    'You may leave with only one softer breath.',
+    'There is no score here, only returning.',
+    'Small peace still counts as peace.'
+  ];
+
+  let currentMode='breathe', running=false, remaining=300, timerId=null, phaseId=null, phaseIndex=0;
+  let audioCtx=null, master=null, noiseSource=null, bellTimer=null, soundOn=false;
+
+  function formatTime(seconds){
+    const m=Math.floor(seconds/60);
+    const s=seconds%60;
+    return `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+  }
+
+  function resetTimer(){
+    remaining=Number(durationSelect.value)*60;
+    timerDisplay.textContent=formatTime(remaining);
+  }
+
+  function stopRitual(){
+    running=false;
+    clearInterval(timerId);
+    clearTimeout(phaseId);
+    startButton.textContent='Begin';
+    breathWrap.className='breath-wrap exhale';
+    breathWord.textContent='Arrive';
+    breathCount.textContent='gently';
+  }
+
+  function setMode(mode){
+    currentMode=mode;
+    stopRitual();
+    resetTimer();
+    phaseIndex=0;
+    modeButtons.forEach(b=>b.classList.toggle('active',b.dataset.mode===mode));
+    modeDescription.textContent=modes[mode].description;
+    breathWord.textContent=mode==='focus'?'One thing':mode==='unclench'?'Soften':'Arrive';
+  }
+
+  function runBreathPhase(inhale=true){
+    if(!running)return;
+    const seconds=inhale?modes.breathe.inhale:modes.breathe.exhale;
+    breathWrap.className=`breath-wrap ${inhale?'inhale':'exhale'}`;
+    breathWord.textContent=inhale?'Breathe in':'Let go';
+    let count=seconds;
+    breathCount.textContent=count;
+
+    const counter=setInterval(()=>{
+      count--;
+      if(count>0) breathCount.textContent=count;
+      else clearInterval(counter);
+    },1000);
+
+    phaseId=setTimeout(()=>runBreathPhase(!inhale),seconds*1000);
+  }
+
+  function showPrompt(){
+    if(!running)return;
+    const prompts=modes[currentMode].prompts;
+    breathWord.textContent=prompts[phaseIndex%prompts.length];
+    breathCount.textContent=currentMode==='focus'?'stay here':'breathe';
+    breathWrap.className=`breath-wrap ${phaseIndex%2?'exhale':'inhale'}`;
+    phaseIndex++;
+    phaseId=setTimeout(showPrompt,currentMode==='focus'?9000:7000);
+  }
+
+  function startRitual(){
+    if(running){
+      stopRitual();
+      return;
+    }
+    running=true;
+    startButton.textContent='Pause';
+
+    if(currentMode==='breathe') runBreathPhase(true);
+    else showPrompt();
+
+    timerId=setInterval(()=>{
+      remaining--;
+      timerDisplay.textContent=formatTime(Math.max(remaining,0));
+      if(remaining<=0){
+        stopRitual();
+        timerDisplay.textContent='00:00';
+        breathWord.textContent='You arrived';
+        breathCount.textContent='enough';
+        whisper.textContent='Carry only the gentleness with you.';
+        playBell();
+      }
+    },1000);
+  }
+
+  function makeNoiseBuffer(ctx){
+    const buffer=ctx.createBuffer(1,ctx.sampleRate*2,ctx.sampleRate);
+    const data=buffer.getChannelData(0);
+    for(let i=0;i<data.length;i++) data[i]=(Math.random()*2-1)*.35;
+    return buffer;
+  }
+
+  function playBell(){
+    if(!audioCtx||!soundOn)return;
+    const now=audioCtx.currentTime;
+    [432,648,864].forEach((freq,i)=>{
+      const o=audioCtx.createOscillator();
+      const g=audioCtx.createGain();
+      o.type='sine';
+      o.frequency.value=freq;
+      g.gain.setValueAtTime(0,now+i*.04);
+      g.gain.linearRampToValueAtTime(.035/(i+1),now+.05+i*.04);
+      g.gain.exponentialRampToValueAtTime(.0001,now+4+i*.5);
+      o.connect(g).connect(master);
+      o.start(now+i*.04);
+      o.stop(now+5+i*.5);
+    });
+  }
+
+  function startSound(){
+    audioCtx=new (window.AudioContext||window.webkitAudioContext)();
+    master=audioCtx.createGain();
+    master.gain.value=.45;
+    master.connect(audioCtx.destination);
+
+    const filter=audioCtx.createBiquadFilter();
+    filter.type='lowpass';
+    filter.frequency.value=430;
+
+    noiseSource=audioCtx.createBufferSource();
+    noiseSource.buffer=makeNoiseBuffer(audioCtx);
+    noiseSource.loop=true;
+
+    const noiseGain=audioCtx.createGain();
+    noiseGain.gain.value=.035;
+    noiseSource.connect(filter).connect(noiseGain).connect(master);
+    noiseSource.start();
+
+    [108,162].forEach((freq,i)=>{
+      const o=audioCtx.createOscillator();
+      const g=audioCtx.createGain();
+      o.type='sine';
+      o.frequency.value=freq;
+      g.gain.value=i?.012:.018;
+      o.connect(g).connect(master);
+      o.start();
+    });
+
+    bellTimer=setInterval(playBell,15000);
+    soundOn=true;
+    soundButton.textContent='♪ Sound awake';
+    soundButton.setAttribute('aria-pressed','true');
+    playBell();
+  }
+
+  function stopSound(){
+    if(audioCtx){
+      audioCtx.close();
+      audioCtx=null;
+    }
+    clearInterval(bellTimer);
+    soundOn=false;
+    soundButton.textContent='♪ Sound asleep';
+    soundButton.setAttribute('aria-pressed','false');
+  }
+
+  modeButtons.forEach(b=>b.addEventListener('click',()=>setMode(b.dataset.mode)));
+  durationSelect.addEventListener('change',()=>{stopRitual();resetTimer()});
+  startButton.addEventListener('click',startRitual);
+  soundButton.addEventListener('click',()=>soundOn?stopSound():startSound());
+
+  document.getElementById('releaseButton').addEventListener('click',()=>{
+    const field=document.getElementById('releaseText');
+    if(!field.value.trim())return;
+    field.classList.add('released');
+    document.getElementById('statusBadge').textContent='released';
+    setTimeout(()=>{
+      field.value='';
+      field.classList.remove('released');
+      field.focus();
+      document.getElementById('statusBadge').textContent='the water has it';
+    },1650);
+    if(soundOn)playBell();
+  });
+
+  document.getElementById('keepButton').addEventListener('click',()=>{
+    const field=document.getElementById('nextStep');
+    const text=field.value.trim();
+    if(!text)return;
+    document.getElementById('keptText').textContent=text;
+    document.getElementById('keptNote').classList.remove('hidden');
+    document.getElementById('statusBadge').textContent='one lantern lit';
+    field.value='';
+  });
+
+  document.getElementById('newWhisper').addEventListener('click',()=>{
+    whisper.textContent=whispers[Math.floor(Math.random()*whispers.length)];
+    footerMessage.textContent=footers[Math.floor(Math.random()*footers.length)];
+  });
+
+  resetTimer();
+</script>
+</body>
+</html>
