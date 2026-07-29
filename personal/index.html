@@ -1,0 +1,1109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#070b18" />
+  <meta name="description" content="Unfold // Personal — a living atlas of useful things, quiet places, experiments, and small worlds." />
+  <title>Unfold // Personal</title>
+  <style>
+    :root {
+      --ink: #070b18;
+      --ink-2: #0b1124;
+      --panel: rgba(13, 20, 40, 0.78);
+      --panel-strong: rgba(15, 23, 47, 0.94);
+      --line: rgba(214, 226, 255, 0.13);
+      --line-strong: rgba(236, 214, 165, 0.36);
+      --text: #f4f0e8;
+      --muted: #aeb8cc;
+      --muted-2: #7f8ba4;
+      --gold: #e8bb70;
+      --gold-soft: #f2d8a7;
+      --cyan: #51dcff;
+      --magenta: #ff4db8;
+      --violet: #9f8cff;
+      --teal: #6ad9d0;
+      --amber: #ffbf68;
+      --radius-lg: 28px;
+      --radius-md: 20px;
+      --shadow: 0 28px 80px rgba(0, 0, 0, 0.38);
+      --max: 1180px;
+    }
+
+    * { box-sizing: border-box; }
+
+    html {
+      scroll-behavior: smooth;
+      background: var(--ink);
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--text);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background:
+        radial-gradient(circle at 15% -5%, rgba(61, 84, 169, 0.24), transparent 34%),
+        radial-gradient(circle at 85% 8%, rgba(181, 60, 148, 0.13), transparent 26%),
+        linear-gradient(180deg, #070b18 0%, #081020 45%, #071019 100%);
+      overflow-x: hidden;
+    }
+
+    body::before,
+    body::after {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: -1;
+    }
+
+    body::before {
+      opacity: 0.34;
+      background-image:
+        radial-gradient(circle, rgba(255,255,255,.72) 0 1px, transparent 1.4px),
+        radial-gradient(circle, rgba(127,208,255,.42) 0 1px, transparent 1.5px);
+      background-size: 92px 92px, 157px 157px;
+      background-position: 14px 17px, 31px 71px;
+      mask-image: linear-gradient(to bottom, #000 0%, rgba(0,0,0,.5) 48%, transparent 100%);
+    }
+
+    body::after {
+      background: linear-gradient(90deg, rgba(255,255,255,.016) 1px, transparent 1px),
+                  linear-gradient(rgba(255,255,255,.012) 1px, transparent 1px);
+      background-size: 56px 56px;
+      mask-image: radial-gradient(circle at center top, black, transparent 72%);
+    }
+
+    a { color: inherit; }
+    button { font: inherit; }
+
+    .shell {
+      width: min(var(--max), calc(100% - 40px));
+      margin: 0 auto;
+    }
+
+    .skip-link {
+      position: fixed;
+      top: 12px;
+      left: 12px;
+      padding: 10px 14px;
+      border-radius: 999px;
+      color: #081020;
+      background: var(--gold-soft);
+      transform: translateY(-150%);
+      z-index: 100;
+    }
+
+    .skip-link:focus { transform: translateY(0); }
+
+    .hero {
+      min-height: 92vh;
+      display: grid;
+      align-items: center;
+      padding: 64px 0 42px;
+      position: relative;
+    }
+
+    .hero-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1.1fr) minmax(330px, .9fr);
+      gap: 64px;
+      align-items: center;
+    }
+
+    .eyebrow {
+      margin: 0 0 18px;
+      color: var(--gold);
+      font-size: .78rem;
+      letter-spacing: .27em;
+      text-transform: uppercase;
+    }
+
+    h1, h2, h3 {
+      font-family: Georgia, "Times New Roman", serif;
+      font-weight: 400;
+    }
+
+    h1 {
+      max-width: 760px;
+      margin: 0;
+      font-size: clamp(3.25rem, 9vw, 7.5rem);
+      line-height: .9;
+      letter-spacing: -.055em;
+    }
+
+    h1 span {
+      display: block;
+      margin-top: .16em;
+      color: transparent;
+      -webkit-text-stroke: 1px rgba(242, 216, 167, .72);
+      text-stroke: 1px rgba(242, 216, 167, .72);
+    }
+
+    .hero-copy {
+      max-width: 640px;
+      margin: 28px 0 0;
+      color: #c8d0df;
+      font-size: clamp(1.02rem, 2vw, 1.26rem);
+      line-height: 1.75;
+    }
+
+    .signature {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      margin-top: 28px;
+      color: var(--gold-soft);
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: 1.15rem;
+      font-style: italic;
+    }
+
+    .signature::before {
+      content: "";
+      width: 48px;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--gold));
+    }
+
+    .hero-orbit {
+      position: relative;
+      min-height: 520px;
+      display: grid;
+      place-items: center;
+      isolation: isolate;
+    }
+
+    .orbit {
+      position: absolute;
+      border: 1px solid rgba(207, 219, 255, .14);
+      border-radius: 50%;
+      animation: spin 42s linear infinite;
+    }
+
+    .orbit.one { width: 410px; height: 410px; }
+    .orbit.two { width: 292px; height: 292px; animation-direction: reverse; animation-duration: 30s; }
+    .orbit.three { width: 510px; height: 200px; transform: rotate(-20deg); animation-duration: 58s; }
+
+    .orbit::after {
+      content: "";
+      position: absolute;
+      top: 50%;
+      left: -5px;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: var(--gold);
+      box-shadow: 0 0 22px rgba(232, 187, 112, .85);
+    }
+
+    .atlas-core {
+      position: relative;
+      width: min(360px, 80vw);
+      aspect-ratio: 1;
+      border-radius: 50%;
+      border: 1px solid rgba(227, 211, 174, .22);
+      background:
+        radial-gradient(circle at 63% 37%, rgba(255,255,255,.88) 0 1px, transparent 2px),
+        radial-gradient(circle at 34% 64%, rgba(85,220,255,.72) 0 1px, transparent 2px),
+        radial-gradient(circle at 50% 50%, rgba(43, 67, 128, .14), transparent 48%),
+        radial-gradient(circle at center, rgba(17, 28, 59, .96), rgba(7, 11, 24, .72) 68%, transparent 69%);
+      box-shadow: inset 0 0 90px rgba(104, 126, 201, .11), 0 0 100px rgba(54, 88, 176, .12);
+      display: grid;
+      place-items: center;
+    }
+
+    .core-text {
+      width: 68%;
+      text-align: center;
+    }
+
+    .core-text small {
+      display: block;
+      color: var(--gold);
+      letter-spacing: .22em;
+      text-transform: uppercase;
+      font-size: .66rem;
+    }
+
+    .core-text strong {
+      display: block;
+      margin-top: 14px;
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: clamp(1.45rem, 4vw, 2.4rem);
+      font-weight: 400;
+      line-height: 1.15;
+    }
+
+    .core-text p {
+      color: var(--muted);
+      font-size: .88rem;
+      line-height: 1.6;
+    }
+
+    .hero-marker {
+      position: absolute;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--muted);
+      font-size: .72rem;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+    }
+
+    .hero-marker::before {
+      content: "";
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      border: 1px solid currentColor;
+      box-shadow: 0 0 12px currentColor;
+    }
+
+    .hero-marker.signal { top: 16%; right: 4%; color: var(--magenta); }
+    .hero-marker.wonder { top: 34%; left: 1%; color: var(--cyan); }
+    .hero-marker.shelter { bottom: 18%; right: 2%; color: var(--amber); }
+    .hero-marker.elsewhere { bottom: 5%; left: 10%; color: var(--teal); }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .collection-nav-wrap {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      padding: 14px 0;
+      background: linear-gradient(180deg, rgba(7,11,24,.92), rgba(7,11,24,.72) 76%, transparent);
+      backdrop-filter: blur(18px);
+    }
+
+    .collection-nav {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+      justify-content: center;
+      padding: 10px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: rgba(12, 18, 36, .76);
+      box-shadow: 0 12px 40px rgba(0,0,0,.18);
+    }
+
+    .filter-button {
+      border: 0;
+      border-radius: 999px;
+      padding: 10px 15px;
+      color: var(--muted);
+      background: transparent;
+      cursor: pointer;
+      letter-spacing: .08em;
+      font-size: .72rem;
+      text-transform: uppercase;
+      transition: color .25s ease, background .25s ease, transform .25s ease;
+    }
+
+    .filter-button:hover { color: var(--text); transform: translateY(-1px); }
+    .filter-button[aria-pressed="true"] {
+      color: #111522;
+      background: var(--gold-soft);
+    }
+
+    main { padding: 72px 0 120px; }
+
+    .section {
+      display: grid;
+      grid-template-columns: 190px minmax(0, 1fr);
+      gap: 46px;
+      padding: 78px 0;
+      border-top: 1px solid var(--line);
+      scroll-margin-top: 110px;
+    }
+
+    .section[hidden] { display: none; }
+
+    .section-meta {
+      position: sticky;
+      top: 112px;
+      align-self: start;
+    }
+
+    .section-number {
+      color: var(--muted-2);
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: 2rem;
+    }
+
+    .section-kicker {
+      margin: 18px 0 0;
+      font-size: .72rem;
+      letter-spacing: .22em;
+      text-transform: uppercase;
+    }
+
+    .section-meta p {
+      margin: 16px 0 0;
+      color: var(--muted);
+      line-height: 1.7;
+      font-size: .9rem;
+    }
+
+    .section-title {
+      margin: 0 0 30px;
+      font-size: clamp(2.2rem, 5vw, 4.6rem);
+      line-height: .96;
+      letter-spacing: -.04em;
+    }
+
+    .section-subtitle {
+      max-width: 690px;
+      margin: -10px 0 34px;
+      color: var(--muted);
+      line-height: 1.75;
+    }
+
+    .cards {
+      display: grid;
+      gap: 18px;
+    }
+
+    .cards.two { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .cards.three { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+
+    .world-card {
+      position: relative;
+      min-height: 330px;
+      overflow: hidden;
+      border: 1px solid var(--line);
+      border-radius: var(--radius-lg);
+      color: var(--text);
+      text-decoration: none;
+      background: var(--panel-strong);
+      box-shadow: var(--shadow);
+      isolation: isolate;
+      transform: translateY(18px);
+      opacity: 0;
+      transition: transform .7s cubic-bezier(.2,.7,.2,1), opacity .7s ease, border-color .35s ease;
+    }
+
+    .world-card.revealed { transform: translateY(0); opacity: 1; }
+
+    .world-card::before,
+    .world-card::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+    }
+
+    .world-card::after {
+      background: linear-gradient(180deg, rgba(4,7,16,.02) 0%, rgba(4,7,16,.24) 46%, rgba(4,7,16,.94) 100%);
+      z-index: -1;
+    }
+
+    .world-card:hover {
+      transform: translateY(-5px);
+      border-color: var(--line-strong);
+    }
+
+    .world-card:focus-visible {
+      outline: 3px solid var(--gold-soft);
+      outline-offset: 4px;
+    }
+
+    .world-card.featured { min-height: 460px; }
+
+    .world-card-content {
+      position: absolute;
+      inset: auto 0 0;
+      padding: 30px;
+      z-index: 2;
+    }
+
+    .world-meta {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      margin-bottom: 14px;
+      color: var(--muted);
+      font-size: .68rem;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+    }
+
+    .world-label {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .world-label::before {
+      content: "";
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: currentColor;
+      box-shadow: 0 0 14px currentColor;
+    }
+
+    .world-card h3 {
+      margin: 0;
+      font-size: clamp(1.7rem, 3vw, 3rem);
+      line-height: 1.03;
+      letter-spacing: -.03em;
+    }
+
+    .world-card:not(.featured) h3 { font-size: clamp(1.45rem, 2.2vw, 2.2rem); }
+
+    .world-card p {
+      max-width: 620px;
+      margin: 14px 0 0;
+      color: #c0c8d7;
+      line-height: 1.65;
+      font-size: .94rem;
+    }
+
+    .enter {
+      position: absolute;
+      top: 24px;
+      right: 24px;
+      display: grid;
+      place-items: center;
+      width: 46px;
+      height: 46px;
+      border: 1px solid rgba(255,255,255,.18);
+      border-radius: 50%;
+      background: rgba(8, 13, 27, .38);
+      backdrop-filter: blur(12px);
+      transition: transform .3s ease, background .3s ease;
+      z-index: 3;
+    }
+
+    .world-card:hover .enter {
+      transform: translate(3px, -3px);
+      background: rgba(232,187,112,.18);
+    }
+
+    .enter svg { width: 19px; height: 19px; }
+
+    /* Scene artwork — all CSS, no external image dependencies. */
+    .scene-night-route::before {
+      background:
+        linear-gradient(90deg, transparent 0 8%, rgba(255,77,184,.48) 8.5% 9.2%, transparent 9.8% 17%, rgba(81,220,255,.36) 17.4% 18%, transparent 18.5% 31%, rgba(255,77,184,.24) 31.5% 33%, transparent 33.5% 66%, rgba(81,220,255,.2) 66.4% 67.2%, transparent 67.8%),
+        linear-gradient(180deg, transparent 0 37%, rgba(6,8,21,.08) 38%, rgba(7,9,20,.92) 100%),
+        radial-gradient(circle at 76% 24%, rgba(255,77,184,.28), transparent 24%),
+        radial-gradient(circle at 20% 10%, rgba(81,220,255,.22), transparent 28%),
+        linear-gradient(135deg, #121436 0%, #0b1029 45%, #150b27 100%);
+    }
+
+    .scene-night-route .city {
+      position: absolute;
+      inset: 14% 2% 18%;
+      z-index: 0;
+      opacity: .9;
+      background:
+        linear-gradient(90deg,
+          transparent 0 3%, #0c1023 3% 12%, transparent 12% 14%, #11152b 14% 24%, transparent 24% 26%, #0f1329 26% 34%, transparent 34% 38%, #14172d 38% 49%, transparent 49% 53%, #0d1127 53% 62%, transparent 62% 65%, #15142c 65% 76%, transparent 76% 79%, #111428 79% 91%, transparent 91%);
+      clip-path: polygon(0 72%, 6% 72%, 6% 28%, 10% 28%, 10% 42%, 15% 42%, 15% 18%, 20% 18%, 20% 56%, 27% 56%, 27% 33%, 32% 33%, 32% 12%, 38% 12%, 38% 49%, 45% 49%, 45% 27%, 51% 27%, 51% 62%, 58% 62%, 58% 20%, 64% 20%, 64% 45%, 70% 45%, 70% 8%, 76% 8%, 76% 54%, 83% 54%, 83% 31%, 89% 31%, 89% 58%, 96% 58%, 96% 39%, 100% 39%, 100% 100%, 0 100%);
+      box-shadow: 0 20px 60px rgba(0,0,0,.75);
+    }
+
+    .scene-night-route .route-line {
+      position: absolute;
+      left: 9%;
+      right: 8%;
+      top: 44%;
+      height: 2px;
+      z-index: 1;
+      background: linear-gradient(90deg, var(--magenta), var(--cyan), var(--gold));
+      box-shadow: 0 0 22px rgba(81,220,255,.62);
+      transform: rotate(-6deg);
+    }
+
+    .scene-night-route .route-line::before,
+    .scene-night-route .route-line::after {
+      content: "";
+      position: absolute;
+      top: 50%;
+      width: 14px;
+      height: 14px;
+      border: 2px solid currentColor;
+      border-radius: 50%;
+      background: #0a1023;
+      transform: translateY(-50%);
+      box-shadow: 0 0 18px currentColor;
+    }
+
+    .scene-night-route .route-line::before { left: 18%; color: var(--magenta); }
+    .scene-night-route .route-line::after { right: 21%; color: var(--cyan); }
+
+    .scene-observatory::before {
+      background:
+        radial-gradient(circle at 62% 22%, rgba(255,255,255,.9) 0 1px, transparent 2px),
+        radial-gradient(circle at 28% 28%, rgba(132,158,255,.8) 0 1px, transparent 2px),
+        radial-gradient(circle at 75% 46%, rgba(255,255,255,.7) 0 1px, transparent 2px),
+        radial-gradient(circle at 50% 46%, rgba(62,94,183,.28), transparent 25%),
+        linear-gradient(180deg, #111833 0%, #0b1026 62%, #090d1c 100%);
+      background-size: auto, auto, auto, auto, auto;
+    }
+
+    .scene-observatory .dome {
+      position: absolute;
+      left: 50%;
+      bottom: 23%;
+      width: 220px;
+      height: 130px;
+      border-radius: 220px 220px 20px 20px;
+      transform: translateX(-50%);
+      background: linear-gradient(180deg, #2a3155 0%, #141a34 72%);
+      border: 1px solid rgba(190,209,255,.22);
+      box-shadow: inset 0 18px 35px rgba(133,159,255,.08), 0 20px 70px rgba(0,0,0,.55);
+      z-index: 0;
+    }
+
+    .scene-observatory .dome::before {
+      content: "";
+      position: absolute;
+      left: 50%;
+      top: 8px;
+      width: 4px;
+      height: 112px;
+      background: linear-gradient(var(--cyan), transparent);
+      transform-origin: bottom;
+      transform: translateX(-50%) rotate(29deg);
+      box-shadow: 0 0 16px rgba(81,220,255,.72);
+    }
+
+    .scene-observatory .dome::after {
+      content: "";
+      position: absolute;
+      left: 10%;
+      right: 10%;
+      bottom: -16px;
+      height: 26px;
+      background: #10162d;
+      border: 1px solid rgba(190,209,255,.16);
+      border-radius: 6px;
+    }
+
+    .scene-lantern::before {
+      background:
+        radial-gradient(circle at 48% 35%, rgba(255,191,104,.34), transparent 16%),
+        linear-gradient(180deg, rgba(14,34,35,.1), rgba(5,11,17,.35)),
+        linear-gradient(145deg, #102523 0%, #0d181a 48%, #130e13 100%);
+    }
+
+    .scene-lantern .cabin {
+      position: absolute;
+      left: 11%;
+      right: 12%;
+      bottom: 22%;
+      height: 42%;
+      background: linear-gradient(180deg, #2a2019, #171311);
+      clip-path: polygon(0 37%, 50% 0, 100% 37%, 100% 100%, 0 100%);
+      border-bottom: 1px solid rgba(255,191,104,.15);
+    }
+
+    .scene-lantern .cabin::before,
+    .scene-lantern .cabin::after {
+      content: "";
+      position: absolute;
+      bottom: 16%;
+      width: 17%;
+      height: 28%;
+      background: #ffc56e;
+      box-shadow: 0 0 24px rgba(255,191,104,.68);
+    }
+
+    .scene-lantern .cabin::before { left: 23%; }
+    .scene-lantern .cabin::after { right: 23%; }
+
+    .scene-lantern-alt::before {
+      background:
+        radial-gradient(circle at 70% 18%, rgba(202,178,255,.14), transparent 26%),
+        radial-gradient(circle at 30% 40%, rgba(255,191,104,.22), transparent 15%),
+        linear-gradient(155deg, #17152d 0%, #10192c 48%, #0b1118 100%);
+    }
+
+    .scene-lantern-alt .window {
+      position: absolute;
+      left: 50%;
+      top: 21%;
+      width: 42%;
+      height: 38%;
+      transform: translateX(-50%);
+      border: 8px solid #17151a;
+      border-radius: 48% 48% 6px 6px;
+      background:
+        linear-gradient(90deg, transparent 48%, rgba(36,24,20,.75) 49% 52%, transparent 53%),
+        linear-gradient(transparent 48%, rgba(36,24,20,.75) 49% 52%, transparent 53%),
+        radial-gradient(circle at 50% 50%, #ffe0a3, #d99345 70%);
+      box-shadow: 0 0 42px rgba(255,191,104,.48);
+    }
+
+    .scene-elsewhere::before {
+      background:
+        radial-gradient(circle at 78% 21%, rgba(255,222,182,.66) 0 16px, transparent 17px),
+        linear-gradient(180deg, #2b315b 0%, #51445e 38%, #23324d 64%, #0b1725 100%);
+    }
+
+    .scene-elsewhere .horizon {
+      position: absolute;
+      inset: 44% -10% 0;
+      background:
+        linear-gradient(180deg, rgba(87,115,142,.45), rgba(7,17,28,.75)),
+        repeating-linear-gradient(176deg, rgba(255,255,255,.05) 0 2px, transparent 2px 15px);
+      clip-path: polygon(0 35%, 12% 25%, 24% 42%, 35% 28%, 48% 38%, 63% 22%, 77% 35%, 90% 20%, 100% 32%, 100% 100%, 0 100%);
+    }
+
+    .scene-stillwater::before {
+      background:
+        radial-gradient(circle at 67% 19%, rgba(255,230,189,.82) 0 18px, transparent 19px),
+        linear-gradient(180deg, #17243c 0%, #193348 46%, #0a222c 100%);
+    }
+
+    .scene-stillwater .water {
+      position: absolute;
+      inset: 54% 0 0;
+      background:
+        radial-gradient(ellipse at 68% 0%, rgba(255,222,174,.18), transparent 34%),
+        repeating-linear-gradient(178deg, rgba(255,255,255,.055) 0 2px, transparent 2px 12px),
+        linear-gradient(180deg, #11303b, #07151e);
+    }
+
+    .scene-stillwater .water::before {
+      content: "";
+      position: absolute;
+      left: 9%;
+      bottom: 16%;
+      width: 38%;
+      height: 26%;
+      border-radius: 50% 50% 0 0;
+      background: #07141a;
+      clip-path: polygon(0 100%, 15% 40%, 28% 70%, 43% 12%, 57% 70%, 72% 38%, 100% 100%);
+    }
+
+    .scene-tide::before {
+      background:
+        radial-gradient(circle at 18% 17%, rgba(125,217,208,.12), transparent 22%),
+        radial-gradient(circle at 80% 22%, rgba(159,140,255,.2), transparent 26%),
+        linear-gradient(180deg, #0d1b2e 0%, #0e2738 45%, #071720 100%);
+    }
+
+    .scene-tide .beam {
+      position: absolute;
+      top: 14%;
+      left: 55%;
+      width: 4px;
+      height: 48%;
+      background: linear-gradient(rgba(145,227,255,.9), transparent);
+      box-shadow: 0 0 18px rgba(81,220,255,.68);
+      transform: rotate(16deg);
+    }
+
+    .scene-tide .sea {
+      position: absolute;
+      inset: 48% 0 0;
+      background:
+        repeating-linear-gradient(174deg, rgba(255,255,255,.06) 0 2px, transparent 2px 16px),
+        linear-gradient(180deg, rgba(39,104,120,.38), #06141d);
+    }
+
+    .signal-color { color: var(--magenta); }
+    .wonder-color { color: var(--cyan); }
+    .shelter-color { color: var(--amber); }
+    .elsewhere-color { color: var(--teal); }
+
+    .archive-note {
+      margin-top: 80px;
+      padding: 34px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius-lg);
+      background: linear-gradient(135deg, rgba(22,30,57,.62), rgba(8,15,29,.78));
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 28px;
+    }
+
+    .archive-note h2 {
+      margin: 0;
+      font-size: clamp(1.7rem, 3.5vw, 3rem);
+    }
+
+    .archive-note p {
+      max-width: 650px;
+      margin: 10px 0 0;
+      color: var(--muted);
+      line-height: 1.7;
+    }
+
+    .archive-symbol {
+      flex: 0 0 auto;
+      width: 92px;
+      height: 92px;
+      border: 1px solid rgba(232,187,112,.36);
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      color: var(--gold);
+      font-size: 2.1rem;
+      box-shadow: inset 0 0 30px rgba(232,187,112,.08);
+    }
+
+    footer {
+      padding: 10px 0 54px;
+      color: var(--muted-2);
+      font-size: .82rem;
+    }
+
+    .footer-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 24px;
+      padding-top: 28px;
+      border-top: 1px solid var(--line);
+    }
+
+    .footer-row em {
+      color: var(--gold-soft);
+      font-family: Georgia, "Times New Roman", serif;
+      font-weight: 400;
+    }
+
+    @media (max-width: 900px) {
+      .hero { min-height: auto; padding-top: 110px; }
+      .hero-grid { grid-template-columns: 1fr; gap: 28px; }
+      .hero-orbit { min-height: 430px; }
+      .section { grid-template-columns: 1fr; gap: 24px; }
+      .section-meta { position: static; display: grid; grid-template-columns: 64px 1fr; column-gap: 18px; }
+      .section-kicker { margin-top: 6px; }
+      .section-meta p { grid-column: 2; margin-top: 8px; }
+      .cards.three { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .cards.three .world-card:last-child { grid-column: 1 / -1; }
+    }
+
+    @media (max-width: 640px) {
+      .shell { width: min(100% - 24px, var(--max)); }
+      .hero { padding-top: 76px; }
+      h1 { font-size: clamp(3.15rem, 18vw, 5.4rem); }
+      .hero-copy { font-size: 1rem; }
+      .hero-orbit { min-height: 350px; }
+      .atlas-core { width: min(280px, 80vw); }
+      .orbit.one { width: 320px; height: 320px; }
+      .orbit.two { width: 230px; height: 230px; }
+      .orbit.three { width: 340px; height: 150px; }
+      .hero-marker { display: none; }
+      .collection-nav { justify-content: flex-start; overflow-x: auto; flex-wrap: nowrap; padding: 8px; scrollbar-width: none; }
+      .collection-nav::-webkit-scrollbar { display: none; }
+      .filter-button { white-space: nowrap; }
+      main { padding-top: 34px; }
+      .section { padding: 54px 0; }
+      .cards.two, .cards.three { grid-template-columns: 1fr; }
+      .cards.three .world-card:last-child { grid-column: auto; }
+      .world-card, .world-card.featured { min-height: 380px; }
+      .world-card-content { padding: 24px; }
+      .enter { top: 18px; right: 18px; }
+      .archive-note { align-items: flex-start; flex-direction: column; }
+      .archive-symbol { width: 68px; height: 68px; }
+      .footer-row { align-items: flex-start; flex-direction: column; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
+      .world-card { opacity: 1; transform: none; }
+    }
+  </style>
+</head>
+<body>
+  <a class="skip-link" href="#collection">Skip to collection</a>
+
+  <header class="hero">
+    <div class="shell hero-grid">
+      <div>
+        <p class="eyebrow">Unfold / Personal Archive</p>
+        <h1>Places I make.<span>Ways I return.</span></h1>
+        <p class="hero-copy">
+          The personal side of Unfold: useful things, quiet places, experiments, and small worlds—made to help me navigate, wonder, rest, or simply feel somewhere else for a little while.
+        </p>
+        <div class="signature">Clara</div>
+      </div>
+
+      <div class="hero-orbit" aria-label="A visual atlas of Signal, Wonder, Lanternlight, and Elsewhere">
+        <div class="orbit one" aria-hidden="true"></div>
+        <div class="orbit two" aria-hidden="true"></div>
+        <div class="orbit three" aria-hidden="true"></div>
+        <div class="atlas-core">
+          <div class="core-text">
+            <small>A living atlas</small>
+            <strong>Structure for the things that refuse to be ordinary.</strong>
+            <p>Organized enough to find. Open enough to keep becoming.</p>
+          </div>
+        </div>
+        <div class="hero-marker signal">Signal</div>
+        <div class="hero-marker wonder">Wonder</div>
+        <div class="hero-marker shelter">Lanternlight</div>
+        <div class="hero-marker elsewhere">Elsewhere</div>
+      </div>
+    </div>
+  </header>
+
+  <div class="collection-nav-wrap" aria-label="Collection filters">
+    <div class="shell">
+      <nav class="collection-nav">
+        <button class="filter-button" type="button" data-filter="all" aria-pressed="true">All worlds</button>
+        <button class="filter-button" type="button" data-filter="signal" aria-pressed="false">Signal</button>
+        <button class="filter-button" type="button" data-filter="wonder" aria-pressed="false">Wonder</button>
+        <button class="filter-button" type="button" data-filter="lanternlight" aria-pressed="false">Lanternlight</button>
+        <button class="filter-button" type="button" data-filter="elsewhere" aria-pressed="false">Elsewhere</button>
+      </nav>
+    </div>
+  </div>
+
+  <main id="collection" class="shell">
+    <section class="section" id="signal" data-category="signal">
+      <div class="section-meta">
+        <div class="section-number">01</div>
+        <div>
+          <div class="section-kicker signal-color">Signal</div>
+          <p>Systems, routes, and useful things with a pulse.</p>
+        </div>
+      </div>
+
+      <div>
+        <h2 class="section-title">Navigate the night.</h2>
+        <p class="section-subtitle">The sharper edge of the collection—where planning, movement, and visual identity become part of the experience.</p>
+
+        <div class="cards">
+          <a class="world-card featured scene-night-route" href="otakon_night_route_dining_planner.html">
+            <span class="city" aria-hidden="true"></span>
+            <span class="route-line" aria-hidden="true"></span>
+            <span class="enter" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+            </span>
+            <div class="world-card-content">
+              <div class="world-meta">
+                <span class="world-label signal-color">City after dark</span>
+                <span>DC / 2026</span>
+              </div>
+              <h3>NIGHT ROUTE: OTAKON // DC // 2026</h3>
+              <p>A tactical dining credential for moving through convention weekend with style, options, and a little neon.</p>
+            </div>
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="wonder" data-category="wonder">
+      <div class="section-meta">
+        <div class="section-number">02</div>
+        <div>
+          <div class="section-kicker wonder-color">Wonder</div>
+          <p>Curiosity, discovery, and looking a little longer.</p>
+        </div>
+      </div>
+
+      <div>
+        <h2 class="section-title">Look up.</h2>
+        <p class="section-subtitle">A place where learning feels discovered rather than presented—and atmosphere matters as much as information.</p>
+
+        <div class="cards">
+          <a class="world-card featured scene-observatory" href="the-observatory.html">
+            <span class="dome" aria-hidden="true"></span>
+            <span class="enter" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+            </span>
+            <div class="world-card-content">
+              <div class="world-meta">
+                <span class="world-label wonder-color">Celestial fieldwork</span>
+                <span>Interactive</span>
+              </div>
+              <h3>The Observatory</h3>
+              <p>A quiet digital observatory where beauty, curiosity, and learning coexist beneath one patient sky.</p>
+            </div>
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="lanternlight" data-category="lanternlight">
+      <div class="section-meta">
+        <div class="section-number">03</div>
+        <div>
+          <div class="section-kicker shelter-color">Lanternlight</div>
+          <p>Warm rooms, bedtime thresholds, and places made for returning.</p>
+        </div>
+      </div>
+
+      <div>
+        <h2 class="section-title">A light left on.</h2>
+        <p class="section-subtitle">Two sibling inns: related in spirit, distinct in the way each welcomes you home.</p>
+
+        <div class="cards two">
+          <a class="world-card scene-lantern" href="starlight-deep-twilight-lanternlight.html">
+            <span class="cabin" aria-hidden="true"></span>
+            <span class="enter" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+            </span>
+            <div class="world-card-content">
+              <div class="world-meta">
+                <span class="world-label shelter-color">Lanternlight study I</span>
+                <span>Inn</span>
+              </div>
+              <h3>Deep Twilight Inn</h3>
+              <p>A warm waypoint at the edge of evening.</p>
+            </div>
+          </a>
+
+          <a class="world-card scene-lantern-alt" href="starlight-landing-sequence-storybook-lanternlight-trigger.html">
+            <span class="window" aria-hidden="true"></span>
+            <span class="enter" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+            </span>
+            <div class="world-card-content">
+              <div class="world-meta">
+                <span class="world-label shelter-color">Lanternlight study II</span>
+                <span>Storybook</span>
+              </div>
+              <h3>Starlight Landing Inn</h3>
+              <p>A softer arrival sequence for leaving the day behind.</p>
+            </div>
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="elsewhere" data-category="elsewhere">
+      <div class="section-meta">
+        <div class="section-number">04</div>
+        <div>
+          <div class="section-kicker elsewhere-color">Elsewhere</div>
+          <p>Small departures for when the ordinary world is too loud.</p>
+        </div>
+      </div>
+
+      <div>
+        <h2 class="section-title">Exhale somewhere else.</h2>
+        <p class="section-subtitle">Three quiet worlds with different horizons: twilight, still water, and the strange calm between sea and stars.</p>
+
+        <div class="cards three">
+          <a class="world-card scene-elsewhere" href="a-little-elsewhere.html">
+            <span class="horizon" aria-hidden="true"></span>
+            <span class="enter" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+            </span>
+            <div class="world-card-content">
+              <div class="world-meta">
+                <span class="world-label elsewhere-color">Twilight retreat</span>
+                <span>Quiet place</span>
+              </div>
+              <h3>A Little Elsewhere</h3>
+              <p>A small pocket of beauty and distance.</p>
+            </div>
+          </a>
+
+          <a class="world-card scene-stillwater" href="stillwater.html">
+            <span class="water" aria-hidden="true"></span>
+            <span class="enter" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+            </span>
+            <div class="world-card-content">
+              <div class="world-meta">
+                <span class="world-label elsewhere-color">Stillwater</span>
+                <span>Return</span>
+              </div>
+              <h3>A Quiet Place To Return To</h3>
+              <p>Still water, soft edges, and room to arrive.</p>
+            </div>
+          </a>
+
+          <a class="world-card scene-tide" href="the-tide-between-stars.html">
+            <span class="beam" aria-hidden="true"></span>
+            <span class="sea" aria-hidden="true"></span>
+            <span class="enter" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+            </span>
+            <div class="world-card-content">
+              <div class="world-meta">
+                <span class="world-label elsewhere-color">Ocean between stars</span>
+                <span>Drift</span>
+              </div>
+              <h3>The Quiet Between Stars</h3>
+              <p>For the in-between hours, where the tide holds the sky.</p>
+            </div>
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <aside class="archive-note">
+      <div>
+        <h2>Made to keep unfolding.</h2>
+        <p>New work can join an existing constellation—or become the beginning of a new one. The archive stays orderly without asking every world to look the same.</p>
+      </div>
+      <div class="archive-symbol" aria-hidden="true">✦</div>
+    </aside>
+  </main>
+
+  <footer>
+    <div class="shell footer-row">
+      <span>UNFOLD // PERSONAL</span>
+      <em>Built through curiosity, systems thinking, and an unreasonable refusal to leave useful things ugly.</em>
+    </div>
+  </footer>
+
+  <script>
+    const filterButtons = Array.from(document.querySelectorAll('.filter-button'));
+    const sections = Array.from(document.querySelectorAll('.section[data-category]'));
+    const cards = Array.from(document.querySelectorAll('.world-card'));
+
+    function revealVisibleCards() {
+      cards.forEach((card, index) => {
+        window.setTimeout(() => card.classList.add('revealed'), index * 55);
+      });
+    }
+
+    filterButtons.forEach((button) => {
+      button.addEventListener('click', () => {
+        const filter = button.dataset.filter;
+
+        filterButtons.forEach((item) => {
+          item.setAttribute('aria-pressed', String(item === button));
+        });
+
+        sections.forEach((section) => {
+          section.hidden = filter !== 'all' && section.dataset.category !== filter;
+        });
+
+        requestAnimationFrame(() => {
+          const firstVisible = sections.find((section) => !section.hidden);
+          if (firstVisible && filter !== 'all') {
+            firstVisible.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }
+        });
+      });
+    });
+
+    if ('IntersectionObserver' in window) {
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('revealed');
+            observer.unobserve(entry.target);
+          }
+        });
+      }, { threshold: 0.16 });
+
+      cards.forEach((card) => observer.observe(card));
+    } else {
+      revealVisibleCards();
+    }
+  </script>
+</body>
+</html>
