@@ -148,8 +148,10 @@
     .mobile-route-tool:hover{background:rgba(var(--day-rgb),.09);border-color:var(--day)}
     .sky-upload{cursor:pointer;color:var(--cyan)}
     #skyInput{display:none}
-    .sky-layer{position:absolute;z-index:1;inset:0 0 0 42%;opacity:.78;pointer-events:none;background-size:cover;background-position:center;mask-image:linear-gradient(90deg,transparent,#000 22%);-webkit-mask-image:linear-gradient(90deg,transparent,#000 22%)}
-    .sky-layer.has-image{filter:saturate(1.15) contrast(1.08)}
+    .sky-layer{position:absolute;z-index:1;inset:0 0 0 42%;opacity:.78;pointer-events:none;overflow:hidden;mask-image:linear-gradient(90deg,transparent,#000 22%);-webkit-mask-image:linear-gradient(90deg,transparent,#000 22%)}
+    .sky-image{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center;display:none;filter:saturate(1.15) contrast(1.08)}
+    .sky-layer.has-image .sky-image{display:block}
+    .sky-layer.has-image .css-city{display:none}
     .css-city{position:absolute;inset:auto 0 0 0;height:70%;overflow:hidden;opacity:.85}
     .tower{position:absolute;bottom:0;background:linear-gradient(180deg,rgba(var(--day-rgb),.22),#070a18 45%);border-top:1px solid rgba(var(--day-rgb),.7);box-shadow:0 0 18px rgba(var(--day-rgb),.12)}
     .tower::after{content:"";position:absolute;inset:8px 7px;background-image:radial-gradient(circle,rgba(244,163,64,.9) 0 1px,transparent 1.4px);background-size:9px 11px;opacity:.5}
@@ -276,6 +278,7 @@
     <main class="route-stage">
       <section class="route-header" id="routeHeader">
         <div class="sky-layer" id="skyLayer">
+          <img class="sky-image" id="skyImage" src="./ChatGPTskylineDC.png" alt="Moody neon Washington DC skyline" />
           <div class="css-city" aria-hidden="true">
             <i class="tower" style="left:4%;width:11%;height:34%"></i><i class="tower" style="left:17%;width:8%;height:50%"></i><i class="tower" style="left:28%;width:12%;height:42%"></i><i class="tower" style="left:43%;width:10%;height:62%"></i><i class="tower" style="left:66%;width:12%;height:45%"></i><i class="tower" style="left:81%;width:17%;height:58%"></i><i class="monument"></i>
           </div>
@@ -356,7 +359,8 @@ const DAYS = {
 const MEAL_LABEL={breakfast:'Breakfast',lunch:'Lunch',dinner:'Dinner'};
 const MEAL_ORDER=['breakfast','lunch','dinner'];
 const STORAGE='otakon-night-route-v2';
-const DEFAULT_SKYLINE='ChatGPTskylineDC.png'; // Keep this image beside the HTML, or change the filename here.
+const DEFAULT_SKYLINE_FILE='./ChatGPTskylineDC.png'; // Exact, case-sensitive filename expected beside this HTML on GitHub Pages.
+const DEFAULT_SKYLINE_CANDIDATES=['./ChatGPTskylineDC.png','./ChatGPTSkylineDC.png','./chatgptskylinedc.png','./ChatGPTskylineDC.PNG'];
 const ORIGIN='Conrad Washington DC, 950 New York Ave NW, Washington, DC 20001';
 const FIELD_LINKS={schedule:'https://conventions.leapevent.tech/schedules/frontend/Otakon_2026',map:'https://www.google.com/maps/search/restaurants/@38.9012,-77.0247,16z',conrad:'https://conradwashingtondc.com/dine/'};
 let state={day:'thu',plans:{},backups:{},notes:{},custom:{},sky:null};
@@ -408,22 +412,29 @@ function renderHeader(){
     +`${state.sky?'<button class="meta-tag sky-upload" id="clearSky">Restore folder image</button>':''}`;
 
   const layer=$('#skyLayer');
-  const city=layer.querySelector('.css-city');
-  const source=state.sky||DEFAULT_SKYLINE;
-  const probe=new Image();
-  probe.onload=()=>{
-    if((state.sky||DEFAULT_SKYLINE)!==source)return;
-    layer.style.backgroundImage=`linear-gradient(90deg,rgba(5,8,20,.08),rgba(5,8,20,.24)),url("${source}")`;
-    layer.classList.add('has-image');
-    city.style.display='none';
+  const img=$('#skyImage');
+  const candidates=state.sky?[state.sky]:DEFAULT_SKYLINE_CANDIDATES.map(file=>new URL(file,document.baseURI).href);
+  let candidateIndex=0;
+  const loadCandidate=()=>{
+    const source=candidates[candidateIndex];
+    if(!source){
+      layer.classList.remove('has-image');
+      img.removeAttribute('src');
+      console.warn(`Skyline image not found. Add ${DEFAULT_SKYLINE_FILE} beside this HTML file. Resolved folder:`,new URL('.',document.baseURI).href);
+      return;
+    }
+    img.onload=()=>{
+      if(img.src!==source)return;
+      layer.classList.add('has-image');
+    };
+    img.onerror=()=>{
+      if(img.src!==source)return;
+      candidateIndex+=1;
+      loadCandidate();
+    };
+    img.src=source;
   };
-  probe.onerror=()=>{
-    if((state.sky||DEFAULT_SKYLINE)!==source)return;
-    layer.style.backgroundImage='';
-    layer.classList.remove('has-image');
-    city.style.display='block';
-  };
-  probe.src=source;
+  loadCandidate();
 
   if($('#clearSky'))$('#clearSky').onclick=()=>{state.sky=null;save();render();toast('Folder skyline restored')};
 }
