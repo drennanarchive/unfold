@@ -1,0 +1,2618 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Prompt Compass — Clara's AI Prompting Companion</title>
+<style>
+:root{
+  --bg:#e9e2d8;
+  --paper:#f4efe7;
+  --panel:#efe8df;
+  --panel2:#e5ddd2;
+  --line:#cfc5b9;
+  --text:#282624;
+  --muted:#6f6963;
+  --soft:#494541;
+  --accent:#7d72b8;
+  --accent-soft:#ece8f8;
+  --accent2:#4c8f89;
+  --accent2-soft:#e4f1ef;
+  --warn:#b47a42;
+  --good:#56876f;
+  --danger:#b85f67;
+  --shadow:0 18px 50px rgba(63,52,42,.09);
+  --r:20px;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  margin:0;
+  min-height:100vh;
+  font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  color:var(--text);
+  background:
+    radial-gradient(circle at 12% 0%,rgba(125,114,184,.13),transparent 30rem),
+    radial-gradient(circle at 88% 8%,rgba(76,143,137,.10),transparent 28rem),
+    linear-gradient(180deg,#ebe4da,#e5ddd3 55%,#ece6dd);
+}
+button,input,textarea,select{font:inherit}
+button{cursor:pointer}
+:where(.tab,.mode,.btn,.theme-btn,.guide-step,.guide-symptom,.guide-pipe-step,.guide-loop-node,.editorial-choice,.editorial-node,.drift-choice):focus-visible{
+  outline:2px solid var(--accent);
+  outline-offset:3px;
+}
+a{color:inherit}
+.wrap{width:min(1180px,calc(100% - 28px));margin:0 auto;padding:28px 0 64px}
+.top{
+  display:grid;grid-template-columns:1fr auto;gap:20px;align-items:start;
+  margin-bottom:18px
+}
+.eyebrow{color:var(--accent2);font-size:.72rem;letter-spacing:.18em;text-transform:uppercase;font-weight:800}
+h1{font-family:Georgia,"Times New Roman",serif;font-size:clamp(2.7rem,7vw,5.7rem);font-weight:500;line-height:.92;letter-spacing:-.055em;margin:10px 0 14px}
+.subtitle{color:var(--soft);max-width:760px;line-height:1.65;margin:0;font-size:1rem}
+.badge{
+  border:1px solid var(--line);background:rgba(255,253,248,.72);border-radius:999px;
+  padding:9px 12px;color:var(--muted);font-size:.76rem;white-space:nowrap
+}
+
+.brand-lockup{display:flex;align-items:center;gap:22px;min-width:0}
+.brand-text{min-width:0;flex:1}
+.brand-mark{
+  width:clamp(92px,10vw,138px);aspect-ratio:1;flex:0 0 auto;position:relative;
+  display:grid;place-items:center;opacity:.9;filter:drop-shadow(0 16px 28px rgba(71,63,92,.08))
+}
+.brand-mark::before{
+  content:"";position:absolute;inset:14%;border-radius:50%;
+  background:radial-gradient(circle,rgba(125,114,184,.11),rgba(76,143,137,.045) 52%,transparent 72%);
+  filter:blur(8px)
+}
+.brand-compass{width:100%;height:100%;overflow:visible}
+.brand-ring{fill:none;stroke:var(--line);stroke-width:1.15}
+.brand-ring.inner{stroke-dasharray:2.5 5;opacity:.72;transform-box:view-box;transform-origin:center;animation:brandRing 30s linear infinite}
+.brand-axis{stroke:var(--line);stroke-width:.8;opacity:.55}
+.brand-needle{transform-box:view-box;transform-origin:center;animation:brandNeedle 5.2s cubic-bezier(.45,.05,.55,.95) infinite alternate}
+.brand-needle-n{fill:var(--accent);opacity:.9}
+.brand-needle-s{fill:var(--accent2);opacity:.76}
+.brand-hub{fill:var(--paper);stroke:var(--accent2);stroke-width:1.4}
+.brand-dot{fill:var(--accent2);opacity:.58;transform-box:fill-box;transform-origin:center;animation:brandDot 5.8s ease-in-out infinite alternate}
+.brand-spark{fill:var(--accent);opacity:.48;transform-box:fill-box;transform-origin:center;animation:brandSpark 4.4s ease-in-out infinite}
+@keyframes brandNeedle{0%{transform:rotate(-10deg)}55%{transform:rotate(4deg)}100%{transform:rotate(11deg)}}
+@keyframes brandRing{to{transform:rotate(360deg)}}
+@keyframes brandSpark{0%,100%{opacity:.34;transform:scale(.9) rotate(0deg)}50%{opacity:.8;transform:scale(1.14) rotate(14deg)}}
+@keyframes brandDot{0%{opacity:.4;transform:scale(.94)}100%{opacity:.72;transform:scale(1.08)}}
+
+.quick-launch{
+  margin:28px 0 30px;
+  padding:20px 20px 18px;
+  border:1px solid rgba(125,114,184,.18);
+  border-radius:24px;
+  background:
+    radial-gradient(circle at 8% 18%,rgba(125,114,184,.10),transparent 24rem),
+    radial-gradient(circle at 92% 72%,rgba(76,143,137,.08),transparent 22rem),
+    rgba(255,253,248,.34);
+}
+html[data-theme="dark"] .quick-launch{
+  border-color:rgba(169,155,234,.16);
+  background:
+    radial-gradient(circle at 8% 18%,rgba(169,155,234,.07),transparent 24rem),
+    radial-gradient(circle at 92% 72%,rgba(121,200,192,.05),transparent 22rem),
+    rgba(255,255,255,.018);
+}
+.quick-launch-head{
+  display:flex;align-items:end;justify-content:space-between;gap:18px;
+  margin-bottom:14px;padding-bottom:13px;border-bottom:1px solid var(--line)
+}
+.quick-launch-head span{
+  display:block;color:var(--accent2);font-size:.66rem;letter-spacing:.16em;text-transform:uppercase;font-weight:800;margin-bottom:5px
+}
+.quick-launch-head strong{
+  display:block;font-family:Georgia,"Times New Roman",serif;font-size:1.32rem;font-weight:500;letter-spacing:-.02em
+}
+.quick-launch-head small{color:var(--muted);font-size:.78rem;line-height:1.4;max-width:410px;text-align:right}
+.quick{
+  display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:0
+}
+.panel{border:0;background:transparent;border-radius:var(--r);box-shadow:none}
+.qcard{
+  min-width:0;min-height:156px;
+  display:flex;flex-direction:column;align-items:flex-start;
+  border:1px solid var(--line);border-radius:18px;
+  background:rgba(255,253,248,.50);
+  padding:16px 16px 14px;text-align:left;color:var(--text);
+  transition:border-color .16s ease,background .16s ease,transform .16s ease
+}
+html[data-theme="dark"] .qcard{background:rgba(255,255,255,.025)}
+.qcard-route:hover,.qcard-route:focus-visible{
+  border-color:rgba(125,114,184,.48);
+  background:rgba(125,114,184,.07);
+  transform:translateY(-2px)
+}
+html[data-theme="dark"] .qcard-route:hover,html[data-theme="dark"] .qcard-route:focus-visible{background:rgba(169,155,234,.07)}
+.qcard:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.qcard-num{color:var(--accent);font-size:.66rem;letter-spacing:.14em;font-weight:800;margin-bottom:12px}
+.qcard strong{display:block;margin-bottom:6px;font-family:Georgia,"Times New Roman",serif;font-size:1.08rem;font-weight:500}
+.qcard p{margin:0;color:var(--muted);font-size:.84rem;line-height:1.45}
+.qcard b{color:var(--accent2)}
+.qcard-action{
+  margin-top:auto;padding-top:16px;color:var(--accent2);font-size:.75rem;font-weight:800;letter-spacing:.02em
+}
+.qcard-skip{border-style:dashed;background:transparent}
+.qcard-skip .qcard-num{color:var(--muted)}
+.quick-skip-note{
+  display:none;
+  grid-column:1/-1;
+  margin-top:2px;padding:12px 14px;
+  border-left:2px solid var(--accent2);
+  color:var(--muted);font-size:.84rem;line-height:1.45;
+  background:rgba(76,143,137,.045);border-radius:0 12px 12px 0
+}
+.quick-skip-note.show{display:block}
+.quick-skip-note b{color:var(--text)}
+
+.quick-diagnose{
+  width:100%;margin-top:10px;border:0;border-top:1px solid var(--line);background:transparent;color:var(--muted);
+  min-height:48px;padding:12px 2px 2px;display:flex;align-items:center;justify-content:space-between;gap:16px;text-align:left
+}
+.quick-diagnose span{font-size:.78rem}
+.quick-diagnose strong{color:var(--accent2);font-size:.8rem}
+.quick-diagnose:hover strong,.quick-diagnose:focus-visible strong{text-decoration:underline}
+.quick-diagnose:focus-visible{outline:2px solid var(--accent);outline-offset:4px;border-radius:6px}
+.stage-note[hidden]{display:none}
+.refrow-wide{grid-template-columns:1fr}
+
+.tabs{
+  display:flex;gap:4px;flex-wrap:wrap;position:sticky;top:0;z-index:20;
+  padding:7px 0;margin:24px 0 20px;border-top:1px solid var(--line);border-bottom:1px solid var(--line);
+  background:rgba(245,241,233,.90);backdrop-filter:blur(16px)
+}
+.tab{
+  border:0;border-radius:999px;background:transparent;color:var(--muted);padding:9px 12px;font-weight:720
+}
+.tab.active{background:var(--accent-soft);color:var(--text)}
+.section{display:none;scroll-margin-top:78px}
+.section.active{display:block}
+.panel{padding:8px 2px 28px;margin-bottom:14px}
+.panel h2{font-family:Georgia,"Times New Roman",serif;font-weight:500;margin:0 0 8px;font-size:1.55rem;letter-spacing:-.02em}
+.panel .intro{color:var(--muted);margin:0 0 18px;line-height:1.55}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.field{border:1px solid var(--line);background:rgba(255,253,248,.72);border-radius:16px;padding:15px}
+.field.full{grid-column:1/-1}
+.field label,.field-label{display:flex;justify-content:space-between;gap:10px;align-items:baseline;font-weight:800;margin-bottom:6px}
+.field small,.field-label small{color:var(--muted);font-weight:500}
+textarea,input,select{
+  width:100%;border:1px solid var(--line);border-radius:12px;background:#fffdf9;color:var(--text);
+  padding:12px 13px;outline:none
+}
+textarea{min-height:100px;resize:vertical;line-height:1.5;scroll-margin-top:110px}
+textarea:focus,input:focus,select:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(125,114,184,.10)}
+.mode-row{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.mode{
+  border:1px solid var(--line);border-radius:14px;background:rgba(255,253,248,.68);
+  color:var(--muted);padding:12px;text-align:left
+}
+.mode strong{display:block;color:var(--text);margin-bottom:3px}
+.mode.active{border-color:rgba(125,114,184,.48);background:var(--accent-soft)}
+.controls{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+.btn{
+  border:1px solid var(--line);border-radius:12px;background:#fffdf9;color:var(--text);padding:10px 13px;font-weight:730
+}
+.btn.primary{border-color:transparent;background:var(--accent);color:white}
+.btn.ghost{color:var(--muted)}
+.output{
+  margin-top:15px;border:1px solid rgba(76,143,137,.24);background:var(--accent2-soft);
+  border-radius:16px;padding:16px;white-space:pre-wrap;line-height:1.6;color:#2f4b48;min-height:76px
+}
+.callout{
+  border-left:3px solid var(--warn);background:rgba(180,122,66,.07);
+  padding:12px 14px;border-radius:0 12px 12px 0;color:var(--soft);line-height:1.5;margin:10px 0
+}
+.trouble-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+.trouble{
+  border-top:1px solid var(--line);border-radius:0;background:transparent;padding:15px 0
+}
+.trouble h3{margin:0 0 7px;font-size:1rem}
+.trouble p{color:var(--muted);font-size:.87rem;line-height:1.45;margin:0 0 10px}
+.script{
+  border-left:2px solid var(--accent);background:rgba(125,114,184,.055);border-radius:0 10px 10px 0;padding:11px 12px;color:#3f3a4c;
+  line-height:1.5;font-size:.9rem
+}
+.mini-copy{margin-top:8px}
+.refrow{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px}
+.hypo{border-left:3px solid var(--accent);padding-left:12px;color:var(--muted);line-height:1.5}
+.footer{margin-top:22px;color:var(--muted);font-size:.82rem;line-height:1.5;text-align:center}
+.toast{
+  position:fixed;right:18px;bottom:18px;background:var(--paper);color:var(--text);border:1px solid var(--line);padding:10px 13px;
+  border-radius:12px;box-shadow:var(--shadow);opacity:0;transform:translateY(8px);pointer-events:none;transition:.2s
+}
+.toast.show{opacity:1;transform:none}
+@media(max-width:820px){
+  .quick,.grid,.trouble-grid{grid-template-columns:1fr}
+  .quick-launch-head{align-items:start}
+  .quick-launch-head small{text-align:left}
+  .qcard{min-height:0}
+  .field.full{grid-column:auto}
+  .mode-row{grid-template-columns:1fr 1fr}
+  .top{grid-template-columns:1fr}
+  .brand-mark{width:104px}
+  .badge{justify-self:start}
+  .tabs{border-radius:18px}
+}
+@media(max-width:520px){
+  .wrap{width:min(100% - 18px,1180px);padding-top:18px}
+  .brand-lockup{gap:10px;align-items:flex-start}
+  .brand-mark{width:76px;margin-top:18px}
+  .quick-launch{padding:15px 12px 13px;border-radius:20px}
+  .quick-launch-head{display:block}
+  .quick-launch-head small{display:block;margin-top:7px}
+  .panel{padding:16px}
+  .mode-row{grid-template-columns:1fr}
+  .refrow{grid-template-columns:1fr}
+}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*{transition:none!important}.brand-needle,.brand-spark,.brand-dot,.brand-ring.inner{animation:none!important}}
+
+
+
+/* Editorial / soft-tech visual language */
+.visual-editorial{max-width:1040px;margin:0 auto}
+.visual-kicker{
+  color:var(--accent2);font-size:.7rem;letter-spacing:.18em;text-transform:uppercase;font-weight:800
+}
+.visual-title{
+  font-size:clamp(2.1rem,5vw,4.2rem)!important;
+  line-height:1!important;
+  margin:8px 0 10px!important
+}
+.visual-intro{max-width:680px;font-size:1rem}
+.editorial-compass{
+  margin:28px 0 26px;
+  padding:24px 0 20px;
+  border-top:1px solid var(--line);
+  border-bottom:1px solid var(--line);
+}
+.compass-stage{
+  position:relative;
+  width:min(760px,100%);
+  min-height:430px;
+  margin:0 auto;
+}
+.editorial-core{
+  position:absolute;
+  left:50%;top:50%;
+  transform:translate(-50%,-50%);
+  width:290px;
+  text-align:center;
+  z-index:4;
+}
+.core-label{
+  display:block;
+  color:var(--accent2);
+  font-size:.68rem;
+  letter-spacing:.2em;
+  font-weight:800;
+  margin-bottom:10px;
+}
+.editorial-core strong{
+  display:block;
+  font-family:Georgia,"Times New Roman",serif;
+  font-size:1.55rem;
+  font-weight:500;
+  line-height:1.18;
+  letter-spacing:-.025em;
+}
+.editorial-core p{
+  color:var(--muted);
+  font-size:.84rem;
+  line-height:1.45;
+  margin:10px auto 0;
+  max-width:250px;
+}
+.compass-lines{
+  position:absolute;inset:0;pointer-events:none;z-index:1
+}
+.compass-lines .line{
+  position:absolute;
+  left:50%;top:50%;
+  width:215px;height:1px;
+  transform-origin:left center;
+  background:linear-gradient(90deg,rgba(125,114,184,.24),rgba(125,114,184,.03));
+}
+.l1{transform:rotate(-150deg);animation-delay:-1s!important}
+.l2{transform:rotate(-32deg);animation-delay:-2s!important}
+.l3{transform:rotate(162deg);animation-delay:-3s!important}
+.l4{transform:rotate(18deg);animation-delay:-4s!important}
+.l5{transform:rotate(122deg);animation-delay:-5s!important}
+.l6{transform:rotate(60deg);animation-delay:-6s!important}
+.editorial-node{
+  position:absolute;
+  z-index:5;
+  min-width:116px;
+  border:0;
+  background:transparent;
+  padding:10px 6px;
+  color:var(--text);
+  text-align:center;
+  transition:.18s ease;
+}
+.editorial-node span{
+  display:block;
+  font-family:Georgia,"Times New Roman",serif;
+  font-size:1.15rem;
+}
+.editorial-node small{
+  display:block;
+  color:var(--muted);
+  margin-top:3px;
+  font-size:.68rem;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+}
+.editorial-node::before{
+  content:"";
+  display:block;
+  width:9px;height:9px;border-radius:50%;
+  background:var(--accent);
+  margin:0 auto 8px;
+  box-shadow:0 0 0 7px rgba(125,114,184,.07);
+}
+.editorial-node:nth-of-type(even)::before{background:var(--accent2);box-shadow:0 0 0 7px rgba(76,143,137,.07)}
+.editorial-node:hover,.editorial-node.active{transform:translateY(-2px)}
+.editorial-node.active::before{transform:scale(1.16);box-shadow:0 0 0 9px rgba(76,143,137,.08)}
+.editorial-node.active span{color:var(--accent2)}
+.n1{left:8%;top:12%}.n2{right:8%;top:12%}.n3{left:2%;top:55%}.n4{right:2%;top:55%}.n5{left:24%;bottom:2%}.n6{right:24%;bottom:2%}
+.compass-foot{
+  display:flex;justify-content:center;gap:8px;flex-wrap:wrap;
+  color:var(--muted);font-size:.76rem
+}
+.compass-foot b{color:var(--text)}
+.micro-check{
+  text-align:center;
+  padding:4px 0 26px;
+  color:var(--muted);
+  font-size:.8rem;
+  line-height:1.7;
+}
+.micro-check>span{
+  display:block;
+  color:var(--accent2);
+  font-size:.67rem;
+  font-weight:800;
+  letter-spacing:.16em;
+  text-transform:uppercase;
+  margin-bottom:4px;
+}
+.micro-check b{color:var(--text);font-weight:650}
+.micro-check i{font-style:normal;color:#aaa29a;margin:0 4px}
+.micro-check small{display:block;color:var(--muted);margin-top:4px}
+.visual-question{
+  padding:28px 0 10px;
+  border-top:1px solid var(--line);
+}
+.visual-question-head{margin-bottom:8px}
+.visual-question-head h2{font-size:clamp(1.8rem,3vw,2.7rem);margin-top:6px}
+.editorial-menu{margin-top:14px}
+.editorial-choice{
+  width:100%;
+  display:grid;
+  grid-template-columns:48px 1fr auto;
+  gap:12px;
+  align-items:center;
+  border:0;
+  border-top:1px solid var(--line);
+  background:transparent;
+  padding:17px 2px;
+  text-align:left;
+  color:var(--text);
+  transition:.16s ease;
+}
+.editorial-choice:last-child{border-bottom:1px solid var(--line)}
+.editorial-choice:hover,.editorial-choice.active{
+  padding-left:10px;
+  background:linear-gradient(90deg,rgba(125,114,184,.06),transparent 75%);
+}
+.choice-num{color:var(--accent);font-size:.72rem;font-weight:800}
+.choice-main strong{
+  display:block;
+  font-family:Georgia,"Times New Roman",serif;
+  font-size:1.12rem;
+  font-weight:500;
+}
+.choice-main small{display:block;color:var(--muted);margin-top:3px;font-size:.82rem}
+.choice-arrow{color:var(--accent2);font-size:1.15rem}
+.editorial-help{
+  display:none;
+  grid-template-columns:minmax(170px,.8fr) minmax(0,1.6fr) auto;
+  gap:18px;
+  align-items:start;
+  padding:20px 0;
+  border-bottom:1px solid var(--line);
+}
+.editorial-help.active{display:grid}
+.editorial-help h3{font-family:Georgia,"Times New Roman",serif;font-size:1.25rem;font-weight:500;margin:5px 0}
+.editorial-help p{color:var(--muted);font-size:.82rem;line-height:1.45;margin:0}
+.editorial-help .script{margin:0}
+.editorial-help .btn{align-self:start}
+.diagnostic-line{
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  gap:8px;
+  flex-wrap:wrap;
+  padding:24px 0;
+  color:var(--muted);
+  font-size:.78rem;
+}
+.diagnostic-line>span{
+  display:block;
+  width:100%;
+  text-align:center;
+  color:var(--accent2);
+  font-size:.67rem;
+  font-weight:800;
+  letter-spacing:.14em;
+  text-transform:uppercase;
+  margin-bottom:2px;
+}
+.diagnostic-line b{color:var(--text);font-weight:650}
+.diagnostic-line i{font-style:normal;color:#aaa29a}
+.deep-tools{margin-top:8px}
+.editorial-disclosure{
+  border-top:1px solid var(--line);
+  background:transparent;
+}
+.editorial-disclosure:last-child{border-bottom:1px solid var(--line)}
+.editorial-disclosure summary{
+  list-style:none;
+  cursor:pointer;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:16px;
+  padding:18px 2px;
+  color:var(--text);
+}
+.editorial-disclosure summary::-webkit-details-marker{display:none}
+.editorial-disclosure summary span{
+  font-family:Georgia,"Times New Roman",serif;
+  font-size:1.05rem;
+}
+.editorial-disclosure summary small{
+  display:block;
+  font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  color:var(--muted);
+  font-size:.62rem;
+  letter-spacing:.14em;
+  font-weight:800;
+  margin-bottom:4px;
+}
+.editorial-disclosure summary>b{
+  color:var(--accent2);
+  font-size:1.2rem;
+  font-weight:400;
+}
+.editorial-disclosure[open] summary>b{transform:rotate(45deg)}
+.editorial-disclosure .disclosure-body{padding:0 2px 22px}
+.word-list{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:0 24px;
+}
+.word-list>div{
+  border-top:1px solid var(--line);
+  padding:13px 0;
+}
+.word-list strong{font-family:Georgia,"Times New Roman",serif;font-weight:500;font-size:1.02rem}
+.word-list p{color:var(--muted);font-size:.82rem;line-height:1.45;margin:5px 0 0}
+.reference-scripts{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:22px;
+}
+.reference-scripts>div{min-width:0}
+.reference-scripts>div>strong{display:block;font-family:Georgia,"Times New Roman",serif;font-weight:500;margin-bottom:8px}
+.contracts-note{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:18px;
+  margin-top:28px;
+  padding-top:18px;
+  border-top:1px solid var(--line);
+  color:var(--muted);
+  font-size:.78rem;
+  line-height:1.45;
+}
+.contracts-note b{color:var(--text)}
+@media(max-width:760px){
+  .compass-stage{min-height:500px}
+  .editorial-core{width:230px}
+  .n1{left:3%;top:8%}.n2{right:3%;top:8%}
+  .n3{left:0;top:48%}.n4{right:0;top:48%}
+  .n5{left:10%;bottom:2%}.n6{right:10%;bottom:2%}
+  .editorial-help{grid-template-columns:1fr;gap:10px}
+  .editorial-help .btn{justify-self:start}
+  .reference-scripts,.word-list,.contracts-note{grid-template-columns:1fr}
+}
+@media(max-width:480px){
+  .compass-stage{min-height:540px}
+  .editorial-core{width:205px}
+  .editorial-node{min-width:90px}
+  .editorial-node span{font-size:1rem}
+  .n5{left:4%;bottom:2%}.n6{right:4%;bottom:2%}
+}
+
+
+
+/* Atmosphere + theme system */
+:root{
+  color-scheme: light;
+  --ambient-a:rgba(125,114,184,.18);
+  --ambient-b:rgba(76,143,137,.14);
+  --ambient-c:rgba(194,153,112,.12);
+  --grain-opacity:.06;
+  --compass-glow:rgba(125,114,184,.16);
+  --compass-glow-2:rgba(76,143,137,.12);
+}
+html[data-theme="dark"]{
+  color-scheme: dark;
+  --bg:#121315;
+  --paper:#181a1d;
+  --panel:#17191c;
+  --panel2:#202328;
+  --line:#34383f;
+  --text:#f1eee8;
+  --muted:#aaa59d;
+  --soft:#d0cbc3;
+  --accent:#a99bea;
+  --accent-soft:#2a263d;
+  --accent2:#79c8c0;
+  --accent2-soft:#1b302f;
+  --warn:#d6a264;
+  --good:#79b795;
+  --danger:#dd7b85;
+  --shadow:0 22px 58px rgba(0,0,0,.22);
+  --ambient-a:rgba(169,155,234,.12);
+  --ambient-b:rgba(121,200,192,.08);
+  --ambient-c:rgba(209,161,108,.055);
+  --grain-opacity:.04;
+  --compass-glow:rgba(169,155,234,.16);
+  --compass-glow-2:rgba(121,200,192,.11);
+}
+html[data-theme="dark"] body{
+  background:
+    radial-gradient(circle at 12% 0%,rgba(169,155,234,.08),transparent 30rem),
+    radial-gradient(circle at 88% 8%,rgba(121,200,192,.055),transparent 28rem),
+    linear-gradient(180deg,#111214,#15171a 55%,#101113);
+}
+body{
+  position:relative;
+  isolation:isolate;
+}
+body::before,
+body::after{
+  content:"";
+  position:fixed;
+  inset:-18%;
+  pointer-events:none;
+  z-index:-3;
+  filter:blur(70px);
+  opacity:.9;
+}
+body::before{
+  background:
+    radial-gradient(circle at 18% 22%,var(--ambient-a),transparent 27%),
+    radial-gradient(circle at 76% 30%,var(--ambient-b),transparent 24%),
+    radial-gradient(circle at 52% 82%,var(--ambient-c),transparent 28%);
+}
+body::after{
+  background:
+    radial-gradient(circle at 72% 70%,var(--ambient-a),transparent 24%),
+    radial-gradient(circle at 28% 72%,var(--ambient-b),transparent 22%);
+  opacity:.62;
+}
+.ambient-grain{
+  position:fixed;
+  inset:0;
+  z-index:-2;
+  pointer-events:none;
+  opacity:var(--grain-opacity);
+  background-image:
+    repeating-radial-gradient(circle at 0 0, rgba(60,55,50,.36) 0 .45px, transparent .6px 3px);
+  background-size:5px 5px;
+  mix-blend-mode:multiply;
+}
+html[data-theme="dark"] .ambient-grain{
+  mix-blend-mode:screen;
+  opacity:.018;
+}
+.theme-control{
+  display:flex;
+  align-items:center;
+  gap:7px;
+  justify-self:end;
+  align-self:start;
+  border:1px solid var(--line);
+  background:rgba(244,239,231,.84);
+  border-radius:999px;
+  padding:5px;
+}
+html[data-theme="dark"] .theme-control{
+  background:rgba(24,26,29,.78);
+}
+.theme-btn{
+  min-height:34px;
+  border:0;
+  border-radius:999px;
+  padding:7px 10px;
+  background:transparent;
+  color:var(--muted);
+  font-size:.74rem;
+  font-weight:760;
+}
+.theme-btn.active{
+  background:var(--accent-soft);
+  color:var(--text);
+}
+.theme-btn:focus-visible{
+  outline:2px solid var(--accent);
+  outline-offset:2px;
+}
+.top-actions{
+  display:flex;
+  gap:8px;
+  align-items:flex-start;
+  justify-content:flex-end;
+  flex-wrap:wrap;
+}
+html[data-theme="dark"] .tabs{
+  background:rgba(18,19,21,.90);
+}
+html[data-theme="dark"] .badge,
+html[data-theme="dark"] .btn,
+html[data-theme="dark"] textarea,
+html[data-theme="dark"] input,
+html[data-theme="dark"] select,
+html[data-theme="dark"] .field,
+html[data-theme="dark"] .mode{
+  background:#1a1c20;
+}
+html[data-theme="dark"] .script{
+  color:#e4dfec;
+  background:rgba(169,155,234,.07);
+}
+html[data-theme="dark"] .output{
+  color:#d8efec;
+}
+html[data-theme="dark"] .editorial-choice:hover,
+html[data-theme="dark"] .editorial-choice.active{
+  background:linear-gradient(90deg,rgba(169,155,234,.075),transparent 75%);
+}
+.editorial-compass{
+  position:relative;
+  isolation:isolate;
+}
+.editorial-compass::before{
+  content:"";
+  position:absolute;
+  inset:8px 2% 28px;
+  z-index:-1;
+  border-radius:50%;
+  background:
+    radial-gradient(circle at 50% 48%,var(--compass-glow),transparent 35%),
+    radial-gradient(circle at 60% 52%,var(--compass-glow-2),transparent 42%);
+  filter:blur(18px);
+  opacity:.92;
+}
+.editorial-compass::after{
+  content:"";
+  position:absolute;
+  inset:14% 10% 24%;
+  z-index:-1;
+  border-radius:50%;
+  border:1px solid rgba(125,114,184,.08);
+  box-shadow:
+    inset 0 0 55px rgba(125,114,184,.035),
+    0 0 70px rgba(76,143,137,.025);
+}
+html[data-theme="dark"] .editorial-compass::after{
+  border-color:rgba(169,155,234,.11);
+  box-shadow:
+    inset 0 0 70px rgba(169,155,234,.05),
+    0 0 90px rgba(121,200,192,.04);
+}
+.editorial-core{
+  padding:22px 18px;
+  border-radius:50%;
+  background:radial-gradient(circle at 50% 45%,rgba(255,255,255,.46),rgba(255,255,255,.08) 58%,transparent 72%);
+}
+html[data-theme="dark"] .editorial-core{
+  background:radial-gradient(circle at 50% 45%,rgba(255,255,255,.045),rgba(169,155,234,.035) 58%,transparent 72%);
+}
+@media(max-width:720px){
+  .top-actions{justify-content:flex-start}
+  .theme-control{justify-self:start}
+}
+
+
+/* Framework-first cognitive scaffolding */
+.framework-hero{
+  margin:8px 0 24px;
+  padding:22px 0 20px;
+  border-top:1px solid var(--line);
+  border-bottom:1px solid var(--line);
+}
+.framework-kicker{
+  display:block;
+  color:var(--accent2);
+  font-size:.66rem;
+  letter-spacing:.16em;
+  text-transform:uppercase;
+  font-weight:800;
+  margin-bottom:8px;
+}
+.framework-title{
+  font-family:Georgia,"Times New Roman",serif;
+  font-weight:500;
+  font-size:clamp(1.7rem,3.4vw,2.6rem);
+  line-height:1.05;
+  letter-spacing:-.03em;
+  margin:0 0 8px;
+}
+.framework-rule{
+  color:var(--muted);
+  line-height:1.5;
+  margin:0;
+  max-width:700px;
+}
+.framework-rule b{color:var(--text)}
+
+/* v0.8 richer, interactive framework guides */
+.trouble{scroll-margin-top:92px}.trouble.guide-flash{background:linear-gradient(90deg,rgba(76,143,137,.10),transparent);transition:background .35s ease}
+.state-refresh .script{margin-top:10px}.repair-library-title{font-size:1.35rem!important}
+.guide-hero{padding:28px 0 30px;margin:10px 0 30px}
+.guide-split{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(270px,.75fr);gap:30px;align-items:stretch;margin-top:28px}
+.guide-path{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));align-items:stretch;position:relative;gap:0;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.guide-step{position:relative;border:0;background:transparent;color:var(--text);padding:22px 16px 20px;text-align:left;min-height:132px;transition:.18s ease}
+.guide-step:not(:last-child)::after{content:"";position:absolute;right:0;top:18%;bottom:18%;width:1px;background:var(--line)}
+.guide-step>span,.guide-pipe-step>span,.guide-loop-node>span{display:block;color:var(--accent);font-size:.66rem;font-weight:850;letter-spacing:.12em;margin-bottom:16px}
+.guide-step strong{display:block;font-family:Georgia,"Times New Roman",serif;font-size:1.16rem;font-weight:500}
+.guide-step small{display:block;color:var(--muted);font-size:.74rem;line-height:1.35;margin-top:7px}
+.guide-step:hover,.guide-step.active{background:linear-gradient(180deg,rgba(125,114,184,.07),transparent)}
+.guide-step.active::before{content:"";position:absolute;left:16px;right:16px;top:-1px;height:2px;background:var(--accent2)}
+.guide-detail{border-left:1px solid var(--line);padding:18px 8px 16px 24px;min-height:230px;display:flex;flex-direction:column;justify-content:center;background:radial-gradient(circle at 12% 48%,rgba(125,114,184,.075),transparent 58%)}
+html[data-theme="dark"] .guide-detail{background:radial-gradient(circle at 12% 48%,rgba(169,155,234,.065),transparent 58%)}
+.guide-detail-kicker{color:var(--accent2);font-size:.63rem;font-weight:850;letter-spacing:.16em;text-transform:uppercase;margin-bottom:8px}
+.guide-detail h4{font-family:Georgia,"Times New Roman",serif;font-size:1.45rem;font-weight:500;line-height:1.12;margin:0 0 9px}
+.guide-detail>p{color:var(--muted);line-height:1.55;font-size:.86rem;margin:0}
+.guide-example{margin-top:18px;padding-top:13px;border-top:1px solid var(--line)}
+.guide-example span{display:block;color:var(--accent);font-size:.62rem;font-weight:850;letter-spacing:.13em;text-transform:uppercase;margin-bottom:5px}
+.guide-example p{color:var(--soft);font-size:.8rem;line-height:1.45;margin:0}
+.guide-hint{text-align:center;color:var(--muted);font-size:.75rem;margin:14px 0 0}
+
+.guide-drift-layout{
+  display:grid;
+  grid-template-columns:minmax(280px,.9fr) minmax(320px,1.1fr);
+  gap:34px;
+  margin-top:28px;
+  align-items:stretch;
+}
+.drift-choices{
+  display:flex;
+  flex-direction:column;
+  border-top:1px solid var(--line);
+}
+.drift-choice{
+  position:relative;
+  display:grid;
+  grid-template-columns:30px minmax(0,1fr) auto;
+  gap:12px;
+  align-items:center;
+  min-height:68px;
+  border:0;
+  border-bottom:1px solid var(--line);
+  background:transparent;
+  color:var(--text);
+  text-align:left;
+  padding:12px 10px;
+  transition:background .16s ease,padding-left .16s ease;
+}
+.drift-choice::before{
+  content:"";
+  width:9px;height:9px;border-radius:50%;
+  border:1.5px solid var(--line);
+  justify-self:center;
+}
+.drift-choice strong{
+  display:block;
+  font-family:Georgia,"Times New Roman",serif;
+  font-size:1.05rem;
+  font-weight:500;
+}
+.drift-choice small{
+  color:var(--muted);
+  font-size:.7rem;
+  line-height:1.3;
+}
+.drift-choice .drift-state{
+  color:var(--muted);
+  font-size:.66rem;
+  text-transform:uppercase;
+  letter-spacing:.1em;
+  font-weight:800;
+}
+.drift-choice:hover,.drift-choice.active{
+  background:linear-gradient(90deg,rgba(76,143,137,.075),transparent);
+  padding-left:14px;
+}
+.drift-choice.active::before{
+  border-color:var(--accent2);
+  background:var(--accent2);
+  box-shadow:0 0 0 5px rgba(76,143,137,.08);
+}
+.drift-choice.active strong{color:var(--accent2)}
+.guide-state-detail{
+  position:relative;
+  min-height:430px;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  padding:34px 36px;
+  border-left:1px solid var(--line);
+  background:
+    radial-gradient(circle at 18% 48%,rgba(76,143,137,.09),transparent 42%),
+    radial-gradient(circle at 70% 35%,rgba(125,114,184,.07),transparent 48%);
+}
+html[data-theme="dark"] .guide-state-detail{
+  background:
+    radial-gradient(circle at 18% 48%,rgba(121,200,192,.07),transparent 42%),
+    radial-gradient(circle at 70% 35%,rgba(169,155,234,.055),transparent 48%);
+}
+.guide-state-detail::before{
+  content:"";
+  position:absolute;
+  left:-5px;top:50%;
+  width:9px;height:9px;border-radius:50%;
+  background:var(--accent2);
+  transform:translateY(-50%);
+  box-shadow:0 0 0 6px var(--paper);
+}
+.guide-state-detail>span{
+  color:var(--accent2);
+  font-size:.63rem;
+  font-weight:850;
+  letter-spacing:.16em;
+  text-transform:uppercase;
+  margin-bottom:9px;
+}
+.guide-state-detail strong{
+  font-family:Georgia,"Times New Roman",serif;
+  font-size:clamp(1.45rem,2.8vw,2rem);
+  font-weight:500;
+  line-height:1.08;
+}
+.guide-state-detail p{
+  color:var(--muted);
+  font-size:.86rem;
+  line-height:1.55;
+  margin:12px 0 0;
+  max-width:470px;
+}
+
+.guide-symptom-layout{display:grid;grid-template-columns:minmax(0,1.08fr) minmax(280px,.92fr);gap:34px;margin-top:28px;align-items:stretch}
+.guide-symptoms{display:grid;grid-template-columns:1fr 1fr;border-top:1px solid var(--line)}
+.guide-symptom{border:0;border-bottom:1px solid var(--line);background:transparent;color:var(--text);text-align:left;padding:18px 14px;min-height:92px;transition:.18s ease}
+.guide-symptom:nth-child(odd){border-right:1px solid var(--line)}
+.guide-symptom span{display:block;font-family:Georgia,"Times New Roman",serif;font-size:1.08rem}
+.guide-symptom small{display:block;color:var(--muted);font-size:.72rem;line-height:1.35;margin-top:5px}
+.guide-symptom:hover,.guide-symptom.active{background:linear-gradient(90deg,rgba(76,143,137,.07),transparent)}
+.guide-symptom.active span{color:var(--accent2)}
+.guide-jump{align-self:flex-start;margin-top:10px}
+.diagnosis-check{margin-top:17px;padding:13px 14px;border-top:1px solid var(--line);border-bottom:1px solid var(--line);background:rgba(255,255,255,.12)}
+html[data-theme="dark"] .diagnosis-check{background:rgba(255,255,255,.018)}
+.diagnosis-check span,.diagnosis-repair-label{display:block;color:var(--accent2);font-size:.62rem;font-weight:850;letter-spacing:.13em;text-transform:uppercase;margin-bottom:6px}
+.diagnosis-check p{margin:0;color:var(--soft);font-size:.8rem;line-height:1.48}
+.diagnosis-repair{margin-top:17px}
+.diagnosis-repair .script{margin:7px 0 0}
+.diagnosis-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.diagnosis-actions .btn{margin-top:0}
+.diagnosis-note{margin:13px 0 0;color:var(--muted);font-size:.74rem;line-height:1.45}
+.diagnosis-note b{color:var(--text)}
+
+.guide-pipeline{position:relative;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px;margin:30px 0 22px;padding-top:12px}
+.guide-pipeline-track{position:absolute;left:8%;right:8%;top:29px;height:1px;background:linear-gradient(90deg,var(--accent),var(--accent2));opacity:.32;z-index:0}
+.guide-pipe-step{position:relative;z-index:2;border:0;background:transparent;color:var(--text);padding:0 7px 15px;text-align:center;transition:.18s ease}
+.guide-pipe-step::before{content:"";display:block;width:13px;height:13px;border-radius:50%;background:var(--paper);border:2px solid var(--line);margin:10px auto 14px;box-shadow:0 0 0 6px rgba(125,114,184,.04)}
+.guide-pipe-step.active::before,.guide-pipe-step:hover::before{border-color:var(--accent2);background:var(--accent2-soft);box-shadow:0 0 0 7px rgba(76,143,137,.07)}
+.guide-pipe-step>span{margin-bottom:5px}.guide-pipe-step strong{display:block;font-family:Georgia,"Times New Roman",serif;font-size:1.02rem;font-weight:500}.guide-pipe-step small{display:block;color:var(--muted);font-size:.67rem;margin-top:5px;line-height:1.3}
+.guide-pipeline-detail{min-height:180px;max-width:760px;margin:0 auto;border-left:0;border-top:1px solid var(--line);padding:20px 22px 8px;text-align:center;align-items:center;background:radial-gradient(circle at 50% 0%,rgba(125,114,184,.07),transparent 65%)}
+.guide-pipeline-detail .guide-example{width:min(560px,100%)}
+
+.guide-loop-stage{position:relative;width:min(650px,100%);min-height:390px;margin:24px auto 0}
+.guide-loop-ring{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:64%;height:68%;border-radius:50%;border:1px solid rgba(125,114,184,.16);box-shadow:inset 0 0 60px rgba(125,114,184,.025)}
+html[data-theme="dark"] .guide-loop-ring{border-color:rgba(169,155,234,.14)}
+.guide-loop-core{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:290px;min-height:210px;border-radius:50%;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;padding:30px;background:radial-gradient(circle,rgba(76,143,137,.10),rgba(125,114,184,.05) 56%,transparent 74%)}
+.guide-loop-node{position:absolute;z-index:3;border:0;background:transparent;color:var(--text);min-width:135px;padding:12px;text-align:center;border-top:1px solid var(--line);transition:.18s ease}
+.guide-loop-node>span{margin-bottom:4px}.guide-loop-node strong{font-family:Georgia,"Times New Roman",serif;font-size:1.05rem;font-weight:500}
+.guide-loop-node:hover,.guide-loop-node.active{border-color:var(--accent2);transform:translateY(-2px)}.guide-loop-node.active strong{color:var(--accent2)}
+.gl1{left:50%;top:1%;transform:translateX(-50%)}.gl1:hover,.gl1.active{transform:translateX(-50%) translateY(-2px)}
+.gl2{right:0;top:50%;transform:translateY(-50%)}.gl2:hover,.gl2.active{transform:translateY(-52%)}
+.gl3{left:50%;bottom:1%;transform:translateX(-50%)}.gl3:hover,.gl3.active{transform:translateX(-50%) translateY(-2px)}
+.gl4{left:0;top:50%;transform:translateY(-50%)}.gl4:hover,.gl4.active{transform:translateY(-52%)}
+
+.ref-group{position:relative;border-top:1px solid var(--line);padding:14px 0 5px;margin-top:8px}.ref-group:first-child{margin-top:0}
+.ref-group-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:0 0 9px;color:var(--muted);font-size:.72rem;font-weight:800;letter-spacing:.06em;text-transform:uppercase}
+.ref-remove{border:0;background:transparent;color:var(--danger);padding:5px 0;font-size:.72rem;font-weight:800}.ref-remove:hover{text-decoration:underline}.ref-remove:focus-visible{outline:2px solid var(--accent);outline-offset:3px;border-radius:4px}
+
+@media(max-width:860px){
+  .guide-split,.guide-symptom-layout,.guide-drift-layout{grid-template-columns:1fr}
+  .guide-detail,.guide-state-detail{border-left:0;border-top:1px solid var(--line);padding:22px 12px 12px;min-height:190px}
+  .guide-state-detail::before{left:50%;top:-5px;transform:translateX(-50%);box-shadow:0 0 0 6px var(--paper)}
+  .guide-path{grid-template-columns:1fr 1fr}
+  .guide-step:nth-child(2)::after{display:none}
+  .guide-step:nth-child(1),.guide-step:nth-child(2){border-bottom:1px solid var(--line)}
+  .guide-pipeline{grid-template-columns:repeat(3,1fr)}
+  .guide-pipeline-track{display:none}
+}
+@media(max-width:620px){
+  .guide-path,.guide-symptoms,.guide-pipeline{grid-template-columns:1fr}
+  .guide-step{min-height:auto;padding:16px 10px}
+  .guide-step::after{display:none!important}
+  .guide-step:not(:last-child),.guide-symptom{border-bottom:1px solid var(--line)}
+  .guide-symptom:nth-child(odd){border-right:0}
+  .guide-pipeline{gap:0}
+  .guide-pipe-step{border-bottom:1px solid var(--line);padding:10px}
+  .guide-pipe-step::before{margin:4px auto 8px}
+  .drift-choice{grid-template-columns:26px minmax(0,1fr);min-height:64px}
+  .drift-choice .drift-state{grid-column:2;justify-self:start}
+  .guide-state-detail{min-height:220px;padding:26px 14px 16px}
+  .guide-loop-stage{
+    position:relative;
+    width:100%;
+    min-height:0;
+    margin:24px auto 0;
+    display:grid;
+    grid-template-columns:1fr;
+    gap:0;
+    padding-left:22px;
+  }
+  .guide-loop-stage::before{
+    content:"";
+    position:absolute;
+    left:10px;top:28px;bottom:238px;
+    width:1px;
+    background:linear-gradient(var(--accent),var(--accent2));
+    opacity:.3;
+  }
+  .guide-loop-ring{display:none}
+  .guide-loop-node,.gl1,.gl2,.gl3,.gl4{
+    position:relative;
+    left:auto;right:auto;top:auto;bottom:auto;
+    transform:none!important;
+    width:100%;
+    min-width:0;
+    min-height:64px;
+    display:grid;
+    grid-template-columns:42px 1fr;
+    align-items:center;
+    border-top:0;
+    border-bottom:1px solid var(--line);
+    padding:10px 8px;
+    text-align:left;
+  }
+  .guide-loop-node::before{
+    content:"";
+    position:absolute;
+    left:-16px;top:50%;
+    width:9px;height:9px;border-radius:50%;
+    transform:translateY(-50%);
+    background:var(--paper);
+    border:2px solid var(--line);
+  }
+  .guide-loop-node.active::before{border-color:var(--accent2);background:var(--accent2)}
+  .guide-loop-node>span{margin:0;color:var(--accent);font-size:.66rem}
+  .guide-loop-node strong{font-size:1rem}
+  .guide-loop-core{
+    position:relative;
+    left:auto;top:auto;
+    transform:none;
+    width:100%;
+    min-height:210px;
+    border-radius:18px;
+    margin-top:18px;
+    padding:24px 20px;
+    background:radial-gradient(circle at 20% 10%,rgba(76,143,137,.10),rgba(125,114,184,.04) 56%,transparent 78%);
+  }
+  .refrow{grid-template-columns:1fr}
+}
+@media(prefers-reduced-motion:reduce){
+  .guide-loop-node,.guide-step,.guide-symptom,.guide-pipe-step,.drift-choice{transition:none!important}
+}
+
+
+/* v1.4 field refinement: complete local payoff + reference audit + selective learning */
+.quick-launch-meta{display:flex;flex-direction:column;align-items:flex-end;gap:8px;min-width:0}
+.quick-collapse{border:0;background:transparent;color:var(--accent2);font-size:.73rem;font-weight:800;padding:5px 2px;border-radius:6px}
+.quick-collapse:hover{text-decoration:underline}
+.quick-collapse:focus-visible,.quick-compact button:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+.quick-compact{display:none;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-top:2px}
+.quick-compact button{min-width:0;border:1px solid var(--line);border-radius:13px;background:rgba(255,253,248,.46);color:var(--text);padding:10px 11px;text-align:left}
+html[data-theme="dark"] .quick-compact button{background:rgba(255,255,255,.025)}
+.quick-compact span{display:block;font-family:Georgia,"Times New Roman",serif;font-size:.96rem}
+.quick-compact small{display:block;color:var(--muted);font-size:.67rem;line-height:1.25;margin-top:2px}
+.quick-launch.collapsed{padding-bottom:14px}
+.quick-launch.collapsed .quick-launch-head{margin-bottom:10px;padding-bottom:10px}
+.quick-launch.collapsed .quick-launch-head small,.quick-launch.collapsed .quick-route-body{display:none}
+.quick-launch.collapsed .quick-compact{display:grid}
+.copy-success{border-color:rgba(76,143,137,.42)!important;background:var(--accent2-soft)!important;color:var(--text)!important}
+.tab-short{display:none}
+
+@media(max-width:820px){
+  .quick-launch-meta{align-items:flex-start}
+  .quick-collapse{padding-left:0}
+}
+@media(max-width:620px){
+  .tabs{
+    flex-wrap:nowrap;overflow-x:auto;overscroll-behavior-x:contain;scrollbar-width:none;
+    -webkit-overflow-scrolling:touch;gap:3px;border-radius:0;margin-left:-9px;margin-right:-9px;padding-left:9px;padding-right:9px
+  }
+  .tabs::-webkit-scrollbar{display:none}
+  .tab{flex:0 0 auto;white-space:nowrap;scroll-snap-align:center;padding:9px 11px}
+  .tab-long{display:none}.tab-short{display:inline}
+  .quick-compact{grid-template-columns:1fr 1fr}
+}
+@media(max-width:420px){
+  .theme-control{gap:2px;padding:4px}
+  .theme-btn{padding:7px 8px;font-size:.7rem}
+}
+
+@media(max-width:480px){
+  /* On phones, preserve the UX compass meaning without forcing the desktop constellation. */
+  .compass-stage{
+    display:grid;grid-template-columns:1fr 1fr;gap:8px 10px;min-height:0;padding:4px 0 2px
+  }
+  .compass-lines{display:none}
+  .editorial-node,.n1,.n2,.n3,.n4,.n5,.n6{
+    position:relative;left:auto;right:auto;top:auto;bottom:auto;min-width:0;width:100%;
+    padding:10px 5px;border-top:1px solid var(--line);transform:none!important
+  }
+  .editorial-node::before{width:8px;height:8px;margin-bottom:7px;box-shadow:0 0 0 6px rgba(125,114,184,.055)}
+  .n1{grid-column:1;grid-row:1}.n2{grid-column:2;grid-row:1}
+  .editorial-core{
+    grid-column:1/-1;grid-row:2;position:relative;left:auto;top:auto;transform:none;width:100%;
+    min-height:178px;border-radius:18px;padding:22px 18px;margin:4px 0 6px;
+    border:1px solid rgba(125,114,184,.12)
+  }
+  html[data-theme="dark"] .editorial-core{border-color:rgba(169,155,234,.13)}
+  .n3{grid-column:1;grid-row:3}.n4{grid-column:2;grid-row:3}
+  .n5{grid-column:1;grid-row:4}.n6{grid-column:2;grid-row:4}
+  .editorial-compass::before,.editorial-compass::after{inset:20% 4% 18%}
+}
+
+@media(max-width:480px){
+  .micro-check{display:flex;flex-wrap:wrap;justify-content:center;gap:6px 5px;line-height:1.35}
+  .micro-check>span,.micro-check small{flex:0 0 100%}
+  .micro-check i{display:none}
+  .micro-check b{border:1px solid var(--line);border-radius:999px;padding:5px 7px;font-size:.72rem;font-weight:650}
+}
+
+
+
+/* v1.4 richer field-tool payoff without dashboard creep */
+.diagnosis-family{display:inline-flex;align-items:center;gap:7px;margin-bottom:8px;color:var(--accent2);font-size:.62rem;font-weight:850;letter-spacing:.13em;text-transform:uppercase}
+.diagnosis-family::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--accent2);box-shadow:0 0 0 5px rgba(76,143,137,.07)}
+.diagnosis-signs{margin-top:15px;padding-top:13px;border-top:1px solid var(--line)}
+.diagnosis-signs>span,.diagnosis-next>span{display:block;color:var(--muted);font-size:.62rem;font-weight:850;letter-spacing:.12em;text-transform:uppercase;margin-bottom:7px}
+.sign-chips{display:flex;flex-wrap:wrap;gap:7px}
+.sign-chip{border:1px solid var(--line);border-radius:999px;padding:6px 9px;color:var(--soft);font-size:.72rem;background:rgba(255,255,255,.11)}
+html[data-theme="dark"] .sign-chip{background:rgba(255,255,255,.02)}
+.diagnosis-next{margin-top:15px;padding:13px 14px;border-left:2px solid var(--accent);background:rgba(125,114,184,.045);border-radius:0 10px 10px 0}
+.diagnosis-next p{margin:0;color:var(--soft);font-size:.79rem;line-height:1.48}
+
+.ref-readiness{margin-top:18px;padding:18px 0 4px;border-top:1px solid var(--line)}
+.ref-readiness-head{display:flex;justify-content:space-between;align-items:flex-start;gap:14px;flex-wrap:wrap;margin-bottom:12px}
+.ref-readiness-head h3{font-family:Georgia,"Times New Roman",serif;font-size:1.18rem;font-weight:500;margin:0}
+.ref-readiness-head p{margin:4px 0 0;color:var(--muted);font-size:.78rem;line-height:1.4;max-width:620px}
+.ref-audit-summary{color:var(--accent2);font-size:.72rem;font-weight:850;letter-spacing:.07em;text-transform:uppercase}
+.ref-audit-list{display:grid;gap:8px}
+.ref-audit-item{display:grid;grid-template-columns:minmax(110px,.7fr) minmax(0,1.6fr);gap:12px;align-items:center;padding:10px 0;border-top:1px solid var(--line)}
+.ref-audit-item strong{font-family:Georgia,"Times New Roman",serif;font-weight:500;font-size:.98rem}
+.ref-audit-chips{display:flex;gap:6px;flex-wrap:wrap}
+.ref-audit-chip{border:1px solid var(--line);border-radius:999px;padding:5px 8px;font-size:.67rem;color:var(--muted)}
+.ref-audit-chip.ready{border-color:rgba(76,143,137,.34);color:var(--accent2);background:rgba(76,143,137,.045)}
+.ref-audit-chip.missing{border-style:dashed;color:var(--muted)}
+.ref-audit-note{margin:9px 0 0;color:var(--muted);font-size:.75rem;line-height:1.45}
+
+.close-decision{margin:24px 0 20px;padding:20px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.close-decision-head{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:16px;align-items:end;margin-bottom:14px}
+.close-decision-head h3{font-family:Georgia,"Times New Roman",serif;font-size:1.3rem;font-weight:500;margin:0}
+.close-decision-head p{margin:5px 0 0;color:var(--muted);font-size:.8rem;line-height:1.45}
+.close-costs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.close-cost{border:1px solid var(--line);border-radius:14px;background:rgba(255,255,255,.10);padding:12px;text-align:left;color:var(--text);min-height:78px}
+html[data-theme="dark"] .close-cost{background:rgba(255,255,255,.02)}
+.close-cost strong{display:block;font-family:Georgia,"Times New Roman",serif;font-size:1rem;font-weight:500}
+.close-cost small{display:block;color:var(--muted);font-size:.69rem;line-height:1.35;margin-top:4px}
+.close-cost.active{border-color:rgba(76,143,137,.42);background:rgba(76,143,137,.065)}
+.close-payoff{margin-top:16px;padding:17px 18px;border-left:2px solid var(--accent2);background:rgba(76,143,137,.04);border-radius:0 14px 14px 0}
+.close-payoff h4{font-family:Georgia,"Times New Roman",serif;font-weight:500;font-size:1.08rem;margin:0 0 6px}
+.close-payoff>p{margin:0;color:var(--muted);font-size:.8rem;line-height:1.5}
+.lesson-distiller{display:none;margin-top:16px;padding-top:15px;border-top:1px solid var(--line)}
+.lesson-distiller.active{display:block}
+.lesson-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.lesson-grid label{display:block;color:var(--muted);font-size:.7rem;font-weight:800;margin-bottom:5px}
+.lesson-grid textarea{min-height:82px}
+.lesson-output{margin-top:10px;padding:12px 13px;border-radius:12px;background:var(--accent2-soft);color:var(--soft);white-space:pre-wrap;line-height:1.5;font-size:.82rem}
+@media(max-width:620px){
+  .ref-audit-item{grid-template-columns:1fr;gap:7px}
+  .close-decision-head{grid-template-columns:1fr}
+  .close-costs,.lesson-grid{grid-template-columns:1fr}
+}
+
+
+/* v1.5 composition pass — core-first Start + destination-quality field tabs */
+.brand-needle,.brand-ring.inner{animation:none!important}
+.start-heading,.diagnose-heading,.refs-heading,.close-heading{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(230px,.5fr);gap:28px;align-items:end;margin-bottom:24px}
+.start-heading h2,.diagnose-heading h2,.refs-heading h2,.close-heading h2{font-family:Georgia,"Times New Roman",serif;font-weight:500;font-size:clamp(1.9rem,4vw,3.1rem);line-height:1.04;letter-spacing:-.035em;margin:6px 0 9px}
+.start-heading .intro,.diagnose-heading .intro,.refs-heading .intro,.close-heading .intro{margin:0;max-width:720px}
+.start-rule,.reference-recipe,.close-worth{border-left:1px solid var(--line);padding:10px 0 10px 20px;color:var(--muted);font-size:.77rem;line-height:1.45}
+.start-rule strong,.reference-recipe>span,.close-worth>span{display:block;color:var(--accent2);font-size:.62rem;font-weight:850;letter-spacing:.14em;text-transform:uppercase;margin-bottom:7px}
+.start-rule span{display:block;font-family:Georgia,"Times New Roman",serif;color:var(--text);font-size:1.15rem}
+.reference-recipe b,.close-worth b{display:inline-block;color:var(--text);font-weight:650;margin:2px 9px 2px 0}
+
+.start-path-mini{display:grid;grid-template-columns:repeat(4,minmax(0,1fr)) minmax(280px,1.35fr);border-top:1px solid var(--line);border-bottom:1px solid var(--line);margin:8px 0 26px;align-items:stretch}
+.start-path-button{border:0;border-right:1px solid var(--line);background:transparent;text-align:left;padding:16px 13px;color:var(--text);min-height:88px}
+.start-path-button span{display:block;color:var(--accent);font-size:.62rem;font-weight:850;letter-spacing:.12em;margin-bottom:7px}
+.start-path-button strong{font-family:Georgia,"Times New Roman",serif;font-size:1rem;font-weight:500}
+.start-path-button.active,.start-path-button:hover{background:linear-gradient(180deg,rgba(125,114,184,.065),transparent)}
+.start-path-button.active strong{color:var(--accent2)}
+.start-path-detail{padding:14px 18px;background:radial-gradient(circle at 10% 50%,rgba(76,143,137,.075),transparent 70%);min-width:0}
+.start-path-detail>span{display:block;color:var(--accent2);font-size:.58rem;font-weight:850;letter-spacing:.14em;text-transform:uppercase}
+.start-path-detail>strong{display:block;font-family:Georgia,"Times New Roman",serif;font-size:1.05rem;font-weight:500;margin:4px 0}
+.start-path-detail p{margin:0;color:var(--muted);font-size:.74rem;line-height:1.4}
+.start-path-detail small{display:block;color:var(--soft);font-size:.69rem;line-height:1.35;margin-top:7px;font-style:italic}
+
+.start-core{padding:22px 0 20px}
+.start-core-head{display:flex;justify-content:space-between;gap:20px;align-items:end;margin-bottom:12px}
+.start-core-head h3{font-family:Georgia,"Times New Roman",serif;font-size:1.55rem;font-weight:500;margin:4px 0 0}
+.start-core-head p{margin:0;color:var(--muted);font-size:.77rem}
+.start-core-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.start-essential{background:linear-gradient(180deg,rgba(255,253,248,.66),rgba(255,253,248,.42));border-color:rgba(76,143,137,.24)}
+html[data-theme="dark"] .start-essential{background:linear-gradient(180deg,rgba(255,255,255,.035),rgba(255,255,255,.015));border-color:rgba(121,200,192,.18)}
+.start-essential textarea{min-height:132px}
+.start-stage-compact{padding:16px 0 18px;border-top:1px solid var(--line)}
+.start-stage-head{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:9px}
+.start-stage-head>span{font-weight:800}.start-stage-head small{color:var(--muted);font-weight:500}.start-stage-head p{margin:0;color:var(--muted);font-size:.73rem}
+.compact-modes{gap:6px}.compact-modes .mode{min-height:42px;padding:9px 11px;text-align:center}.compact-modes .mode strong{margin:0;font-size:.82rem}
+.start-stage-compact .stage-note{margin-top:10px;margin-bottom:0}
+.start-more{border-top:1px solid var(--line);border-bottom:1px solid var(--line);margin:2px 0 22px}
+.start-more summary{list-style:none;cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:18px;padding:17px 2px}
+.start-more summary::-webkit-details-marker{display:none}.start-more summary span{font-family:Georgia,"Times New Roman",serif;font-size:1.08rem}.start-more summary small{display:block;font-family:Inter,system-ui,sans-serif;color:var(--accent2);font-size:.6rem;font-weight:850;letter-spacing:.14em;margin-bottom:4px}.start-more summary b{font-size:1.25rem;color:var(--accent2);font-weight:400}.start-more[open] summary b{transform:rotate(45deg)}
+.start-more-body{padding:0 0 20px}.start-more-intro{color:var(--muted);font-size:.78rem;line-height:1.45;margin:0 0 12px;max-width:700px}.start-more .field textarea{min-height:92px}
+.start-finish{display:grid;grid-template-columns:auto minmax(0,1fr);gap:16px;align-items:start}.start-finish .controls{margin:0;flex-direction:column}.start-output{margin:0;min-height:112px}
+
+.diagnose-logic{display:flex;align-items:center;justify-content:flex-end;gap:8px;flex-wrap:wrap;color:var(--muted);font-size:.71rem;padding-bottom:8px}.diagnose-logic span{border:1px solid var(--line);border-radius:999px;padding:6px 8px;background:rgba(255,255,255,.09)}.diagnose-logic i{font-style:normal;color:var(--accent2)}
+.diagnose-workbench{display:grid;grid-template-columns:minmax(260px,.7fr) minmax(0,1.3fr);gap:28px;align-items:start;border-top:1px solid var(--line);padding-top:22px}
+.diagnose-rail{min-width:0}.diagnose-rail-label{display:block;color:var(--accent2);font-size:.61rem;font-weight:850;letter-spacing:.14em;margin-bottom:8px}.diagnose-panel .guide-symptoms{display:grid;grid-template-columns:1fr;border-top:1px solid var(--line)}.diagnose-panel .guide-symptom{min-height:62px;padding:11px 10px;border-right:0!important}.diagnose-panel .guide-symptom span{font-size:1rem}.diagnose-panel .guide-symptom small{margin-top:2px}.diagnose-none{margin-top:18px;padding:15px;border:1px dashed var(--line);border-radius:14px}.diagnose-none strong{font-family:Georgia,"Times New Roman",serif;font-weight:500}.diagnose-none p{color:var(--muted);font-size:.75rem;line-height:1.4;margin:5px 0 10px}.diagnose-none .script{font-size:.76rem}.diagnose-none .btn{margin-top:8px}
+.diagnosis-card{position:relative;border:1px solid var(--line);border-radius:22px;padding:26px;background:linear-gradient(145deg,rgba(255,253,248,.62),rgba(255,253,248,.26));box-shadow:0 18px 55px rgba(63,52,42,.055);overflow:hidden}.diagnosis-card::before{content:"";position:absolute;inset:-20% 45% 55% -15%;background:radial-gradient(circle,rgba(76,143,137,.09),transparent 65%);pointer-events:none}.diagnosis-card>*{position:relative}.diagnosis-hypothesis{display:block;color:var(--muted);font-size:.58rem;letter-spacing:.13em;font-weight:800;margin-bottom:6px}.diagnosis-card h3{font-family:Georgia,"Times New Roman",serif;font-size:clamp(1.45rem,2.8vw,2.15rem);line-height:1.08;font-weight:500;margin:0 0 9px}.diagnosis-card-top>p{color:var(--muted);line-height:1.55;margin:0;max-width:700px}.diagnosis-two-up{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:17px}.diagnosis-two-up .diagnosis-check,.diagnosis-avoid{margin:0;padding:14px;border:1px solid var(--line);border-radius:13px;background:rgba(255,255,255,.14)}.diagnosis-avoid span{display:block;color:var(--warn);font-size:.62rem;font-weight:850;letter-spacing:.13em;text-transform:uppercase;margin-bottom:6px}.diagnosis-avoid p{margin:0;color:var(--soft);font-size:.8rem;line-height:1.48}.diagnosis-repair{margin-top:20px;padding-top:17px;border-top:1px solid var(--line)}.diagnosis-repair-head{display:flex;justify-content:space-between;gap:14px;align-items:baseline}.diagnosis-repair-head small{color:var(--muted);font-size:.7rem;max-width:430px;text-align:right}.diagnosis-script{font-size:.88rem;padding:14px;margin-top:8px}.diagnosis-next{margin-top:14px}
+
+.refs-heading{margin-bottom:20px}.reference-path{position:relative;display:grid;grid-template-columns:repeat(5,minmax(0,1fr)) minmax(260px,1.35fr);gap:0;border-top:1px solid var(--line);border-bottom:1px solid var(--line);margin-bottom:26px;align-items:stretch}.reference-path .guide-pipeline-track{display:none}.reference-path .guide-pipe-step{padding:14px 7px;border-right:1px solid var(--line);min-height:92px}.reference-path .guide-pipe-step::before{width:9px;height:9px;margin:4px auto 8px;box-shadow:none}.reference-path .guide-pipe-step>span{margin-bottom:4px}.reference-path-detail{padding:14px 18px;background:radial-gradient(circle at 10% 50%,rgba(125,114,184,.07),transparent 75%)}.reference-path-detail>span{color:var(--accent2);font-size:.58rem;font-weight:850;letter-spacing:.13em}.reference-path-detail>strong{display:block;font-family:Georgia,"Times New Roman",serif;font-size:1.03rem;font-weight:500;margin:3px 0}.reference-path-detail p{margin:0;color:var(--muted);font-size:.72rem;line-height:1.4}.reference-path-detail small{display:block;color:var(--soft);font-size:.68rem;line-height:1.35;margin-top:7px}
+.ref-workbench{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(340px,.9fr);gap:24px;align-items:start}.ref-editor,.ref-preview{min-width:0}.ref-preview{position:sticky;top:70px;border-left:1px solid var(--line);padding-left:24px}.workbench-head{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:12px}.workbench-head>span{font-family:Georgia,"Times New Roman",serif;font-size:1.15rem}.workbench-head small{display:block;font-family:Inter,system-ui,sans-serif;color:var(--accent2);font-size:.58rem;font-weight:850;letter-spacing:.14em;margin-bottom:3px}.ref-editor #refBlocks{display:grid;gap:10px}.ref-editor .ref-group{border:1px solid var(--line);border-radius:16px;padding:14px;background:rgba(255,255,255,.10)}.ref-editor-actions{justify-content:flex-start}.ref-preview-output{min-height:185px;margin-top:0;background:linear-gradient(180deg,var(--accent2-soft),rgba(76,143,137,.045))}.ref-preview .ref-readiness{margin-top:16px}.reference-footer-note{display:flex;gap:10px;align-items:baseline;margin-top:24px;padding-top:16px;border-top:1px solid var(--line);color:var(--muted);font-size:.78rem;line-height:1.45}.reference-footer-note strong{color:var(--text)}
+
+.close-heading{margin-bottom:22px}.close-loop-strip{display:grid;grid-template-columns:repeat(4,minmax(0,1fr)) minmax(280px,1.35fr);border-top:1px solid var(--line);border-bottom:1px solid var(--line);margin-bottom:26px}.close-loop-step{border:0;border-right:1px solid var(--line);background:transparent;padding:15px 11px;text-align:left;color:var(--text);min-height:86px}.close-loop-step span{display:block;color:var(--accent);font-size:.61rem;font-weight:850;letter-spacing:.12em;margin-bottom:7px}.close-loop-step strong{font-family:Georgia,"Times New Roman",serif;font-size:.98rem;font-weight:500}.close-loop-step.active,.close-loop-step:hover{background:linear-gradient(180deg,rgba(76,143,137,.065),transparent)}.close-loop-step.active strong{color:var(--accent2)}.close-loop-detail{padding:14px 18px;background:radial-gradient(circle at 8% 50%,rgba(76,143,137,.08),transparent 72%)}.close-loop-detail>span{color:var(--accent2);font-size:.58rem;font-weight:850;letter-spacing:.14em}.close-loop-detail>strong{display:block;font-family:Georgia,"Times New Roman",serif;font-size:1.03rem;font-weight:500;margin:3px 0}.close-loop-detail p{margin:0;color:var(--muted);font-size:.72rem;line-height:1.4}
+.close-workbench{display:grid;grid-template-columns:minmax(260px,.72fr) minmax(0,1.28fr);gap:26px;align-items:start}.close-gate{padding:20px;border:1px solid var(--line);border-radius:18px;background:rgba(255,255,255,.10)}.close-gate h3{font-family:Georgia,"Times New Roman",serif;font-size:1.35rem;font-weight:500;margin:4px 0 6px}.close-gate>p{color:var(--muted);font-size:.78rem;line-height:1.45;margin:0 0 12px}.close-gate .close-costs{grid-template-columns:1fr}.close-gate .close-cost{min-height:62px}.close-blindspot{margin-top:15px;padding-top:13px;border-top:1px solid var(--line)}.close-blindspot strong{font-size:.72rem;color:var(--accent2)}.close-blindspot p{color:var(--muted);font-size:.74rem;line-height:1.4;margin:3px 0 0}.close-workbench .close-payoff{margin:0;padding:24px;border:1px solid rgba(76,143,137,.24);border-radius:18px;background:linear-gradient(145deg,rgba(76,143,137,.07),rgba(125,114,184,.035));min-height:100%}.close-workbench .close-payoff h4{font-size:1.4rem}.close-retro-wrap{margin-top:15px}.lesson-grid{grid-template-columns:1fr 1fr}.lesson-when{grid-column:1/-1}.lesson-when label{display:block;color:var(--muted);font-size:.7rem;font-weight:800;margin-bottom:5px}.lesson-when small{font-weight:500}.field-note-output{border:1px solid rgba(76,143,137,.18);background:rgba(255,253,248,.52);font-family:Georgia,"Times New Roman",serif;font-size:.88rem}.close-experimental{margin-top:26px}
+
+@media(max-width:980px){
+  .start-heading,.diagnose-heading,.refs-heading,.close-heading{grid-template-columns:1fr}.start-rule,.reference-recipe,.close-worth{border-left:0;border-top:1px solid var(--line);padding:12px 0 0}
+  .start-path-mini,.reference-path,.close-loop-strip{grid-template-columns:repeat(4,minmax(0,1fr))}.start-path-detail,.reference-path-detail,.close-loop-detail{grid-column:1/-1;border-top:1px solid var(--line)}
+  .reference-path{grid-template-columns:repeat(5,minmax(0,1fr))}
+  .diagnose-workbench,.ref-workbench,.close-workbench{grid-template-columns:1fr}.ref-preview{position:static;border-left:0;border-top:1px solid var(--line);padding:20px 0 0}
+}
+@media(max-width:700px){
+  .start-core-grid,.diagnosis-two-up,.lesson-grid{grid-template-columns:1fr}.start-finish{grid-template-columns:1fr}.start-finish .controls{flex-direction:row}.start-stage-head{align-items:flex-start;flex-direction:column}.start-stage-head p{margin-top:-5px}
+  .start-path-mini{grid-template-columns:1fr 1fr}.start-path-button:nth-child(2){border-right:0}.start-path-button{min-height:72px;border-bottom:1px solid var(--line)}.start-path-detail{grid-column:1/-1}
+  .reference-path{grid-template-columns:1fr 1fr}.reference-path .guide-pipe-step{border-bottom:1px solid var(--line)}.reference-path .guide-pipe-step:nth-child(even){border-right:0}.reference-path .guide-pipe-step:nth-child(5){grid-column:1/-1;border-right:0}.reference-path-detail{grid-column:1/-1}
+  .close-loop-strip{grid-template-columns:1fr 1fr}.close-loop-step:nth-child(2),.close-loop-step:nth-child(4){border-right:0}.close-loop-step{border-bottom:1px solid var(--line)}.close-loop-detail{grid-column:1/-1}
+  .diagnosis-card{padding:20px}.diagnosis-repair-head{align-items:flex-start;flex-direction:column}.diagnosis-repair-head small{text-align:left}
+}
+@media(max-width:480px){
+  .start-heading h2,.diagnose-heading h2,.refs-heading h2,.close-heading h2{font-size:2rem}.compact-modes{grid-template-columns:1fr 1fr}.reference-recipe b,.close-worth b{font-size:.74rem}.diagnose-logic{justify-content:flex-start}.reference-footer-note{flex-direction:column;gap:3px}.workbench-head{align-items:flex-start;flex-direction:column}.workbench-head .btn{align-self:flex-start}.close-gate{padding:16px}.close-workbench .close-payoff{padding:18px}
+}
+
+
+/* v1.6 readability + motion correction */
+html[data-theme="dark"] .diagnosis-card{
+  background:linear-gradient(145deg,#202328,#191b1f 72%);
+  border-color:#454a52;
+  box-shadow:0 18px 55px rgba(0,0,0,.20);
+}
+html[data-theme="dark"] .diagnosis-card::before{
+  background:radial-gradient(circle,rgba(121,200,192,.075),transparent 66%);
+}
+html[data-theme="dark"] .diagnosis-card h3{color:#f5f1ea}
+html[data-theme="dark"] .diagnosis-card-top>p,
+html[data-theme="dark"] .diagnosis-check p,
+html[data-theme="dark"] .diagnosis-avoid p,
+html[data-theme="dark"] .diagnosis-next p{color:#d7d2ca}
+html[data-theme="dark"] .diagnosis-hypothesis,
+html[data-theme="dark"] .diagnosis-signs>span,
+html[data-theme="dark"] .diagnosis-next>span,
+html[data-theme="dark"] .diagnosis-repair-head small{color:#b9b4ac}
+html[data-theme="dark"] .sign-chip{
+  color:#e2ddd5;
+  background:#272b31;
+  border-color:#464c55;
+}
+html[data-theme="dark"] .diagnosis-two-up .diagnosis-check{
+  background:#24282d;
+  border-color:#41474f;
+}
+html[data-theme="dark"] .diagnosis-avoid{
+  background:rgba(214,162,100,.065);
+  border-color:rgba(214,162,100,.24);
+}
+html[data-theme="dark"] .diagnosis-script{
+  color:#f0ebf6;
+  background:#262230;
+  border-left-color:#a99bea;
+}
+html[data-theme="dark"] .diagnosis-next{
+  background:rgba(169,155,234,.07);
+  border-left-color:#a99bea;
+}
+html[data-theme="dark"] .diagnose-none{
+  background:rgba(255,255,255,.018);
+  border-color:#42474e;
+}
+html[data-theme="dark"] .diagnose-none .script{
+  color:#e9e4ef;
+  background:rgba(169,155,234,.07);
+}
+html[data-theme="dark"] .diagnose-panel .guide-symptom:hover,
+html[data-theme="dark"] .diagnose-panel .guide-symptom.active{
+  background:linear-gradient(90deg,rgba(121,200,192,.105),rgba(121,200,192,.025));
+}
+html[data-theme="dark"] .diagnose-logic span{
+  background:#202328;
+  border-color:#41464e;
+  color:#d3cec6;
+}
+/* The signature compass should feel alive, not unstable: the inner ring is static
+   and the needle uses a narrow, slow seek around one fixed center point. */
+.brand-ring.inner{animation:none!important}
+.brand-needle{animation:none!important}
+
+</style>
+
+<script>
+(function(){
+  try{
+    const saved=localStorage.getItem('promptCompassTheme') || 'system';
+    const dark=window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+    const actual=saved==='system' ? (dark?'dark':'light') : (saved==='dark'?'dark':'light');
+    document.documentElement.dataset.theme=actual;
+    document.documentElement.dataset.themeChoice=saved;
+  }catch(e){
+    document.documentElement.dataset.theme='light';
+    document.documentElement.dataset.themeChoice='system';
+  }
+})();
+</script>
+
+</head>
+<body>
+<div class="ambient-grain" aria-hidden="true"></div>
+<div class="wrap">
+  <header class="top">
+    <div>
+      <div class="brand-lockup">
+        <div class="brand-text">
+          <div class="eyebrow">Project-agnostic AI prompting companion</div>
+          <h1>Prompt Compass</h1>
+        </div>
+        <div class="brand-mark" aria-hidden="true">
+          <svg class="brand-compass" viewBox="0 0 160 160" focusable="false">
+            <circle class="brand-ring" cx="80" cy="80" r="59"/>
+            <circle class="brand-ring inner" cx="80" cy="80" r="43"/>
+            <path class="brand-axis" d="M80 15V145M15 80H145"/>
+            <circle class="brand-dot" cx="80" cy="21" r="2.4"/>
+            <circle class="brand-dot" cx="139" cy="80" r="2.4"/>
+            <circle class="brand-dot" cx="80" cy="139" r="2.4"/>
+            <circle class="brand-dot" cx="21" cy="80" r="2.4"/>
+            <g class="brand-needle">
+              <path class="brand-needle-n" d="M80 28L91 82L80 76L69 82Z"/>
+              <path class="brand-needle-s" d="M80 132L69 78L80 84L91 78Z"/>
+              <circle class="brand-hub" cx="80" cy="80" r="5.2"/>
+            </g>
+            <path class="brand-spark" d="M128 29l2.2 5.2 5.2 2.2-5.2 2.2-2.2 5.2-2.2-5.2-5.2-2.2 5.2-2.2z"/>
+          </svg>
+        </div>
+      </div>
+      <p class="subtitle">Use this when you need help setting up an expensive prompt, steering a session that is drifting, or diagnosing why the model keeps giving you the wrong thing. It is intentionally not a giant prompt template.</p>
+    </div>
+    <div class="top-actions">
+      <div class="theme-control" role="group" aria-label="Appearance">
+        <button type="button" class="theme-btn" data-theme-choice="system" aria-pressed="false">◐ System</button>
+        <button type="button" class="theme-btn" data-theme-choice="light" aria-pressed="false">☀ Soft</button>
+        <button type="button" class="theme-btn" data-theme-choice="dark" aria-pressed="false">☾ Dark</button>
+      </div>
+      <div class="badge">Field v1.6 · orient → act → carry forward</div>
+    </div>
+  </header>
+
+  <aside class="quick-launch" aria-label="Prompt Compass quick routes">
+    <div class="quick-launch-head">
+      <div><span>QUICK ROUTES</span><strong>Where are you right now?</strong></div>
+      <div class="quick-launch-meta">
+        <small>Pick the situation, not the feature. Compass will take you to the useful starting point.</small>
+        <button type="button" class="quick-collapse" id="quickCollapse" aria-expanded="true" aria-controls="quickRouteBody">Minimize routes</button>
+      </div>
+    </div>
+    <div class="quick-compact" id="quickCompact" aria-label="Compact quick routes">
+      <button type="button" data-quick-tab="start" data-focus-target="thisTurn"><span>Start</span><small>THIS TURN + OPEN</small></button>
+      <button type="button" data-quick-tab="steer"><span>Repair</span><small>I know the drift</small></button>
+      <button type="button" data-quick-tab="trouble"><span>Diagnose</span><small>I don't know why</small></button>
+      <button type="button" id="quickCompactSkip"><span>Skip</span><small>just ask normally</small></button>
+    </div>
+    <div class="quick-route-body" id="quickRouteBody">
+    <div class="quick">
+      <button type="button" class="qcard qcard-route" data-quick-tab="start" data-focus-target="thisTurn">
+        <span class="qcard-num">01 · START</span>
+        <strong>In a rush?</strong>
+        <p>Write only <b>THIS TURN</b> + <b>OPEN</b>. Enough structure to prevent expensive mistakes.</p>
+        <span class="qcard-action">Go to Start a Prompt →</span>
+      </button>
+      <button type="button" class="qcard qcard-route" data-quick-tab="steer">
+        <span class="qcard-num">02 · REPAIR</span>
+        <strong>Know what drifted?</strong>
+        <p>Don't restart. <b>Repair the drift</b> and keep the useful context you already built.</p>
+        <span class="qcard-action">Go to Repair a Drift →</span>
+      </button>
+      <button type="button" class="qcard qcard-skip" id="quickSkip" aria-controls="quickSkipNote">
+        <span class="qcard-num">03 · SKIP</span>
+        <strong>Small question?</strong>
+        <p>Skip the scaffold. The tool should reduce friction, not create it.</p>
+        <span class="qcard-action">No Compass needed ↘</span>
+      </button>
+      <div class="quick-skip-note" id="quickSkipNote" aria-live="polite"><b>Compass says: just ask.</b> If the answer is cheap to correct and you do not already see a likely failure mode, a normal prompt is the efficient prompt.</div>
+    </div>
+    <button type="button" class="quick-diagnose" data-quick-tab="trouble">
+      <span>Something feels wrong, but you cannot name the failure yet?</span>
+      <strong>Diagnose the problem →</strong>
+    </button>
+    </div>
+  </aside>
+
+  <nav class="tabs" aria-label="Prompt Compass tools" role="tablist">
+    <button class="tab active" data-tab="start" id="tab-start" role="tab" aria-controls="start" aria-selected="true" tabindex="0">Start a Prompt</button>
+    <button class="tab" data-tab="visual" id="tab-visual" role="tab" aria-controls="visual" aria-selected="false" tabindex="-1"><span class="tab-long">UX / Visual Direction</span><span class="tab-short">UX / Visual</span></button>
+    <button class="tab" data-tab="steer" id="tab-steer" role="tab" aria-controls="steer" aria-selected="false" tabindex="-1">Repair a Drift</button>
+    <button class="tab" data-tab="trouble" id="tab-trouble" role="tab" aria-controls="trouble" aria-selected="false" tabindex="-1">Diagnose a Problem</button>
+    <button class="tab" data-tab="refs" id="tab-refs" role="tab" aria-controls="refs" aria-selected="false" tabindex="-1">Reference Files</button>
+    <button class="tab" data-tab="close" id="tab-close" role="tab" aria-controls="close" aria-selected="false" tabindex="-1">Session Close</button>
+  </nav>
+
+  <section id="start" class="section active" role="tabpanel" aria-labelledby="tab-start">
+    <div class="panel start-panel">
+      <div class="start-heading">
+        <div>
+          <span class="visual-kicker">START A PROMPT</span>
+          <h2>Start with the two things that matter most.</h2>
+          <p class="intro">For expensive work, anchor the turn first. Add structure only when it materially changes the result.</p>
+        </div>
+        <div class="start-rule"><strong>Emergency version</strong><span>THIS TURN + OPEN</span></div>
+      </div>
+
+      <div class="start-path-mini" aria-label="Interactive prompt path">
+        <button type="button" class="start-path-button active" data-guide-item="start" data-key="need"><span>01</span><strong>Need</strong></button>
+        <button type="button" class="start-path-button" data-guide-item="start" data-key="boundaries"><span>02</span><strong>Boundary</strong></button>
+        <button type="button" class="start-path-button" data-guide-item="start" data-key="context"><span>03</span><strong>Context</strong></button>
+        <button type="button" class="start-path-button" data-guide-item="start" data-key="shape"><span>04</span><strong>Shape</strong></button>
+        <div class="start-path-detail" aria-live="polite">
+          <span id="guide-start-kicker">START HERE</span>
+          <strong id="guide-start-title">Need</strong>
+          <p id="guide-start-text">Say what you actually need back from this turn. This is the anchor that keeps the model from solving a larger problem than you asked.</p>
+          <small id="guide-start-example">“For this turn, help me compare the two directions. Stop before implementation.”</small>
+        </div>
+      </div>
+
+      <div class="start-core">
+        <div class="start-core-head">
+          <div><span class="visual-kicker">CORE PROMPT</span><h3>What do you need now?</h3></div>
+          <p>These two fields are enough surprisingly often.</p>
+        </div>
+        <div class="start-core-grid">
+          <div class="field start-essential">
+            <label for="thisTurn">THIS TURN <small>What should come back now?</small></label>
+            <textarea id="thisTurn" placeholder="What do I need back right now, and where should you stop?"></textarea>
+          </div>
+          <div class="field start-essential">
+            <label for="open">OPEN <small>What should stay unresolved?</small></label>
+            <textarea id="open" placeholder="What has not actually been decided?"></textarea>
+          </div>
+        </div>
+      </div>
+
+      <div class="start-stage-compact">
+        <div class="start-stage-head"><span>Session stage <small>Optional · set it when the mode changes how the model should behave.</small></span><p id="stageHint">No stage selected — that is fine.</p></div>
+        <div class="mode-row compact-modes" role="group" aria-label="Session stage">
+          <button type="button" class="mode" data-mode="Explore" aria-pressed="false"><strong>Explore</strong></button>
+          <button type="button" class="mode" data-mode="Decide" aria-pressed="false"><strong>Decide</strong></button>
+          <button type="button" class="mode" data-mode="Build" aria-pressed="false"><strong>Build</strong></button>
+          <button type="button" class="mode" data-mode="Review" aria-pressed="false"><strong>Review</strong></button>
+        </div>
+        <div class="callout stage-note" id="buildRule" hidden><strong>Build rule:</strong> flag expensive-to-reverse ambiguity. Make reasonable assumptions for cheap reversible choices and collect them at the end.</div>
+      </div>
+
+      <details class="start-more">
+        <summary><span><small>ONLY IF IT CHANGES THE ANSWER</small>Add context, guardrails, references, or response shape</span><b>+</b></summary>
+        <div class="start-more-body">
+          <p class="start-more-intro">You do not need to complete these. Use only the dimensions that prevent a predictable failure or materially change the reasoning.</p>
+          <div class="grid">
+            <div class="field">
+              <label for="avoid">AVOID <small>Name the failure, not merely the format.</small></label>
+              <textarea id="avoid" placeholder="What predictable wrong/default behavior should the model avoid?"></textarea>
+            </div>
+            <div class="field">
+              <label for="decided">DECIDED <small>Settled unless materially harmful.</small></label>
+              <textarea id="decided" placeholder="What are we deliberately not reopening?"></textarea>
+            </div>
+            <div class="field full">
+              <label for="references">REFERENCES <small>Use for X / don't copy Y.</small></label>
+              <textarea id="references" placeholder="Example: Night Route — use for primary + alternatives; do not copy neon visual style."></textarea>
+            </div>
+            <div class="field full">
+              <label for="outputShape">OUTPUT <small>Only when response shape helps.</small></label>
+              <textarea id="outputShape" placeholder="Example: Recommendation first, then 2–3 tradeoffs. Stop before implementation details."></textarea>
+            </div>
+          </div>
+        </div>
+      </details>
+
+      <div class="start-finish">
+        <div class="controls">
+          <button class="btn primary" id="generate">Generate Prompt</button>
+          <button class="btn" id="copyPrompt">Copy</button>
+          <button class="btn ghost" id="clearStart">Clear</button>
+        </div>
+        <div class="output start-output" id="promptOutput" aria-live="polite">Your generated prompt will appear here.</div>
+      </div>
+    </div>
+  </section>
+
+
+  <section id="visual" class="section" role="tabpanel" aria-labelledby="tab-visual">
+    <div class="panel visual-editorial">
+      <div class="visual-kicker">UX + VISUAL DIRECTION</div>
+      <h2 class="visual-title">Start with the experience.</h2>
+      <p class="intro visual-intro">You do not need the design vocabulary first. Use the compass to notice what matters, then choose the kind of help you need.</p>
+
+      <div class="editorial-compass" aria-label="Interactive design compass">
+        <div class="compass-stage">
+          <div class="compass-lines" aria-hidden="true">
+            <span class="line l1"></span>
+            <span class="line l2"></span>
+            <span class="line l3"></span>
+            <span class="line l4"></span>
+            <span class="line l5"></span>
+            <span class="line l6"></span>
+          </div>
+
+          <button type="button" class="editorial-node n1 active" data-dimension="feel" aria-pressed="true">
+            <span>Feel</span><small>experience</small>
+          </button>
+          <button type="button" class="editorial-node n2" data-dimension="focus">
+            <span>Focus</span><small>attention</small>
+          </button>
+          <button type="button" class="editorial-node n3" data-dimension="shape">
+            <span>Shape</span><small>composition</small>
+          </button>
+          <button type="button" class="editorial-node n4" data-dimension="touch">
+            <span>Touch</span><small>interaction</small>
+          </button>
+          <button type="button" class="editorial-node n5" data-dimension="look">
+            <span>Look</span><small>surface</small>
+          </button>
+          <button type="button" class="editorial-node n6" data-dimension="phone">
+            <span>Phone</span><small>mobile</small>
+          </button>
+
+          <div class="editorial-core">
+            <span class="core-label">EXPERIENCE</span>
+            <strong id="dimensionTitle">What should this feel like to use?</strong>
+            <p id="dimensionText">Start here. The rest of the design should support the experience you want.</p>
+          </div>
+        </div>
+
+        <div class="compass-foot">
+          <span><b>References</b> are evidence:</span>
+          <span>use this for X</span>
+          <span>·</span>
+          <span>do not copy Y</span>
+        </div>
+      </div>
+
+      <div class="micro-check">
+        <span>Quick check</span>
+        <b>Feel</b><i>·</i><b>Focus</b><i>·</i><b>Shape</b><i>·</i><b>Touch</b><i>·</i><b>Look</b><i>·</i><b>Phone</b><i>·</i><b>Refs</b><i>·</i><b>Open</b>
+        <small>You only need the ones that materially matter.</small>
+      </div>
+
+      <div class="visual-question">
+        <div class="visual-question-head">
+          <span class="visual-kicker">NEXT STEP</span>
+          <h2>What are you trying to do?</h2>
+        </div>
+
+        <div class="editorial-menu">
+          <button type="button" class="editorial-choice" data-help="translate">
+            <span class="choice-num">01</span>
+            <span class="choice-main"><strong>Translate a vibe</strong><small>I know the feeling, not the design words.</small></span>
+            <span class="choice-arrow">→</span>
+          </button>
+          <button type="button" class="editorial-choice" data-help="check">
+            <span class="choice-num">02</span>
+            <span class="choice-main"><strong>Check my prompt</strong><small>I already wrote something and want a quick gap check.</small></span>
+            <span class="choice-arrow">→</span>
+          </button>
+          <button type="button" class="editorial-choice" data-help="diagnose">
+            <span class="choice-num">03</span>
+            <span class="choice-main"><strong>Diagnose a result</strong><small>The render feels wrong and I need to know why.</small></span>
+            <span class="choice-arrow">→</span>
+          </button>
+          <button type="button" class="editorial-choice" data-help="missing">
+            <span class="choice-num">04</span>
+            <span class="choice-main"><strong>Find what's missing</strong><small>I don't know which design decisions I haven't made.</small></span>
+            <span class="choice-arrow">→</span>
+          </button>
+        </div>
+
+        <div class="editorial-help" id="help-translate">
+          <div>
+            <span class="visual-kicker">USE THIS</span>
+            <h3>Translate my vibe first</h3>
+            <p>Before mockups or code, let the AI interpret the experience you are describing.</p>
+          </div>
+          <div class="script">I can describe the vibe better than I can name the design language. Do not build yet. Translate what I wrote into concrete UX / visual direction. Separate what I'm saying about experience, attention hierarchy, composition / density, interaction character, surface language, mobile behavior, and references. If my description could reasonably mean more than one thing, give me 2–3 interpretations rather than silently choosing one.</div>
+          <button class="btn mini-copy" data-copy="I can describe the vibe better than I can name the design language. Do not build yet. Translate what I wrote into concrete UX / visual direction. Separate what I'm saying about experience, attention hierarchy, composition / density, interaction character, surface language, mobile behavior, and references. If my description could reasonably mean more than one thing, give me 2–3 interpretations rather than silently choosing one.">Copy</button>
+        </div>
+
+        <div class="editorial-help" id="help-check">
+          <div>
+            <span class="visual-kicker">USE THIS</span>
+            <h3>Spot-check my design prompt</h3>
+            <p>Only surface omissions or ambiguity that would materially affect the result.</p>
+          </div>
+          <div class="script">Review my design prompt before I send it to the builder. Do not rewrite it yet. Tell me only which material dimensions are missing or ambiguous: experience, attention hierarchy, composition / density, interaction character, surface language, mobile behavior, references / anti-references, and open decisions. Ignore dimensions that genuinely do not matter for this task.</div>
+          <button class="btn mini-copy" data-copy="Review my design prompt before I send it to the builder. Do not rewrite it yet. Tell me only which material dimensions are missing or ambiguous: experience, attention hierarchy, composition / density, interaction character, surface language, mobile behavior, references / anti-references, and open decisions. Ignore dimensions that genuinely do not matter for this task.">Copy</button>
+        </div>
+
+        <div class="editorial-help" id="help-diagnose">
+          <div>
+            <span class="visual-kicker">USE THIS</span>
+            <h3>Diagnose the rendered result</h3>
+            <p>Structural mismatch first. Cosmetics last.</p>
+          </div>
+          <div class="script">Use the rendered result as the primary evidence. Before redesigning anything, diagnose why it feels wrong relative to the intended experience. Check in this order: experience, attention hierarchy, composition / density, interaction, then surface styling. Distinguish structural problems from cosmetic ones. Tell me the three highest-leverage mismatches first.</div>
+          <button class="btn mini-copy" data-copy="Use the rendered result as the primary evidence. Before redesigning anything, diagnose why it feels wrong relative to the intended experience. Check in this order: experience, attention hierarchy, composition / density, interaction, then surface styling. Distinguish structural problems from cosmetic ones. Tell me the three highest-leverage mismatches first.">Copy</button>
+        </div>
+
+        <div class="editorial-help" id="help-missing">
+          <div>
+            <span class="visual-kicker">USE THIS</span>
+            <h3>Find the missing design decisions</h3>
+            <p>Separate settled choices, open questions, and missing context.</p>
+          </div>
+          <div class="script">Before designing or building, help me identify what I have not specified yet. Based on what I've told you, separate: (1) decisions that are already clear, (2) design questions that are genuinely still open, and (3) missing context that would materially change the result. Do not invent answers to the open items.</div>
+          <button class="btn mini-copy" data-copy="Before designing or building, help me identify what I have not specified yet. Based on what I've told you, separate: (1) decisions that are already clear, (2) design questions that are genuinely still open, and (3) missing context that would materially change the result. Do not invent answers to the open items.">Copy</button>
+        </div>
+      </div>
+
+      <div class="diagnostic-line">
+        <span>When something feels wrong</span>
+        <b>Experience</b><i>→</i><b>Attention</b><i>→</i><b>Composition</b><i>→</i><b>Interaction</b><i>→</i><b>Surface</b>
+      </div>
+
+      <div class="deep-tools">
+        <details class="editorial-disclosure">
+          <summary>
+            <span>
+              <small>DEEPER TOOL</small>
+              Build a fuller UX / visual brief
+            </span>
+            <b>+</b>
+          </summary>
+          <div class="disclosure-body">
+            <div class="grid">
+              <div class="field full">
+                <label for="visualRamble">RAW VIBE / RAMBLE <small>Write exactly how you naturally would.</small></label>
+                <textarea id="visualRamble" placeholder="Example: polished and kind, modern but not SaaS-y, one obvious thing to look at first, interesting without being busy..."></textarea>
+              </div>
+              <div class="field">
+                <label for="visualFeel">EXPERIENCE TARGET <small>How should using it feel?</small></label>
+                <textarea id="visualFeel" placeholder="Calm? Inviting? Fast? Cinematic? Playful? Premium?"></textarea>
+              </div>
+              <div class="field">
+                <label for="visualHierarchy">ATTENTION / HIERARCHY <small>What wins the visual fight?</small></label>
+                <textarea id="visualHierarchy" placeholder="What should I notice first? Second? What stays quiet?"></textarea>
+              </div>
+              <div class="field">
+                <label for="visualComposition">COMPOSITION / DENSITY <small>How much is visible at once?</small></label>
+                <textarea id="visualComposition" placeholder="Airy or dense? One focal area or several? Editorial, app-like, immersive?"></textarea>
+              </div>
+              <div class="field">
+                <label for="visualInteraction">INTERACTION CHARACTER <small>How should touching it feel?</small></label>
+                <textarea id="visualInteraction" placeholder="Tactile, subtle, playful, fast, calm, almost no motion..."></textarea>
+              </div>
+              <div class="field">
+                <label for="visualSurface">SURFACE LANGUAGE <small>Only what you care about.</small></label>
+                <textarea id="visualSurface" placeholder="Typography, color, depth, imagery, texture, glow, shapes, spacing..."></textarea>
+              </div>
+              <div class="field">
+                <label for="visualMobile">MOBILE COMPOSITION <small>Not just stacked desktop.</small></label>
+                <textarea id="visualMobile" placeholder="What deserves the first phone screen? What becomes a drawer, strip, picker, or simplified state?"></textarea>
+              </div>
+              <div class="field full">
+                <label for="visualRefs">REFERENCES / ANTI-REFERENCES <small>Use for X / don't copy Y.</small></label>
+                <textarea id="visualRefs" placeholder="Reference — use for hierarchy; do not copy branding or exact surface style."></textarea>
+              </div>
+              <div class="field">
+                <label for="visualWrong">WHAT FEELS WRONG <small>Failure beats 'make it prettier.'</small></label>
+                <textarea id="visualWrong" placeholder="Too flat? Too widgety? Everything equal weight? Too sterile? Too decorative?"></textarea>
+              </div>
+              <div class="field">
+                <label for="visualOpen">OPEN VISUAL QUESTIONS <small>Don't let the model silently choose.</small></label>
+                <textarea id="visualOpen" placeholder="What visual choices are still genuinely open?"></textarea>
+              </div>
+            </div>
+
+            <div class="controls">
+              <button class="btn primary" id="generateVisual">Generate Design Prompt</button>
+              <button class="btn" id="copyVisual">Copy</button>
+              <button class="btn ghost" id="clearVisual">Clear</button>
+            </div>
+            <div class="output" id="visualOutput" aria-live="polite">Your UX / visual direction prompt will appear here.</div>
+          </div>
+        </details>
+
+        <details class="editorial-disclosure">
+          <summary>
+            <span>
+              <small>WORD FINDER</small>
+              Help me find the design language
+            </span>
+            <b>+</b>
+          </summary>
+          <div class="disclosure-body">
+            <div class="word-list">
+              <div><strong>Editorial</strong><p>Strong type, deliberate whitespace, fewer but larger compositional moves.</p></div>
+              <div><strong>App-like utility</strong><p>Obvious controls, fast state changes, little decorative friction.</p></div>
+              <div><strong>Immersive / cinematic</strong><p>Atmosphere, depth, scene-like composition. Better for lingering than speed.</p></div>
+              <div><strong>Tactile</strong><p>Controls feel pressable, selected, dragged, completed, or settled.</p></div>
+              <div><strong>Quiet hierarchy</strong><p>One clear focal point; secondary choices stay visible but subordinate.</p></div>
+              <div><strong>Soft-tech</strong><p>Modern and digital without enterprise coldness: refined type, gentle depth, controlled motion.</p></div>
+            </div>
+          </div>
+        </details>
+
+        <details class="editorial-disclosure">
+          <summary>
+            <span>
+              <small>REFERENCE HELP</small>
+              Turn a site or past build into usable evidence
+            </span>
+            <b>+</b>
+          </summary>
+          <div class="disclosure-body">
+            <div class="reference-scripts">
+              <div>
+                <strong>Decompose a reference</strong>
+                <div class="script">I like this reference, but I do not want a clone. Break down what I may be responding to across hierarchy, typography, spacing, composition, color, depth, motion, and interaction. Separate transferable design principles from brand-specific surface styling. Then give me language I can reuse in a design brief.</div>
+                <button class="btn mini-copy" data-copy="I like this reference, but I do not want a clone. Break down what I may be responding to across hierarchy, typography, spacing, composition, color, depth, motion, and interaction. Separate transferable design principles from brand-specific surface styling. Then give me language I can reuse in a design brief.">Copy</button>
+              </div>
+              <div>
+                <strong>Ask for genuinely different directions</strong>
+                <div class="script">Before building, propose three genuinely distinct design directions based on my intent. Do not make them palette swaps. Each should differ in composition, hierarchy, typography, density, interaction feel, and visual language. Name each direction in plain English, explain the tradeoffs, and recommend which best fits the experience goal.</div>
+                <button class="btn mini-copy" data-copy="Before building, propose three genuinely distinct design directions based on my intent. Do not make them palette swaps. Each should differ in composition, hierarchy, typography, density, interaction feel, and visual language. Name each direction in plain English, explain the tradeoffs, and recommend which best fits the experience goal.">Copy</button>
+              </div>
+            </div>
+          </div>
+        </details>
+      </div>
+
+      <div class="contracts-note">
+        <span><b>Behavior</b> — what it must do</span>
+        <span><b>Visual</b> — what it should feel like + how attention is organized</span>
+        <span><b>Preservation</b> — what must survive the redesign</span>
+      </div>
+    </div>
+  </section>
+
+  <section id="steer" class="section" role="tabpanel" aria-labelledby="tab-steer">
+    <div class="panel">
+      <h2>Repair a drift</h2>
+      <p class="intro">Use this when you can name what changed. Patch the smallest part of the working state that drifted instead of rebuilding the whole prompt.</p>
+
+      <div class="framework-hero guide-hero">
+        <span class="framework-kicker">WORKING-STATE CHECK</span>
+        <h3 class="framework-title">What changed in the conversation?</h3>
+        <p class="framework-rule"><b>If you remember nothing else:</b> identify the drift, then patch only that part of the shared state.</p>
+        <div class="guide-drift-layout" aria-label="Interactive working-state drift selector">
+          <div class="drift-choices">
+            <button type="button" class="drift-choice active" data-guide-item="steer" data-key="ahead"><strong>Ahead</strong><small class="drift-state">model moved past you</small></button>
+            <button type="button" class="drift-choice" data-guide-item="steer" data-key="assumed"><strong>Assumed</strong><small class="drift-state">something became decided</small></button>
+            <button type="button" class="drift-choice" data-guide-item="steer" data-key="expanded"><strong>Expanded</strong><small class="drift-state">scope widened</small></button>
+            <button type="button" class="drift-choice" data-guide-item="steer" data-key="agreeable"><strong>Too agreeable</strong><small class="drift-state">challenge disappeared</small></button>
+            <button type="button" class="drift-choice" data-guide-item="steer" data-key="hardened"><strong>Hardened</strong><small class="drift-state">ideas became requirements</small></button>
+            <button type="button" class="drift-choice" data-guide-item="steer" data-key="behavior"><strong>Behavior</strong><small class="drift-state">a pattern keeps repeating</small></button>
+          </div>
+          <div class="guide-state-detail" aria-live="polite">
+            <span id="guide-steer-kicker">WORKING STATE</span>
+            <strong id="guide-steer-title">Restore only what drifted.</strong>
+            <p id="guide-steer-text">You usually do not need a new prompt. Identify the kind of drift, then patch that part of the shared state.</p>
+          </div>
+        </div>
+        <p class="guide-hint">These are parallel drift types, not stages. Pick the one that best matches what changed.</p>
+      </div>
+
+      <div class="callout state-refresh">
+        <strong>Long session? Check the state before it breaks.</strong>
+        <div class="script">Before continuing, restate the working state as you currently understand it: THIS TURN, what's OPEN, and what's DECIDED. I'll correct anything that has drifted.</div>
+        <button class="btn mini-copy" data-copy="Before continuing, restate the working state as you currently understand it: THIS TURN, what's OPEN, and what's DECIDED. I'll correct anything that has drifted.">Copy state check</button>
+      </div>
+
+      <h2 class="repair-library-title" style="margin-top:28px">Fast repair lines</h2>
+      <p class="intro">Use these once you know the problem. Diagnose can send you directly to the matching line.</p>
+
+      <div class="trouble-grid repair-library">
+        <div class="trouble" id="repair-scope">
+          <h3>Too broad / too much</h3>
+          <p>Shrink the current turn without throwing away the useful direction.</p>
+          <div class="script">Return to the smallest useful answer for this turn. Keep the useful direction, but do not expand scope or add systems, categories, or process unless they solve a problem already present.</div>
+          <button class="btn mini-copy" data-copy="Return to the smallest useful answer for this turn. Keep the useful direction, but do not expand scope or add systems, categories, or process unless they solve a problem already present.">Copy</button>
+        </div>
+        <div class="trouble" id="repair-ahead">
+          <h3>Model raced ahead</h3>
+          <p>Return to the current stage without throwing away useful work.</p>
+          <div class="script">Useful, but you've moved past me. Return to X. Treat everything after that as undecided.</div>
+          <button class="btn mini-copy" data-copy="Useful, but you've moved past me. Return to X. Treat everything after that as undecided.">Copy</button>
+        </div>
+        <div class="trouble" id="repair-assumption">
+          <h3>False assumption entered</h3>
+          <p>Repair working state explicitly.</p>
+          <div class="script">Correction to working state: X is not decided. Treat it as open from here forward.</div>
+          <button class="btn mini-copy" data-copy="Correction to working state: X is not decided. Treat it as open from here forward.">Copy</button>
+        </div>
+        <div class="trouble" id="repair-hardened">
+          <h3>Exploration became requirements</h3>
+          <p>Stop premature hardening.</p>
+          <div class="script">Hypothesis only. Nothing here becomes a requirement unless we explicitly decide it does.</div>
+          <button class="btn mini-copy" data-copy="Hypothesis only. Nothing here becomes a requirement unless we explicitly decide it does.">Copy</button>
+        </div>
+        <div class="trouble" id="repair-challenge">
+          <h3>Need genuine challenge</h3>
+          <p>Ask for weakness without requiring disagreement theater.</p>
+          <div class="script">Look for meaningful weaknesses or bad tradeoffs here. If you don't find a substantive objection, say so rather than manufacturing one.</div>
+          <button class="btn mini-copy" data-copy="Look for meaningful weaknesses or bad tradeoffs here. If you don't find a substantive objection, say so rather than manufacturing one.">Copy</button>
+        </div>
+        <div class="trouble" id="repair-behavior">
+          <h3>Correcting behavior</h3>
+          <p>State the desired end state, not just the frustration.</p>
+          <div class="script">From here forward, do X. Don't do Y.</div>
+          <button class="btn mini-copy" data-copy="From here forward, do X. Don't do Y.">Copy</button>
+        </div>
+        <div class="trouble" id="repair-generic">
+          <h3>Generic / default answer</h3>
+          <p>Expose the default interpretation before asking for another answer.</p>
+          <div class="script">Before answering again, identify the generic/default interpretation you were using. Then tell me what additional context would most change your answer for my actual situation.</div>
+          <button class="btn mini-copy" data-copy="Before answering again, identify the generic/default interpretation you were using. Then tell me what additional context would most change your answer for my actual situation.">Copy</button>
+        </div>
+        <div class="trouble" id="repair-reopening">
+          <h3>Settled decisions keep reopening</h3>
+          <p>Reassert DECIDED state without making it impossible to flag a real problem.</p>
+          <div class="script">Treat X, Y, and Z as settled. If one is materially causing the current problem, flag it once with your reason; otherwise do not reopen it.</div>
+          <button class="btn mini-copy" data-copy="Treat X, Y, and Z as settled. If one is materially causing the current problem, flag it once with your reason; otherwise do not reopen it.">Copy</button>
+        </div>
+        <div class="trouble" id="repair-architect">
+          <h3>I don't know how to prompt this</h3>
+          <p>Architect the collaboration before attempting the task.</p>
+          <div class="script">Before doing the task, help me decide how to work with you on it. What context would materially change your answer, what decisions should stay open, and what is the smallest useful first step?</div>
+          <button class="btn mini-copy" data-copy="Before doing the task, help me decide how to work with you on it. What context would materially change your answer, what decisions should stay open, and what is the smallest useful first step?">Copy</button>
+        </div>
+        <div class="trouble" id="repair-verify">
+          <h3>It sounds right, but I can't verify it</h3>
+          <p>Surface uncertainty and identify a check that could actually distinguish right from wrong.</p>
+          <div class="script">Separate what you know from what you are inferring. Identify the weakest or most uncertain claim, what would have to be true for it to be wrong, and the 1–3 checks or sources that would most meaningfully change confidence. If external verification is needed, tell me exactly what to verify rather than filling the gap with confidence. Do not invent uncertainty where the evidence is strong.</div>
+          <button class="btn mini-copy" data-copy="Separate what you know from what you are inferring. Identify the weakest or most uncertain claim, what would have to be true for it to be wrong, and the 1–3 checks or sources that would most meaningfully change confidence. If external verification is needed, tell me exactly what to verify rather than filling the gap with confidence. Do not invent uncertainty where the evidence is strong.">Copy</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="trouble" class="section" role="tabpanel" aria-labelledby="tab-trouble">
+    <div class="panel diagnose-panel">
+      <div class="diagnose-heading">
+        <div><span class="visual-kicker">DIAGNOSE A PROBLEM</span><h2>Something feels wrong. Name the failure before adding more instructions.</h2><p class="intro">Choose the closest symptom. Compass gives you a working hypothesis, a way to test it, and a repair you can use without leaving this tab.</p></div>
+        <div class="diagnose-logic" aria-label="Diagnosis flow"><span>Symptom</span><i>→</i><span>Cause</span><i>→</i><span>Test</span><i>→</i><span>Repair</span></div>
+      </div>
+
+      <div class="diagnose-workbench">
+        <div class="diagnose-rail">
+          <span class="diagnose-rail-label">WHAT ARE YOU SEEING?</span>
+          <div class="guide-symptoms" aria-label="Interactive prompting symptoms">
+            <button type="button" class="guide-symptom active" data-guide-item="trouble" data-key="generic"><span>Generic</span><small>feels default or bland</small></button>
+            <button type="button" class="guide-symptom" data-guide-item="trouble" data-key="much"><span>Too much</span><small>answer keeps ballooning</small></button>
+            <button type="button" class="guide-symptom" data-guide-item="trouble" data-key="assumptions"><span>Assumptions</span><small>model is choosing for you</small></button>
+            <button type="button" class="guide-symptom" data-guide-item="trouble" data-key="reopening"><span>Reopening</span><small>settled things won't stay settled</small></button>
+            <button type="button" class="guide-symptom" data-guide-item="trouble" data-key="agreeable"><span>Too agreeable</span><small>critique has no teeth</small></button>
+            <button type="button" class="guide-symptom" data-guide-item="trouble" data-key="unknown"><span>I don't know</span><small>not sure how to prompt it</small></button>
+            <button type="button" class="guide-symptom" data-guide-item="trouble" data-key="verify"><span>Sounds right?</span><small>I can't tell if I should trust it</small></button>
+          </div>
+          <div class="diagnose-none">
+            <strong>None of these quite fit?</strong>
+            <p>Ask the model to diagnose the interaction before it tries again.</p>
+            <div class="script">Before answering again, tell me what you think I am dissatisfied with in the current result. Separate problems in scope, assumptions, reasoning, evidence, and presentation. Ask me one clarifying question only if it would materially change the diagnosis.</div>
+            <button class="btn mini-copy" data-copy="Before answering again, tell me what you think I am dissatisfied with in the current result. Separate problems in scope, assumptions, reasoning, evidence, and presentation. Ask me one clarifying question only if it would materially change the diagnosis.">Copy</button>
+          </div>
+        </div>
+
+        <article class="diagnosis-card" aria-live="polite">
+          <div class="diagnosis-card-top">
+            <div class="diagnosis-family" id="guide-trouble-family">Context mismatch</div>
+            <span class="diagnosis-hypothesis">WORKING HYPOTHESIS · NOT A VERDICT</span>
+            <h3 id="guide-trouble-title">The model is falling back to its default interpretation.</h3>
+            <p id="guide-trouble-text">Your context may not yet explain what makes this situation different enough to change the answer.</p>
+          </div>
+
+          <div class="diagnosis-signs">
+            <span>Common signs</span>
+            <div class="sign-chips" id="guide-trouble-signs"></div>
+          </div>
+
+          <div class="diagnosis-two-up">
+            <div class="diagnosis-check">
+              <span>Test the hypothesis</span>
+              <p id="guide-trouble-check">Ask what default interpretation it used. If that default does not fit your case, you found the mismatch.</p>
+            </div>
+            <div class="diagnosis-avoid">
+              <span>Do not do this yet</span>
+              <p id="guide-trouble-avoid">Do not dump in more context at random. Find the default that is overpowering your actual situation first.</p>
+            </div>
+          </div>
+
+          <div class="diagnosis-repair">
+            <div class="diagnosis-repair-head"><span class="diagnosis-repair-label">Smallest useful repair</span><small id="guide-trouble-why">This forces the hidden default into view before the model tries again.</small></div>
+            <div class="script diagnosis-script" id="guide-trouble-script">Before answering again, identify the generic/default interpretation you were using. Then tell me what additional context would most change your answer for my actual situation.</div>
+            <div class="diagnosis-actions"><button type="button" class="btn primary" id="copyDiagnosisRepair">Copy repair</button></div>
+          </div>
+
+          <div class="diagnosis-next">
+            <span>If it still misses</span>
+            <p id="guide-trouble-next">Ask the model which missing fact would most change its answer before adding more context at random.</p>
+          </div>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section id="refs" class="section" role="tabpanel" aria-labelledby="tab-refs">
+    <div class="panel refs-panel">
+      <div class="refs-heading">
+        <div><span class="visual-kicker">REFERENCE FILES</span><h2>Give examples reading instructions.</h2><p class="intro">A reference should tell the model more than “look at this.” Explain why it exists, what should transfer, what should not, and how much authority it has.</p></div>
+        <div class="reference-recipe"><span>Good reference instructions answer</span><b>What is it?</b><b>Why does it matter?</b><b>What transfers?</b><b>What does not?</b></div>
+      </div>
+
+      <div class="reference-path" aria-label="Interactive reference pipeline">
+        <div class="guide-pipeline-track" aria-hidden="true"></div>
+        <button type="button" class="guide-pipe-step active" data-guide-item="refs" data-key="artifact"><span>01</span><strong>Artifact</strong><small>what is it?</small></button>
+        <button type="button" class="guide-pipe-step" data-guide-item="refs" data-key="intent"><span>02</span><strong>Intent</strong><small>why did it exist?</small></button>
+        <button type="button" class="guide-pipe-step" data-guide-item="refs" data-key="borrow"><span>03</span><strong>Borrow</strong><small>what transfers?</small></button>
+        <button type="button" class="guide-pipe-step" data-guide-item="refs" data-key="avoid"><span>04</span><strong>Avoid</strong><small>what should not?</small></button>
+        <button type="button" class="guide-pipe-step" data-guide-item="refs" data-key="authority"><span>05</span><strong>Authority</strong><small>how much weight?</small></button>
+        <div class="reference-path-detail" aria-live="polite">
+          <span id="guide-refs-kicker">STEP 01</span><strong id="guide-refs-title">Artifact</strong><p id="guide-refs-text">Name the file, site, screenshot, or prior build clearly enough that the model can distinguish it from the rest of the package.</p><small id="guide-refs-example">A pile of files is just context. The pipeline tells the model how each one should influence the work.</small>
+        </div>
+      </div>
+
+      <div class="ref-workbench">
+        <div class="ref-editor">
+          <div class="workbench-head"><span><small>BUILD THE PACKAGE</small>Reference instructions</span><button class="btn" id="addRef">+ Add reference</button></div>
+          <div id="refBlocks">
+            <div class="ref-group">
+              <div class="ref-group-head"><span>Reference 1</span><button type="button" class="ref-remove" aria-label="Remove this reference">Remove</button></div>
+              <div class="refrow"><input class="refName" placeholder="Reference / filename" data-ref-label="name"><select class="refStatus" data-ref-label="authority"><option value="">Authority / status…</option><option value="Authoritative">Authoritative</option><option value="Supporting">Supporting</option><option value="Superseded">Superseded</option><option value="Atmosphere-only">Atmosphere-only</option></select></div>
+              <div class="refrow refrow-wide"><input class="refIntent" placeholder="Intent — what was this trying to achieve?" data-ref-label="intent"></div>
+              <div class="refrow"><input class="refUse" placeholder="Use this for..." data-ref-label="borrow"><input class="refNo" placeholder="Do not copy..." data-ref-label="avoid"></div>
+            </div>
+          </div>
+          <div class="controls ref-editor-actions"><button class="btn primary" id="buildRefs">Build instructions</button><button class="btn" id="copyRefs">Copy</button></div>
+        </div>
+
+        <aside class="ref-preview">
+          <div class="workbench-head"><span><small>WHAT THE MODEL WILL RECEIVE</small>Package preview</span><div class="ref-audit-summary" id="refAuditSummary">No reference entered yet</div></div>
+          <div class="output ref-preview-output" id="refsOutput" aria-live="polite">Reference instructions will appear here.</div>
+          <div class="ref-readiness">
+            <div class="ref-readiness-head"><div><h3>Reading check</h3><p>Compass can catch missing instructions. It cannot judge whether the reference itself is good.</p></div></div>
+            <div class="ref-audit-list" id="refAuditList" aria-live="polite"></div>
+            <p class="ref-audit-note" id="refAuditNote">You do not need a reference package for every prompt. Use this only when examples or past work could materially steer the model.</p>
+          </div>
+        </aside>
+      </div>
+
+      <div class="reference-footer-note"><strong>Best handoff:</strong><span>implementation + intent. If the brief is missing, add three sentences: what you were trying to do, what worked, and what went wrong.</span></div>
+    </div>
+  </section>
+
+  <section id="close" class="section" role="tabpanel" aria-labelledby="tab-close">
+    <div class="panel close-panel">
+      <div class="close-heading">
+        <div><span class="visual-kicker">SESSION CLOSE</span><h2>Keep one lesson — only when the failure earned it.</h2><p class="intro">This is not a ritual. Use it after meaningful rework, repeated correction, or a failure pattern you are likely to encounter again.</p></div>
+        <div class="close-worth"><span>A lesson is worth keeping when it is</span><b>expensive</b><b>repeated</b><b>transferable</b></div>
+      </div>
+
+      <div class="close-loop-strip" aria-label="Interactive session learning loop">
+        <button type="button" class="close-loop-step active" data-guide-item="close" data-key="notice"><span>01</span><strong>Notice</strong></button>
+        <button type="button" class="close-loop-step" data-guide-item="close" data-key="diagnose"><span>02</span><strong>Diagnose</strong></button>
+        <button type="button" class="close-loop-step" data-guide-item="close" data-key="prevent"><span>03</span><strong>Prevent</strong></button>
+        <button type="button" class="close-loop-step" data-guide-item="close" data-key="carry"><span>04</span><strong>Carry forward</strong></button>
+        <div class="close-loop-detail" aria-live="polite"><span id="guide-close-kicker">NOTICE</span><strong id="guide-close-title">Was the correction expensive enough to remember?</strong><p id="guide-close-text">Not every imperfect answer deserves a lesson. Start only when the session cost real time, rework, or frustration.</p></div>
+      </div>
+
+      <div class="close-workbench">
+        <div class="close-gate">
+          <span class="visual-kicker">DECISION GATE</span>
+          <h3>Did this failure earn a lesson?</h3>
+          <p>Choose by correction cost, not by whether the answer was imperfect.</p>
+          <div class="close-costs" role="group" aria-label="Correction cost">
+            <button type="button" class="close-cost" data-close-cost="no"><strong>No</strong><small>cheap to correct</small></button>
+            <button type="button" class="close-cost active" data-close-cost="maybe"><strong>Maybe</strong><small>one quick retrospective</small></button>
+            <button type="button" class="close-cost" data-close-cost="yes"><strong>Yes</strong><small>meaningful or repeated</small></button>
+          </div>
+          <div class="close-blindspot"><strong>Blind spot</strong><p>If you gave up and did the work yourself, the model may not know it failed. That still counts.</p></div>
+        </div>
+
+        <div class="close-payoff" id="closePayoff" aria-live="polite">
+          <span class="visual-kicker">PAYOFF</span>
+          <h4 id="closePayoffTitle">Ask one question, then leave.</h4>
+          <p id="closePayoffText">Use the retrospective below. Keep only a lesson that would plausibly change how you prompt next time.</p>
+          <div id="closeRetroWrap" class="close-retro-wrap">
+            <div class="script" id="retroText">What did I have to correct you on in this session? For each meaningful correction, what instruction or context would most likely have prevented it?</div>
+            <div class="controls"><button type="button" class="btn primary" data-copy="What did I have to correct you on in this session? For each meaningful correction, what instruction or context would most likely have prevented it?">Copy retrospective question</button></div>
+          </div>
+
+          <div class="lesson-distiller" id="lessonDistiller">
+            <div class="lesson-grid">
+              <div><label for="lessonCorrection">What did you have to correct?</label><textarea id="lessonCorrection" placeholder="Example: Exploration language became a requirement."></textarea></div>
+              <div><label for="lessonPrevention">What would likely have prevented it?</label><textarea id="lessonPrevention" placeholder="Example: Mark ideas as hypotheses until explicitly decided."></textarea></div>
+              <div class="lesson-when"><label for="lessonWhen">Reusable when… <small>Optional</small></label><input id="lessonWhen" placeholder="Example: early exploration with strong examples"></div>
+            </div>
+            <div class="controls"><button type="button" class="btn primary" id="buildLesson">Build field note</button><button type="button" class="btn" id="copyLesson">Copy</button></div>
+            <div class="lesson-output field-note-output" id="lessonOutput">Your carry-forward field note will appear here.</div>
+          </div>
+        </div>
+      </div>
+
+      <details class="editorial-disclosure close-experimental">
+        <summary><span><small>EXPERIMENTAL NOTES</small>Model-specific predictions to keep testing</span><b>+</b></summary>
+        <div class="disclosure-body"><p class="hypo">Claude prediction 1: broad category bans such as “no frameworks” may suppress useful structure along with the unwanted behavior.</p><p class="hypo">Claude prediction 2: asking for pushback without permission to find nothing may produce manufactured objections.</p><p class="hypo">Claude prediction 3: front-loading “what works” may soften criticism that follows.</p><p class="intro" style="margin-top:14px">These are deliberately provisional. Promote them only if real sessions repeatedly support them.</p></div>
+      </details>
+    </div>
+  </section>
+
+  <footer class="footer">
+    Built as a field tool, not a curriculum artifact. If you routinely skip a field, that's evidence it may not belong in the next version.
+  </footer>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite">Copied</div>
+
+<script>
+
+const themeButtons=[...document.querySelectorAll('[data-theme-choice]')];
+const systemThemeQuery=window.matchMedia?window.matchMedia('(prefers-color-scheme: dark)'):null;
+let themeChoice=document.documentElement.dataset.themeChoice || 'system';
+function resolvedTheme(choice){
+  if(choice==='system') return systemThemeQuery?.matches?'dark':'light';
+  return choice==='dark'?'dark':'light';
+}
+function applyTheme(choice, persist=true){
+  themeChoice=['system','light','dark'].includes(choice)?choice:'system';
+  document.documentElement.dataset.theme=resolvedTheme(themeChoice);
+  document.documentElement.dataset.themeChoice=themeChoice;
+  themeButtons.forEach(btn=>{
+    const active=btn.dataset.themeChoice===themeChoice;
+    btn.classList.toggle('active',active);
+    btn.setAttribute('aria-pressed',String(active));
+  });
+  if(persist){
+    try{ localStorage.setItem('promptCompassTheme',themeChoice); }catch(e){}
+  }
+}
+applyTheme(themeChoice,false);
+themeButtons.forEach(btn=>btn.addEventListener('click',()=>applyTheme(btn.dataset.themeChoice,true)));
+if(systemThemeQuery){
+  systemThemeQuery.addEventListener?.('change',()=>{if(themeChoice==='system') applyTheme('system',false)});
+}
+
+
+const tabs=[...document.querySelectorAll('.tab')];
+const sections=[...document.querySelectorAll('.section')];
+const reduceMotion=window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+const scrollBehavior=reduceMotion?'auto':'smooth';
+function setActiveTab(tabId,{focusTab=false}={}){
+  const tab=tabs.find(t=>t.dataset.tab===tabId);
+  const section=document.getElementById(tabId);
+  if(!tab||!section) return null;
+  tabs.forEach(x=>{
+    const active=x===tab;
+    x.classList.toggle('active',active);
+    x.setAttribute('aria-selected',String(active));
+    x.tabIndex=active?0:-1;
+  });
+  sections.forEach(x=>x.classList.toggle('active',x===section));
+  tab.scrollIntoView({behavior:scrollBehavior,block:'nearest',inline:'nearest'});
+  if(focusTab) tab.focus({preventScroll:true});
+  return section;
+}
+tabs.forEach((t,index)=>{
+  t.addEventListener('click',()=>openCompassTab(t.dataset.tab));
+  t.addEventListener('keydown',e=>{
+    let next=null;
+    if(e.key==='ArrowRight') next=(index+1)%tabs.length;
+    if(e.key==='ArrowLeft') next=(index-1+tabs.length)%tabs.length;
+    if(e.key==='Home') next=0;
+    if(e.key==='End') next=tabs.length-1;
+    if(next===null) return;
+    e.preventDefault();
+    setActiveTab(tabs[next].dataset.tab,{focusTab:true});
+  });
+});
+
+function openCompassTab(tabId,focusTarget){
+  const section=setActiveTab(tabId);
+  if(!section) return;
+  const target=focusTarget?document.getElementById(focusTarget):null;
+  window.setTimeout(()=>{
+    if(target){
+      target.scrollIntoView({behavior:scrollBehavior,block:'center'});
+      target.focus({preventScroll:true});
+    }else{
+      section.scrollIntoView({behavior:scrollBehavior,block:'start'});
+    }
+  },20);
+}
+document.querySelectorAll('[data-quick-tab]').forEach(btn=>btn.addEventListener('click',()=>{
+  document.getElementById('quickSkipNote')?.classList.remove('show');
+  openCompassTab(btn.dataset.quickTab,btn.dataset.focusTarget||'');
+}));
+const quickSkip=document.getElementById('quickSkip');
+const quickSkipNote=document.getElementById('quickSkipNote');
+if(quickSkip&&quickSkipNote){
+  quickSkip.addEventListener('click',()=>{
+    const show=!quickSkipNote.classList.contains('show');
+    quickSkipNote.classList.toggle('show',show);
+    quickSkip.setAttribute('aria-expanded',String(show));
+  });
+  quickSkip.setAttribute('aria-expanded','false');
+}
+
+const quickLaunch=document.querySelector('.quick-launch');
+const quickCollapse=document.getElementById('quickCollapse');
+const compactSkip=document.getElementById('quickCompactSkip');
+function setQuickCollapsed(collapsed,persist=true){
+  if(!quickLaunch||!quickCollapse) return;
+  quickLaunch.classList.toggle('collapsed',collapsed);
+  quickCollapse.textContent=collapsed?'Expand routes':'Minimize routes';
+  quickCollapse.setAttribute('aria-expanded',String(!collapsed));
+  if(persist){
+    try{localStorage.setItem('promptCompassQuickRoutes',collapsed?'collapsed':'expanded')}catch(e){}
+  }
+}
+try{setQuickCollapsed(localStorage.getItem('promptCompassQuickRoutes')==='collapsed',false)}catch(e){}
+quickCollapse?.addEventListener('click',()=>setQuickCollapsed(!quickLaunch.classList.contains('collapsed'),true));
+compactSkip?.addEventListener('click',()=>{
+  setQuickCollapsed(false,true);
+  window.setTimeout(()=>{
+    const show=true;
+    quickSkipNote?.classList.toggle('show',show);
+    quickSkip?.setAttribute('aria-expanded','true');
+    quickSkipNote?.scrollIntoView({behavior:scrollBehavior,block:'nearest'});
+  },20);
+});
+
+let selectedMode="";
+const modeButtons=[...document.querySelectorAll('.mode')];
+const buildRule=document.getElementById('buildRule');
+modeButtons.forEach(m=>m.addEventListener('click',()=>{
+  const next=m.dataset.mode;
+  const deselect=selectedMode===next;
+  selectedMode=deselect?'':next;
+  modeButtons.forEach(x=>{
+    const active=x.dataset.mode===selectedMode;
+    x.classList.toggle('active',active);
+    x.setAttribute('aria-pressed',String(active));
+  });
+  if(buildRule) buildRule.hidden=selectedMode!=='Build';
+}));
+
+const modeText = {
+  Explore:"We're exploring. Generate possibilities, but don't turn any of them into requirements unless we explicitly decide to.",
+  Decide:"We're deciding now. Compare the options, recommend one, and name the tradeoff. Stop before building.",
+  Build:"We're building. Implement what is specified and don't reopen settled product decisions. Flag underspecified choices that would be expensive to reverse or materially change behavior/outcome. For cheap reversible choices, make a reasonable assumption, keep moving, and collect assumptions at the end.",
+  Review:"We're reviewing against stated intent. Evaluate what is there; don't redesign it merely because you prefer another approach."
+};
+
+function val(id){return document.getElementById(id).value.trim()}
+function generate(){
+  const parts=[];
+  if(selectedMode) parts.push(`SESSION STAGE\n${modeText[selectedMode]}`);
+  if(val('thisTurn')) parts.push(`THIS TURN\n${val('thisTurn')}`);
+  if(val('open')) parts.push(`OPEN\n${val('open')}\nDo not silently resolve these.`);
+  if(val('avoid')) parts.push(`AVOID\n${val('avoid')}`);
+  if(val('decided')) parts.push(`DECIDED\n${val('decided')}\nIf one of these is materially causing the problem, flag it once and explain why; otherwise treat it as settled.`);
+  if(val('references')) parts.push(`REFERENCES\n${val('references')}`);
+  if(val('outputShape')) parts.push(`OUTPUT\n${val('outputShape')}`);
+  document.getElementById('promptOutput').textContent = parts.length?parts.join('\n\n'):"Add THIS TURN and OPEN, or any fields that materially matter.";
+}
+document.getElementById('generate').addEventListener('click',generate);
+
+function toast(msg="Copied"){
+  const el=document.getElementById('toast');
+  el.textContent=msg; el.classList.add('show');
+  setTimeout(()=>el.classList.remove('show'),1200);
+}
+function copiedFeedback(button,success=true){
+  if(!button) return;
+  const original=button.dataset.copyLabel || button.textContent;
+  button.dataset.copyLabel=original;
+  button.textContent=success?'Copied ✓':'Copy unavailable';
+  button.classList.toggle('copy-success',success);
+  window.setTimeout(()=>{button.textContent=original;button.classList.remove('copy-success')},1150);
+}
+async function copyText(text,button=null){
+  if(!text) return;
+  try{
+    if(!navigator.clipboard || !window.isSecureContext) throw new Error('Clipboard API unavailable');
+    await navigator.clipboard.writeText(text);
+    toast();copiedFeedback(button,true);
+    return;
+  }catch(e){}
+  const helper=document.createElement('textarea');
+  helper.value=text;
+  helper.setAttribute('readonly','');
+  helper.style.position='fixed';
+  helper.style.opacity='0';
+  helper.style.pointerEvents='none';
+  document.body.appendChild(helper);
+  helper.select();
+  helper.setSelectionRange(0,helper.value.length);
+  let copied=false;
+  try{copied=document.execCommand('copy')}catch(e){}
+  helper.remove();
+  toast(copied?'Copied':'Copy unavailable');copiedFeedback(button,copied);
+}
+const copyPromptBtn=document.getElementById('copyPrompt');
+copyPromptBtn.addEventListener('click',()=>copyText(document.getElementById('promptOutput').textContent,copyPromptBtn));
+document.getElementById('clearStart').addEventListener('click',()=>{
+  ['thisTurn','open','avoid','decided','references','outputShape'].forEach(id=>document.getElementById(id).value="");
+  selectedMode="";modeButtons.forEach(x=>{x.classList.remove('active');x.setAttribute('aria-pressed','false')});
+  if(buildRule) buildRule.hidden=true;
+  document.getElementById('promptOutput').textContent="Your generated prompt will appear here.";
+});
+document.addEventListener('click',e=>{const b=e.target.closest('[data-copy]');if(b) copyText(b.dataset.copy,b);});
+
+
+
+
+
+
+
+const dimensionInfo={
+  feel:{
+    title:"How should this feel to use?",
+    text:"Name the emotional target: calm, playful, premium, quick, warm, immersive, reassuring, energetic."
+  },
+  focus:{
+    title:"What should win attention?",
+    text:"Decide what the eye sees first, what stays secondary, and what should remain quiet until needed."
+  },
+  shape:{
+    title:"How should the page be composed?",
+    text:"Think density and structure: one focal area, editorial flow, panels, immersive scene, compact utility, or something between."
+  },
+  touch:{
+    title:"How should interaction feel?",
+    text:"Tactile, subtle, playful, fast, forgiving, almost motionless? Interaction should reinforce the experience."
+  },
+  look:{
+    title:"Which surface qualities matter?",
+    text:"Typography, color, depth, imagery, texture, glow, shapes, borders, and spacing belong here—after the structure is right."
+  },
+  phone:{
+    title:"What should change on mobile?",
+    text:"Do not just shrink desktop. Decide what deserves the first screen and what becomes a drawer, strip, picker, or simpler state."
+  }
+};
+const dimTitle=document.getElementById('dimensionTitle');
+const dimText=document.getElementById('dimensionText');
+document.querySelectorAll('.editorial-node').forEach(node=>{node.setAttribute('aria-pressed',String(node.classList.contains('active')));node.addEventListener('click',()=>{
+  const key=node.dataset.dimension;
+  document.querySelectorAll('.editorial-node').forEach(n=>{n.classList.remove('active');n.setAttribute('aria-pressed','false')});
+  node.classList.add('active');node.setAttribute('aria-pressed','true');
+  dimTitle.textContent=dimensionInfo[key].title;
+  dimText.textContent=dimensionInfo[key].text;
+})});
+
+const editorialChoices=[...document.querySelectorAll('.editorial-choice')];
+const editorialHelps=[...document.querySelectorAll('.editorial-help')];
+editorialChoices.forEach(btn=>{
+  const key=btn.dataset.help;
+  btn.setAttribute('aria-controls',`help-${key}`);
+  btn.setAttribute('aria-expanded','false');
+  btn.addEventListener('click',()=>{
+    const panel=document.getElementById(`help-${key}`);
+    const already=btn.classList.contains('active');
+    editorialChoices.forEach(b=>{b.classList.remove('active');b.setAttribute('aria-expanded','false')});
+    editorialHelps.forEach(p=>p.classList.remove('active'));
+    if(!already){
+      btn.classList.add('active');
+      btn.setAttribute('aria-expanded','true');
+      panel.classList.add('active');
+      panel.scrollIntoView({behavior:scrollBehavior,block:'nearest'});
+    }
+  });
+});
+
+document.querySelectorAll('.editorial-disclosure').forEach(d=>{
+  d.addEventListener('toggle',()=>{
+    const marker=d.querySelector('summary > b');
+    if(marker) marker.textContent=d.open?'×':'+';
+  });
+});
+
+
+function visualVal(id){return document.getElementById(id).value.trim()}
+function generateVisualPrompt(){
+  const parts=[];
+  const ramble=visualVal('visualRamble');
+  if(ramble) parts.push(`RAW DESCRIPTION\n${ramble}`);
+  if(visualVal('visualFeel')) parts.push(`EXPERIENCE TARGET\n${visualVal('visualFeel')}`);
+  if(visualVal('visualHierarchy')) parts.push(`ATTENTION / HIERARCHY\n${visualVal('visualHierarchy')}`);
+  if(visualVal('visualComposition')) parts.push(`COMPOSITION / DENSITY\n${visualVal('visualComposition')}`);
+  if(visualVal('visualInteraction')) parts.push(`INTERACTION CHARACTER\n${visualVal('visualInteraction')}`);
+  if(visualVal('visualSurface')) parts.push(`SURFACE LANGUAGE\n${visualVal('visualSurface')}`);
+  if(visualVal('visualMobile')) parts.push(`MOBILE COMPOSITION\n${visualVal('visualMobile')}`);
+  if(visualVal('visualRefs')) parts.push(`REFERENCES / ANTI-REFERENCES\n${visualVal('visualRefs')}`);
+  if(visualVal('visualWrong')) parts.push(`AVOID / CURRENT MISMATCH\n${visualVal('visualWrong')}`);
+  if(visualVal('visualOpen')) parts.push(`OPEN VISUAL QUESTIONS\n${visualVal('visualOpen')}\nDo not silently resolve these.`);
+  let preface = "Translate this into a concrete UX / visual direction. Preserve the distinction between behavior, visual treatment, and anything that must survive. Do not reduce the request to a palette or style label; reason about hierarchy, composition, density, interaction, and mobile behavior.";
+  document.getElementById('visualOutput').textContent = parts.length ? preface + "\n\n" + parts.join("\n\n") : "Start with your raw vibe/ramble. Add only the fields that matter.";
+}
+document.getElementById('generateVisual').addEventListener('click',generateVisualPrompt);
+document.getElementById('copyVisual').addEventListener('click',e=>copyText(document.getElementById('visualOutput').textContent,e.currentTarget));
+document.getElementById('clearVisual').addEventListener('click',()=>{
+  ['visualRamble','visualFeel','visualHierarchy','visualComposition','visualInteraction','visualSurface','visualMobile','visualRefs','visualWrong','visualOpen'].forEach(id=>document.getElementById(id).value="");
+  document.getElementById('visualOutput').textContent="Your UX / visual direction prompt will appear here.";
+});
+
+
+
+
+const guideData={
+  start:{
+    need:{kicker:'START HERE',title:'Need',text:'Say what you actually need back from this turn. This is the anchor that keeps the model from solving a larger problem than you asked.',example:'“For this turn, help me compare the two directions. Stop before implementation.”'},
+    boundaries:{kicker:'STOPPING BOUNDARY',title:'Boundaries',text:'Tell the model where this turn ends. A clear stop is often more useful than adding more instructions about what not to do.',example:'“Do not build yet. I only want the decision and tradeoff.”'},
+    context:{kicker:'ONLY WHAT CHANGES THE ANSWER',title:'Context',text:'Add OPEN, DECIDED, AVOID, or references when they materially change how the model should reason. You do not need every field every time.',example:'“Open: navigation pattern. Decided: overall information architecture. Avoid: turning every section into a card.”'},
+    shape:{kicker:'OPTIONAL',title:'Answer shape',text:'Specify the response format only when the shape itself helps you make the next decision. Do not over-format a simple request.',example:'“Material concerns first. Then recommendation and tradeoffs.”'}
+  },
+  steer:{
+    ahead:{kicker:'AHEAD',title:'Return to the current stage.',text:'The model moved beyond the point you were ready to decide. Keep any useful work, but explicitly make later material undecided again.'},
+    assumed:{kicker:'ASSUMED',title:'Reopen the false decision.',text:'Something you merely mentioned became treated as settled. Correct the working state directly: name the assumption and mark it open.'},
+    expanded:{kicker:'EXPANDED',title:'Shrink the turn, not the whole project.',text:'The direction may be right, but the model widened scope. Preserve the useful path and state exactly what not to expand yet.'},
+    agreeable:{kicker:'TOO AGREEABLE',title:'Ask for substantive weakness.',text:'Request real counterevidence or bad tradeoffs, while explicitly allowing the model to conclude there is no meaningful objection.'},
+    hardened:{kicker:'HARDENED',title:'Turn requirements back into hypotheses.',text:'Exploration got promoted into specification. Mark the ideas as provisional and require explicit decisions before they become requirements.'},
+    behavior:{kicker:'BEHAVIOR',title:'Correct the recurring pattern.',text:'If the model keeps repeating an interaction habit, state the desired behavior from this point forward instead of only describing your frustration.'}
+  },
+  trouble:{
+    generic:{family:'Context mismatch',title:'The model is falling back to its default interpretation.',text:'Your context may not yet explain what makes this situation different enough to change the answer.',signs:['answer could fit almost anyone','your specifics barely change the response','model defaults overpower your context'],check:'Ask what default interpretation it used. If that default does not fit your case, you found the mismatch.',script:'Before answering again, identify the generic/default interpretation you were using. Then tell me what additional context would most change your answer for my actual situation.',next:'Ask which single missing fact would most change the answer before adding more context at random.'},
+    much:{family:'Scope drift',title:'The turn boundary is probably too loose.',text:'The model may be solving the whole problem because you did not tell it what the smallest useful answer is right now.',signs:['answer keeps widening','new systems appear unasked','useful direction gets buried in extras'],check:'Look at your last ask: did you say what you need this turn and where to stop? If not, fix scope before adding more context.',script:'Return to the smallest useful answer for this turn. Keep the useful direction, but do not expand scope or add systems, categories, or process unless they solve a problem already present.',next:'If it still expands, state the stopping boundary explicitly: “Stop after X. Do not move into Y yet.”'},
+    assumptions:{family:'State drift',title:'OPEN state is under-specified.',text:'The model is filling unresolved choices with plausible defaults. That is convenient only when the choices are cheap and reversible.',signs:['options quietly become decisions','the model chooses without flagging it','rework appears when you correct the choice'],check:'Ask which choices it treated as decided even though you never explicitly decided them.',script:'Correction to working state: X is not decided. Treat it as open from here forward.',next:'Ask it to separate cheap reversible assumptions from choices that would materially change behavior or create rework.'},
+    reopening:{family:'State drift',title:'DECIDED state is missing or weak.',text:'The model cannot reliably distinguish “we discussed this” from “we settled this” unless the working state makes that boundary explicit.',signs:['settled choices keep reappearing','recommendations ignore prior decisions','the session feels circular'],check:'Name one settled choice. If the model keeps revisiting it without new evidence, reassert DECIDED state.',script:'Treat X, Y, and Z as settled. If one is materially causing the current problem, flag it once with your reason; otherwise do not reopen it.',next:'If it reopens the choice again, ask it to restate DECIDED state before continuing.'},
+    agreeable:{family:'Challenge quality',title:'The critique request may be rewarding disagreement theater.',text:'If the model thinks it must find a problem, it can manufacture one. Ask for meaningful weakness and give it permission to find none.',signs:['criticism feels ornamental','objections do not change decisions','every idea somehow has a counterpoint'],check:'Ask whether the criticism changes a decision or exposes a real tradeoff. If not, it may be performative pushback.',script:'Look for meaningful weaknesses or bad tradeoffs here. If you do not find a substantive objection, say so rather than manufacturing one.',next:'Ask for the strongest evidence against the current direction, not a quota of criticisms.'},
+    unknown:{family:'Interaction design',title:'You may need interaction design before task execution.',text:'When you do not know how to prompt the task, ask the model to help architect the collaboration before attempting the work itself.',signs:['you cannot name the first useful output','you do not know what context matters','the task feels too fuzzy to start'],check:'If you cannot yet name the output, the missing context, or the next decision, ask for collaboration design before task execution.',script:'Before doing the task, help me decide how to work with you on it. What context would materially change your answer, what decisions should stay open, and what is the smallest useful first step?',next:'Use the model’s proposed first step as a hypothesis; you still decide whether that is the right place to begin.'},
+    verify:{family:'Confidence / verification',title:'Plausibility is not the same as confidence you can justify.',text:'A polished answer can sound right even when you cannot independently check it. Ask where the answer is weakest and what evidence would actually distinguish the possibilities.',signs:['answer sounds polished but unsupported','you cannot tell fact from inference','being wrong would materially matter'],check:'Ask which claim is doing the most work with the least support. That is usually the best place to verify first.',script:'Separate what you know from what you are inferring. Identify the weakest or most uncertain claim, what would have to be true for it to be wrong, and the 1–3 checks or sources that would most meaningfully change confidence. If external verification is needed, tell me exactly what to verify rather than filling the gap with confidence. Do not invent uncertainty where the evidence is strong.',next:'If the stakes justify it, verify the key claim outside the conversation rather than asking the same model to reassure you again.'}
+  },
+  refs:{
+    artifact:{kicker:'STEP 01',title:'Artifact',text:'Name the file, site, screenshot, or prior build clearly enough that the model can distinguish it from the rest of the package.',example:'A pile of files is just context. The pipeline tells the model how each one should influence the work.'},
+    intent:{kicker:'STEP 02',title:'Intent',text:'Explain what you were trying to accomplish when the artifact was created. Implementation without intent can teach the model the wrong lesson.',example:'Pair the build with its brief or handoff when possible.'},
+    borrow:{kicker:'STEP 03',title:'Borrow',text:'Name the specific principle, behavior, hierarchy, structure, or interaction you want the model to carry into the new work.',example:'“Use this for primary choice + visible alternatives + depth on demand.”'},
+    avoid:{kicker:'STEP 04',title:'Avoid',text:'Attach the anti-reference to the reference itself. This prevents the model from copying the most visually obvious thing instead of the thing you actually value.',example:'“Do not copy the neon styling or the exact page composition.”'},
+    authority:{kicker:'STEP 05',title:'Authority',text:'Tell the model how much weight the artifact deserves: authoritative, supporting, superseded, or atmosphere-only.',example:'Authority prevents an older polished artifact from silently overruling the current direction.'}
+  },
+  close:{
+    notice:{kicker:'NOTICE',title:'Was the correction expensive enough to remember?',text:'Not every imperfect answer deserves a lesson. Start only when the session cost real time, rework, or frustration.'},
+    diagnose:{kicker:'DIAGNOSE',title:'What did you actually have to correct?',text:'Identify the meaningful failure in the working interaction, not every sentence you would have worded differently.'},
+    prevent:{kicker:'PREVENT',title:'What instruction or context would have stopped it?',text:'Convert the failure into a preventive prompting move that is specific enough to reuse next time.'},
+    carry:{kicker:'CARRY FORWARD',title:'Keep only the lesson that earns its weight.',text:'A useful lesson should reduce future correction cost. If it becomes ceremony or boilerplate, it probably does not belong in the permanent toolkit.'}
+  }
+};
+
+function activateGuide(group,key,button){
+  document.querySelectorAll(`[data-guide-item="${group}"]`).forEach(b=>{b.classList.remove('active');b.setAttribute('aria-pressed','false')});
+  if(button){button.classList.add('active');button.setAttribute('aria-pressed','true')};
+  const d=guideData[group] && guideData[group][key];
+  if(!d) return;
+  if(group==='start'){
+    document.getElementById('guide-start-kicker').textContent=d.kicker;
+    document.getElementById('guide-start-title').textContent=d.title;
+    document.getElementById('guide-start-text').textContent=d.text;
+    document.getElementById('guide-start-example').textContent=d.example;
+  }else if(group==='steer'){
+    document.getElementById('guide-steer-kicker').textContent=d.kicker;
+    document.getElementById('guide-steer-title').textContent=d.title;
+    document.getElementById('guide-steer-text').textContent=d.text;
+  }else if(group==='trouble'){
+    document.getElementById('guide-trouble-family').textContent=d.family||'Prompting problem';
+    document.getElementById('guide-trouble-title').textContent=d.title;
+    document.getElementById('guide-trouble-text').textContent=d.text;
+    document.getElementById('guide-trouble-check').textContent=d.check;
+    document.getElementById('guide-trouble-script').textContent=d.script;
+    document.getElementById('guide-trouble-next').textContent=d.next||'';
+    const signs=document.getElementById('guide-trouble-signs');
+    signs.innerHTML='';
+    (d.signs||[]).forEach(sign=>{const chip=document.createElement('span');chip.className='sign-chip';chip.textContent=sign;signs.appendChild(chip)});
+    document.getElementById('copyDiagnosisRepair').dataset.copyText=d.script||'';
+  }else if(group==='refs'){
+    document.getElementById('guide-refs-kicker').textContent=d.kicker;
+    document.getElementById('guide-refs-title').textContent=d.title;
+    document.getElementById('guide-refs-text').textContent=d.text;
+    document.getElementById('guide-refs-example').textContent=d.example;
+  }else if(group==='close'){
+    document.getElementById('guide-close-kicker').textContent=d.kicker;
+    document.getElementById('guide-close-title').textContent=d.title;
+    document.getElementById('guide-close-text').textContent=d.text;
+  }
+}
+document.querySelectorAll('[data-guide-item]').forEach(btn=>{
+  btn.setAttribute('aria-pressed',String(btn.classList.contains('active')));
+  btn.addEventListener('click',()=>{
+    const group=btn.dataset.guideItem;
+    activateGuide(group,btn.dataset.key,btn);
+    if(window.innerWidth<=860){
+      const target=group==='trouble'?document.querySelector('#trouble .guide-diagnosis'):group==='refs'?document.querySelector('#refs .guide-pipeline-detail'):group==='close'?document.querySelector('#close .guide-loop-core'):null;
+      if(target) window.setTimeout(()=>target.scrollIntoView({behavior:scrollBehavior,block:'center'}),20);
+    }
+  });
+});
+const copyDiagnosisRepair=document.getElementById('copyDiagnosisRepair');
+if(copyDiagnosisRepair){
+  copyDiagnosisRepair.dataset.copyText=guideData.trouble.generic.script;
+  copyDiagnosisRepair.addEventListener('click',e=>copyText(copyDiagnosisRepair.dataset.copyText||'',e.currentTarget));
+}
+// Seed the first diagnosis with the same richer detail used after interaction.
+activateGuide('trouble','generic',document.querySelector('[data-guide-item="trouble"][data-key="generic"]'));
+
+function renumberRefs(){
+  [...document.querySelectorAll('#refBlocks .ref-group')].forEach((group,i)=>{
+    const num=i+1;
+    const label=group.querySelector('.ref-group-head span');
+    if(label) label.textContent=`Reference ${num}`;
+    const names={name:'filename',authority:'authority or status',intent:'intent',borrow:'what to borrow',avoid:'what not to copy'};
+    group.querySelectorAll('[data-ref-label]').forEach(control=>{
+      control.setAttribute('aria-label',`Reference ${num} ${names[control.dataset.refLabel]||control.dataset.refLabel}`);
+    });
+    const remove=group.querySelector('.ref-remove');
+    if(remove) remove.setAttribute('aria-label',`Remove reference ${num}`);
+  });
+}
+function makeRefGroup(){
+  const group=document.createElement('div');
+  group.className='ref-group';
+  group.innerHTML=`
+    <div class="ref-group-head"><span>Reference</span><button type="button" class="ref-remove">Remove</button></div>
+    <div class="refrow">
+      <input class="refName" placeholder="Reference / filename" data-ref-label="name">
+      <select class="refStatus" data-ref-label="authority">
+        <option value="">Authority / status…</option>
+        <option value="Authoritative">Authoritative</option>
+        <option value="Supporting">Supporting</option>
+        <option value="Superseded">Superseded</option>
+        <option value="Atmosphere-only">Atmosphere-only</option>
+      </select>
+    </div>
+    <div class="refrow refrow-wide">
+      <input class="refIntent" placeholder="Intent — what was this trying to achieve?" data-ref-label="intent">
+    </div>
+    <div class="refrow">
+      <input class="refUse" placeholder="Use this for..." data-ref-label="borrow">
+      <input class="refNo" placeholder="Do not copy..." data-ref-label="avoid">
+    </div>`;
+  return group;
+}
+document.getElementById('addRef').addEventListener('click',()=>{
+  const group=makeRefGroup();
+  document.getElementById('refBlocks').appendChild(group);
+  renumberRefs();
+  updateRefAudit();
+  group.querySelector('.refName')?.focus();
+});
+document.getElementById('refBlocks').addEventListener('click',e=>{
+  const remove=e.target.closest('.ref-remove');
+  if(!remove) return;
+  const group=remove.closest('.ref-group');
+  if(group) group.remove();
+  renumberRefs();
+  updateRefAudit();
+});
+renumberRefs();
+
+function updateRefAudit(){
+  const list=document.getElementById('refAuditList');
+  const summary=document.getElementById('refAuditSummary');
+  const note=document.getElementById('refAuditNote');
+  if(!list||!summary) return;
+  const groups=[...document.querySelectorAll('#refBlocks .ref-group')];
+  const active=groups.filter(group=>[...group.querySelectorAll('input,select')].some(el=>el.value.trim()));
+  list.innerHTML='';
+  if(!active.length){
+    summary.textContent='No reference entered yet';
+    if(note) note.textContent='You do not need a reference package for every prompt. Use this only when examples or past work could materially steer the model.';
+    return;
+  }
+  let readyCount=0;
+  active.forEach((group,index)=>{
+    const fields=[
+      ['Artifact',group.querySelector('.refName')?.value.trim()],
+      ['Intent',group.querySelector('.refIntent')?.value.trim()],
+      ['Borrow',group.querySelector('.refUse')?.value.trim()],
+      ['Avoid',group.querySelector('.refNo')?.value.trim()],
+      ['Authority',group.querySelector('.refStatus')?.value.trim()]
+    ];
+    const complete=fields.filter(([,v])=>v).length;
+    if(complete===fields.length) readyCount++;
+    const item=document.createElement('div');item.className='ref-audit-item';
+    const name=group.querySelector('.refName')?.value.trim()||`Reference ${index+1}`;
+    const title=document.createElement('strong');title.textContent=`${name} · ${complete}/5`;
+    const chips=document.createElement('div');chips.className='ref-audit-chips';
+    fields.forEach(([label,value])=>{const chip=document.createElement('span');chip.className=`ref-audit-chip ${value?'ready':'missing'}`;chip.textContent=value?`${label} ✓`:`${label} missing`;chips.appendChild(chip)});
+    item.append(title,chips);list.appendChild(item);
+  });
+  summary.textContent=`${readyCount}/${active.length} fully instructed`;
+  const authoritative=active.filter(g=>g.querySelector('.refStatus')?.value==='Authoritative').length;
+  if(note) note.textContent=authoritative>1?'More than one reference is marked Authoritative. That can be correct, but make their scopes explicit if they could conflict.':'Missing fields are not automatically errors. Fill only the dimensions that materially affect how the model should read the artifact.';
+}
+
+document.getElementById('refBlocks').addEventListener('input',updateRefAudit);
+document.getElementById('refBlocks').addEventListener('change',updateRefAudit);
+updateRefAudit();
+
+document.getElementById('buildRefs').addEventListener('click',()=>{
+  const groups=[...document.querySelectorAll('#refBlocks .ref-group')];
+  const out=[];
+  groups.forEach(group=>{
+    const name=group.querySelector('.refName')?.value.trim()||'';
+    const status=group.querySelector('.refStatus')?.value.trim()||'';
+    const intent=group.querySelector('.refIntent')?.value.trim()||'';
+    const use=group.querySelector('.refUse')?.value.trim()||'';
+    const no=group.querySelector('.refNo')?.value.trim()||'';
+    if(!name&&!status&&!intent&&!use&&!no) return;
+    let block=`${name||"REFERENCE"}${status?` — ${status}`:""}`;
+    if(intent) block+=`\nIntent: ${intent}`;
+    if(use) block+=`\nUse this for: ${use}`;
+    if(no) block+=`\nDo not copy: ${no}`;
+    const authorityInstruction={
+      Authoritative:'Treat this as the current source of truth within its stated scope.',
+      Supporting:'Use this to supplement authoritative material; do not let it override a conflicting authoritative source.',
+      Superseded:'Do not treat this as current authority. Use it only for explicitly requested history, contrast, or lessons learned.',
+      'Atmosphere-only':'Use this only for mood, taste, or experiential cues. Do not infer requirements, behavior, or factual authority from it.'
+    }[status];
+    if(authorityInstruction) block+=`\nAuthority instruction: ${authorityInstruction}`;
+    out.push(block);
+  });
+  document.getElementById('refsOutput').textContent=out.length?out.join('\n\n'):"Add at least one reference.";
+});
+document.getElementById('copyRefs').addEventListener('click',e=>copyText(document.getElementById('refsOutput').textContent,e.currentTarget));
+
+const closeCostData={
+  no:{title:'Close it. No retrospective needed.',text:'The correction was cheap. Do not turn a small annoyance into permanent prompting ceremony.',retro:false,distill:false},
+  maybe:{title:'Ask one question, then leave.',text:'Use the retrospective below. Keep only a lesson that would plausibly change how you prompt next time.',retro:true,distill:false},
+  yes:{title:'Capture one reusable lesson.',text:'The correction cost was meaningful or repeated. Run the retrospective, then distill the prevention into one carry-forward instruction.',retro:true,distill:true}
+};
+function setCloseCost(key){
+  const d=closeCostData[key]||closeCostData.maybe;
+  document.querySelectorAll('[data-close-cost]').forEach(btn=>{const active=btn.dataset.closeCost===key;btn.classList.toggle('active',active);btn.setAttribute('aria-pressed',String(active))});
+  document.getElementById('closePayoffTitle').textContent=d.title;
+  document.getElementById('closePayoffText').textContent=d.text;
+  document.getElementById('closeRetroWrap').style.display=d.retro?'block':'none';
+  document.getElementById('lessonDistiller').classList.toggle('active',d.distill);
+}
+document.querySelectorAll('[data-close-cost]').forEach(btn=>btn.addEventListener('click',()=>setCloseCost(btn.dataset.closeCost)));
+setCloseCost('maybe');
+
+const lessonCorrection=document.getElementById('lessonCorrection');
+const lessonPrevention=document.getElementById('lessonPrevention');
+const lessonOutput=document.getElementById('lessonOutput');
+function buildLesson(){
+  const correction=lessonCorrection?.value.trim()||'';
+  const prevention=lessonPrevention?.value.trim()||'';
+  if(!correction&&!prevention){lessonOutput.textContent='Add the meaningful correction and/or what would have prevented it.';return}
+  const parts=['CARRY FORWARD'];
+  if(correction) parts.push(`Failure to watch for: ${correction}`);
+  if(prevention) parts.push(`Prevent it by: ${prevention}`);
+  parts.push('Keep this only if it is likely to reduce future correction cost.');
+  lessonOutput.textContent=parts.join('\n');
+}
+document.getElementById('buildLesson')?.addEventListener('click',buildLesson);
+document.getElementById('copyLesson')?.addEventListener('click',e=>copyText(lessonOutput.textContent,e.currentTarget));
+
+
+// v1.5 composition refinements
+const stageHint=document.getElementById('stageHint');
+const stageHints={Explore:'Generate possibilities without turning them into requirements.',Decide:'Compare, recommend, and stop before building.',Build:'Implement; surface expensive-to-reverse ambiguity.',Review:'Evaluate against agreed intent rather than redesigning by preference.'};
+document.querySelectorAll('#start .mode').forEach(btn=>btn.addEventListener('click',()=>{if(stageHint) stageHint.textContent=stageHints[btn.dataset.mode]||'';}));
+document.getElementById('clearStart')?.addEventListener('click',()=>{if(stageHint) stageHint.textContent='No stage selected — that is fine.';});
+
+const diagnosisExtras={
+  generic:{avoid:'Do not dump in more context at random. Find the default that is overpowering your actual situation first.',why:'This exposes the hidden default before asking for a better answer.'},
+  much:{avoid:'Do not respond by adding even more structure. First make the stopping boundary explicit.',why:'A smaller turn boundary removes the incentive to solve the whole project at once.'},
+  assumptions:{avoid:'Do not correct only the chosen answer; correct the status of the decision itself.',why:'Marking the choice OPEN repairs the shared state instead of patching one output.'},
+  reopening:{avoid:'Do not argue the settled decision from scratch again unless new evidence actually changed it.',why:'Reasserting DECIDED state preserves continuity while keeping one escape valve for material problems.'},
+  agreeable:{avoid:'Do not demand a fixed number of criticisms or “push back harder” with no standard for substance.',why:'Permission to find nothing reduces performative objections and keeps critique tied to real tradeoffs.'},
+  unknown:{avoid:'Do not force a giant prompt before you know what the useful first output should be.',why:'Designing the interaction first turns a fuzzy task into a smaller collaboration decision.'},
+  verify:{avoid:'Do not ask the same model “are you sure?” and treat reassurance as verification.',why:'This separates claims by uncertainty and points you toward evidence that can actually change confidence.'}
+};
+function updateDiagnosisExtras(key){const d=diagnosisExtras[key]||diagnosisExtras.generic;const a=document.getElementById('guide-trouble-avoid');const w=document.getElementById('guide-trouble-why');if(a)a.textContent=d.avoid;if(w)w.textContent=d.why;}
+document.querySelectorAll('[data-guide-item="trouble"]').forEach(btn=>btn.addEventListener('click',()=>updateDiagnosisExtras(btn.dataset.key)));
+updateDiagnosisExtras('generic');
+
+const lessonWhen=document.getElementById('lessonWhen');
+const originalBuildLesson=buildLesson;
+buildLesson=function(){
+  const correction=lessonCorrection?.value.trim()||'';
+  const prevention=lessonPrevention?.value.trim()||'';
+  const when=lessonWhen?.value.trim()||'';
+  if(!correction&&!prevention&&!when){lessonOutput.textContent='Add the meaningful correction and/or what would have prevented it.';return}
+  const parts=['FIELD NOTE — CARRY FORWARD'];
+  if(correction) parts.push(`Observed failure: ${correction}`);
+  if(prevention) parts.push(`Likely prevention: ${prevention}`);
+  if(when) parts.push(`Reuse when: ${when}`);
+  parts.push('Keep only if this is likely to reduce future correction cost.');
+  lessonOutput.textContent=parts.join('\n');
+};
+// replace listener installed above with a capture listener that uses the refined builder
+const buildLessonButton=document.getElementById('buildLesson');
+if(buildLessonButton){buildLessonButton.addEventListener('click',e=>{e.stopImmediatePropagation();buildLesson();},true);}
+
+// Native SVG animation is intentionally used for the tiny brand mark because it is more reliable in local-file Chromium.
+// Respect reduced-motion by pausing the SVG timeline when the user has requested less motion.
+try{const m=window.matchMedia('(prefers-reduced-motion: reduce)');const svg=document.querySelector('.brand-compass');const apply=()=>{if(!svg)return;if(m.matches&&svg.pauseAnimations)svg.pauseAnimations();else if(!m.matches&&svg.unpauseAnimations)svg.unpauseAnimations();};apply();m.addEventListener?.('change',apply);}catch(e){}
+
+
+
+// Signature compass motion: one tiny, reliable movement around a fixed SVG pivot.
+// Kept deliberately narrow so it reads as "alive" rather than a spinning indicator.
+(function initBrandNeedleMotion(){
+  const needle=document.querySelector('.brand-needle');
+  if(!needle) return;
+  const motionQuery=window.matchMedia ? window.matchMedia('(prefers-reduced-motion: reduce)') : null;
+  let raf=0;
+  function stop(){ if(raf){ cancelAnimationFrame(raf); raf=0; } }
+  function frame(t){
+    if(motionQuery && motionQuery.matches){
+      needle.setAttribute('transform','rotate(-0.5 80 80)');
+      raf=0;
+      return;
+    }
+    // About four degrees total travel, with a long slow cycle.
+    const angle=-0.4 + (2.0 * Math.sin(t / 2600));
+    needle.setAttribute('transform',`rotate(${angle.toFixed(2)} 80 80)`);
+    raf=requestAnimationFrame(frame);
+  }
+  function restart(){ stop(); raf=requestAnimationFrame(frame); }
+  restart();
+  if(motionQuery){
+    const onChange=()=>restart();
+    if(motionQuery.addEventListener) motionQuery.addEventListener('change',onChange);
+    else if(motionQuery.addListener) motionQuery.addListener(onChange);
+  }
+})();
+</script>
+</body>
+</html>
