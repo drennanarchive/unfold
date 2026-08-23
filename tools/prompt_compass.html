@@ -71,13 +71,13 @@ h1{font-family:Georgia,"Times New Roman",serif;font-size:clamp(2.7rem,7vw,5.7rem
 .brand-ring{fill:none;stroke:var(--line);stroke-width:1.15}
 .brand-ring.inner{stroke-dasharray:2.5 5;opacity:.72;transform-box:view-box;transform-origin:center;animation:brandRing 30s linear infinite}
 .brand-axis{stroke:var(--line);stroke-width:.8;opacity:.55}
-.brand-needle{transform-box:view-box;transform-origin:center;animation:brandNeedle 5.2s cubic-bezier(.45,.05,.55,.95) infinite alternate}
+.brand-needle-anchor{pointer-events:none}
+.brand-needle-rotor{pointer-events:none}
 .brand-needle-n{fill:var(--accent);opacity:.9}
 .brand-needle-s{fill:var(--accent2);opacity:.76}
 .brand-hub{fill:var(--paper);stroke:var(--accent2);stroke-width:1.4}
 .brand-dot{fill:var(--accent2);opacity:.58;transform-box:fill-box;transform-origin:center;animation:brandDot 5.8s ease-in-out infinite alternate}
 .brand-spark{fill:var(--accent);opacity:.48;transform-box:fill-box;transform-origin:center;animation:brandSpark 4.4s ease-in-out infinite}
-@keyframes brandNeedle{0%{transform:rotate(-10deg)}55%{transform:rotate(4deg)}100%{transform:rotate(11deg)}}
 @keyframes brandRing{to{transform:rotate(360deg)}}
 @keyframes brandSpark{0%,100%{opacity:.34;transform:scale(.9) rotate(0deg)}50%{opacity:.8;transform:scale(1.14) rotate(14deg)}}
 @keyframes brandDot{0%{opacity:.4;transform:scale(.94)}100%{opacity:.72;transform:scale(1.08)}}
@@ -249,7 +249,7 @@ textarea:focus,input:focus,select:focus{border-color:var(--accent);box-shadow:0 
   .mode-row{grid-template-columns:1fr}
   .refrow{grid-template-columns:1fr}
 }
-@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*{transition:none!important}.brand-needle,.brand-spark,.brand-dot,.brand-ring.inner{animation:none!important}}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*{transition:none!important}.brand-spark,.brand-dot,.brand-ring.inner{animation:none!important}}
 
 
 
@@ -1148,7 +1148,7 @@ html[data-theme="dark"] .close-cost{background:rgba(255,255,255,.02)}
 
 
 /* v1.5 composition pass — core-first Start + destination-quality field tabs */
-.brand-needle,.brand-ring.inner{animation:none!important}
+.brand-needle-rotor,.brand-ring.inner{animation:none!important}
 .start-heading,.diagnose-heading,.refs-heading,.close-heading{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(230px,.5fr);gap:28px;align-items:end;margin-bottom:24px}
 .start-heading h2,.diagnose-heading h2,.refs-heading h2,.close-heading h2{font-family:Georgia,"Times New Roman",serif;font-weight:500;font-size:clamp(1.9rem,4vw,3.1rem);line-height:1.04;letter-spacing:-.035em;margin:6px 0 9px}
 .start-heading .intro,.diagnose-heading .intro,.refs-heading .intro,.close-heading .intro{margin:0;max-width:720px}
@@ -1277,7 +1277,102 @@ html[data-theme="dark"] .diagnose-logic span{
 /* The signature compass should feel alive, not unstable: the inner ring is static
    and the needle uses a narrow, slow seek around one fixed center point. */
 .brand-ring.inner{animation:none!important}
-.brand-needle{animation:none!important}
+.brand-needle-rotor{animation:none!important}
+
+
+/* v1.8 compass motion refinement */
+.guide-state-detail .jump-repair{margin-top:12px}
+.quick-compact-note{display:none;margin-top:8px;padding:11px 12px;border-left:2px solid var(--accent2);border-radius:0 10px 10px 0;background:rgba(76,143,137,.05);color:var(--muted);font-size:.76rem;line-height:1.4}
+.quick-launch.collapsed .quick-compact-note.show{display:block}
+.quick-compact-note b{color:var(--text)}
+
+@media(max-width:620px){
+  /* Quick Routes stays available, but should not consume the first phone screen by default. */
+  .quick-launch{margin:18px 0 20px;padding:14px;border-radius:20px}
+  .quick-launch.collapsed{padding-bottom:12px}
+  .quick-launch.collapsed .quick-launch-head{margin-bottom:8px;padding-bottom:8px}
+  .quick-launch-head{align-items:flex-start;gap:10px}
+  .quick-launch-head strong{font-size:1.15rem}
+  .quick-launch-meta{gap:4px}
+  .quick-collapse{min-height:40px;padding:8px 2px}
+  .quick-compact{gap:6px}
+  .quick-compact button{min-height:54px;padding:9px 10px}
+  .quick-compact span{font-size:.9rem}
+  .quick-compact small{font-size:.64rem}
+
+  /* Six destinations should be visible at a glance on a phone; no clipped tab names. */
+  .tabs{
+    display:grid;grid-template-columns:repeat(3,minmax(0,1fr));
+    overflow:visible;overscroll-behavior:auto;gap:5px;
+    margin:16px -9px 18px;padding:7px 9px;
+    border-radius:0;
+  }
+  .tab{
+    width:100%;min-width:0;min-height:42px;padding:7px 5px;
+    white-space:normal;line-height:1.12;text-align:center;font-size:.73rem;
+  }
+  .tab-long{display:none}.tab-short{display:inline}
+  .section{scroll-margin-top:104px}
+
+  .theme-btn{min-height:40px}
+
+  /* Reference guidance: compact, ordered, and stable instead of a staggered desktop grid. */
+  .reference-recipe{display:grid;grid-template-columns:1fr 1fr;gap:5px 12px}
+  .reference-recipe>span{grid-column:1/-1}
+  .reference-recipe b{display:block;margin:0;padding:4px 0;border-top:1px solid rgba(127,127,127,.14)}
+  .reference-path{
+    grid-template-columns:repeat(5,minmax(0,1fr));gap:5px;
+    padding:9px 0 0;margin-bottom:22px;align-items:stretch;
+  }
+  .reference-path .guide-pipe-step,
+  .reference-path .guide-pipe-step:nth-child(odd),
+  .reference-path .guide-pipe-step:nth-child(even),
+  .reference-path .guide-pipe-step:nth-child(5){
+    grid-column:auto!important;border:1px solid transparent!important;border-radius:11px!important;
+    min-height:62px;padding:8px 2px!important;
+  }
+  .reference-path .guide-pipe-step::before{width:8px;height:8px;margin:1px auto 6px}
+  .reference-path .guide-pipe-step>span{font-size:.54rem;margin-bottom:2px}
+  .reference-path .guide-pipe-step strong{font-size:.76rem;line-height:1.05}
+  .reference-path .guide-pipe-step small{display:none}
+  .reference-path .guide-pipe-step.active{
+    border-color:rgba(76,143,137,.25)!important;background:rgba(76,143,137,.055)
+  }
+  html[data-theme="dark"] .reference-path .guide-pipe-step.active{
+    border-color:rgba(121,200,192,.28)!important;background:rgba(121,200,192,.07)
+  }
+  .reference-path-detail{
+    grid-column:1/-1!important;margin-top:3px;padding:13px 4px 12px;
+    border-top:1px solid var(--line);background:transparent;
+  }
+  .reference-path-detail strong{font-size:1.08rem}
+  .reference-path-detail p{font-size:.76rem;line-height:1.45}
+  .reference-path-detail small{font-size:.7rem}
+
+  /* Forms and generated content should feel like phone-native work surfaces. */
+  .ref-group{padding:12px}
+  .ref-group-head{margin-bottom:4px}
+  .ref-remove{min-width:58px;min-height:40px;padding:7px 4px}
+  .ref-actions .btn,.start-finish .btn{min-height:42px}
+  .output{min-height:96px}
+
+  /* Repair remains a library, but its selected drift can jump straight to the useful line. */
+  .guide-state-detail .jump-repair{width:100%;min-height:42px;margin-top:12px}
+  .trouble{scroll-margin-top:112px}
+
+  /* Keep mobile text/control sizing comfortable and prevent accidental iOS zoom. */
+  textarea,input,select{font-size:16px}
+}
+
+@media(max-width:360px){
+  .tabs{gap:4px;padding-left:7px;padding-right:7px;margin-left:-7px;margin-right:-7px}
+  .tab{font-size:.69rem;padding-left:3px;padding-right:3px}
+  .reference-path{gap:3px}
+  .reference-path .guide-pipe-step{padding-left:1px!important;padding-right:1px!important}
+  .reference-path .guide-pipe-step strong{font-size:.69rem}
+  .reference-recipe{grid-template-columns:1fr}
+  .reference-recipe>span{grid-column:auto}
+}
 
 </style>
 
@@ -1316,11 +1411,13 @@ html[data-theme="dark"] .diagnose-logic span{
             <circle class="brand-dot" cx="139" cy="80" r="2.4"/>
             <circle class="brand-dot" cx="80" cy="139" r="2.4"/>
             <circle class="brand-dot" cx="21" cy="80" r="2.4"/>
-            <g class="brand-needle">
-              <path class="brand-needle-n" d="M80 28L91 82L80 76L69 82Z"/>
-              <path class="brand-needle-s" d="M80 132L69 78L80 84L91 78Z"/>
-              <circle class="brand-hub" cx="80" cy="80" r="5.2"/>
+            <g class="brand-needle-anchor" transform="translate(80 80)">
+              <g class="brand-needle-rotor">
+                <path class="brand-needle-n" d="M0 -55L6 0L-6 0Z"/>
+                <path class="brand-needle-s" d="M0 55L-6 0L6 0Z"/>
+              </g>
             </g>
+            <circle class="brand-hub" cx="80" cy="80" r="5.2"/>
             <path class="brand-spark" d="M128 29l2.2 5.2 5.2 2.2-5.2 2.2-2.2 5.2-2.2-5.2-5.2-2.2 5.2-2.2z"/>
           </svg>
         </div>
@@ -1333,7 +1430,7 @@ html[data-theme="dark"] .diagnose-logic span{
         <button type="button" class="theme-btn" data-theme-choice="light" aria-pressed="false">☀ Soft</button>
         <button type="button" class="theme-btn" data-theme-choice="dark" aria-pressed="false">☾ Dark</button>
       </div>
-      <div class="badge">Field v1.6 · orient → act → carry forward</div>
+      <div class="badge">Field v1.11 · orient → act → carry forward</div>
     </div>
   </header>
 
@@ -1349,8 +1446,9 @@ html[data-theme="dark"] .diagnose-logic span{
       <button type="button" data-quick-tab="start" data-focus-target="thisTurn"><span>Start</span><small>THIS TURN + OPEN</small></button>
       <button type="button" data-quick-tab="steer"><span>Repair</span><small>I know the drift</small></button>
       <button type="button" data-quick-tab="trouble"><span>Diagnose</span><small>I don't know why</small></button>
-      <button type="button" id="quickCompactSkip"><span>Skip</span><small>just ask normally</small></button>
+      <button type="button" id="quickCompactSkip" aria-expanded="false" aria-controls="quickCompactSkipNote"><span>Skip</span><small>just ask normally</small></button>
     </div>
+    <div class="quick-compact-note" id="quickCompactSkipNote" aria-live="polite"><b>Compass says: just ask.</b> If the answer is cheap to correct and you do not already see a likely failure mode, a normal prompt is the efficient prompt.</div>
     <div class="quick-route-body" id="quickRouteBody">
     <div class="quick">
       <button type="button" class="qcard qcard-route" data-quick-tab="start" data-focus-target="thisTurn">
@@ -1747,6 +1845,7 @@ html[data-theme="dark"] .diagnose-logic span{
             <span id="guide-steer-kicker">WORKING STATE</span>
             <strong id="guide-steer-title">Restore only what drifted.</strong>
             <p id="guide-steer-text">You usually do not need a new prompt. Identify the kind of drift, then patch that part of the shared state.</p>
+            <button type="button" class="btn jump-repair" id="jumpDriftRepair" data-target="repair-ahead">Show matching repair ↓</button>
           </div>
         </div>
         <p class="guide-hint">These are parallel drift types, not stages. Pick the one that best matches what changed.</p>
@@ -2099,22 +2198,36 @@ const compactSkip=document.getElementById('quickCompactSkip');
 function setQuickCollapsed(collapsed,persist=true){
   if(!quickLaunch||!quickCollapse) return;
   quickLaunch.classList.toggle('collapsed',collapsed);
+  if(!collapsed){
+    document.getElementById('quickCompactSkipNote')?.classList.remove('show');
+    document.getElementById('quickCompactSkip')?.setAttribute('aria-expanded','false');
+  }
   quickCollapse.textContent=collapsed?'Expand routes':'Minimize routes';
   quickCollapse.setAttribute('aria-expanded',String(!collapsed));
   if(persist){
-    try{localStorage.setItem('promptCompassQuickRoutes',collapsed?'collapsed':'expanded')}catch(e){}
+    try{
+      const mobile=window.matchMedia&&window.matchMedia('(max-width: 620px)').matches;
+      localStorage.setItem(mobile?'promptCompassQuickRoutesMobile':'promptCompassQuickRoutes',collapsed?'collapsed':'expanded');
+    }catch(e){}
   }
 }
-try{setQuickCollapsed(localStorage.getItem('promptCompassQuickRoutes')==='collapsed',false)}catch(e){}
-quickCollapse?.addEventListener('click',()=>setQuickCollapsed(!quickLaunch.classList.contains('collapsed'),true));
+const mobileQuickQuery=window.matchMedia?window.matchMedia('(max-width: 620px)'):null;
+function quickPreferenceKey(){return mobileQuickQuery?.matches?'promptCompassQuickRoutesMobile':'promptCompassQuickRoutes'}
+try{
+  const savedQuick=localStorage.getItem(quickPreferenceKey());
+  setQuickCollapsed(savedQuick?savedQuick==='collapsed':Boolean(mobileQuickQuery?.matches),false);
+}catch(e){setQuickCollapsed(Boolean(mobileQuickQuery?.matches),false)}
+quickCollapse?.addEventListener('click',()=>{
+  const next=!quickLaunch.classList.contains('collapsed');
+  setQuickCollapsed(next,false);
+  try{localStorage.setItem(quickPreferenceKey(),next?'collapsed':'expanded')}catch(e){}
+});
+const quickCompactSkipNote=document.getElementById('quickCompactSkipNote');
 compactSkip?.addEventListener('click',()=>{
-  setQuickCollapsed(false,true);
-  window.setTimeout(()=>{
-    const show=true;
-    quickSkipNote?.classList.toggle('show',show);
-    quickSkip?.setAttribute('aria-expanded','true');
-    quickSkipNote?.scrollIntoView({behavior:scrollBehavior,block:'nearest'});
-  },20);
+  const show=!quickCompactSkipNote?.classList.contains('show');
+  quickCompactSkipNote?.classList.toggle('show',show);
+  compactSkip.setAttribute('aria-expanded',String(show));
+  if(show) quickCompactSkipNote?.scrollIntoView({behavior:scrollBehavior,block:'nearest'});
 });
 
 let selectedMode="";
@@ -2334,6 +2447,16 @@ const guideData={
   }
 };
 
+const driftRepairTargets={
+  ahead:'repair-ahead',
+  assumed:'repair-assumption',
+  expanded:'repair-scope',
+  agreeable:'repair-challenge',
+  hardened:'repair-hardened',
+  behavior:'repair-behavior'
+};
+const jumpDriftRepair=document.getElementById('jumpDriftRepair');
+
 function activateGuide(group,key,button){
   document.querySelectorAll(`[data-guide-item="${group}"]`).forEach(b=>{b.classList.remove('active');b.setAttribute('aria-pressed','false')});
   if(button){button.classList.add('active');button.setAttribute('aria-pressed','true')};
@@ -2348,6 +2471,7 @@ function activateGuide(group,key,button){
     document.getElementById('guide-steer-kicker').textContent=d.kicker;
     document.getElementById('guide-steer-title').textContent=d.title;
     document.getElementById('guide-steer-text').textContent=d.text;
+    if(jumpDriftRepair) jumpDriftRepair.dataset.target=driftRepairTargets[key]||'repair-ahead';
   }else if(group==='trouble'){
     document.getElementById('guide-trouble-family').textContent=d.family||'Prompting problem';
     document.getElementById('guide-trouble-title').textContent=d.title;
@@ -2376,11 +2500,16 @@ document.querySelectorAll('[data-guide-item]').forEach(btn=>{
     const group=btn.dataset.guideItem;
     activateGuide(group,btn.dataset.key,btn);
     if(window.innerWidth<=860){
-      const target=group==='trouble'?document.querySelector('#trouble .guide-diagnosis'):group==='refs'?document.querySelector('#refs .guide-pipeline-detail'):group==='close'?document.querySelector('#close .guide-loop-core'):null;
+      const target=group==='trouble'?document.querySelector('#trouble .diagnosis-card'):group==='refs'?document.querySelector('#refs .reference-path-detail'):group==='close'?document.querySelector('#close .close-loop-detail'):null;
       if(target) window.setTimeout(()=>target.scrollIntoView({behavior:scrollBehavior,block:'center'}),20);
     }
   });
 });
+jumpDriftRepair?.addEventListener('click',()=>{
+  const target=document.getElementById(jumpDriftRepair.dataset.target||'repair-ahead');
+  target?.scrollIntoView({behavior:scrollBehavior,block:'start'});
+});
+
 const copyDiagnosisRepair=document.getElementById('copyDiagnosisRepair');
 if(copyDiagnosisRepair){
   copyDiagnosisRepair.dataset.copyText=guideData.trouble.generic.script;
@@ -2580,39 +2709,34 @@ buildLesson=function(){
 const buildLessonButton=document.getElementById('buildLesson');
 if(buildLessonButton){buildLessonButton.addEventListener('click',e=>{e.stopImmediatePropagation();buildLesson();},true);}
 
-// Native SVG animation is intentionally used for the tiny brand mark because it is more reliable in local-file Chromium.
-// Respect reduced-motion by pausing the SVG timeline when the user has requested less motion.
-try{const m=window.matchMedia('(prefers-reduced-motion: reduce)');const svg=document.querySelector('.brand-compass');const apply=()=>{if(!svg)return;if(m.matches&&svg.pauseAnimations)svg.pauseAnimations();else if(!m.matches&&svg.unpauseAnimations)svg.unpauseAnimations();};apply();m.addEventListener?.('change',apply);}catch(e){}
-
-
-
-// Signature compass motion: one tiny, reliable movement around a fixed SVG pivot.
-// Kept deliberately narrow so it reads as "alive" rather than a spinning indicator.
-(function initBrandNeedleMotion(){
-  const needle=document.querySelector('.brand-needle');
-  if(!needle) return;
-  const motionQuery=window.matchMedia ? window.matchMedia('(prefers-reduced-motion: reduce)') : null;
+// Brand compass: the needle geometry is centered on local SVG origin (0,0),
+// the parent group is translated to the fixed compass hub (80,80), and only the
+// inner rotor turns. This prevents any off-axis orbiting in SVG implementations.
+(function(){
+  const rotor=document.querySelector('.brand-needle-rotor');
+  if(!rotor)return;
+  const reduce=window.matchMedia?.('(prefers-reduced-motion: reduce)');
+  const duration=8500;
   let raf=0;
-  function stop(){ if(raf){ cancelAnimationFrame(raf); raf=0; } }
-  function frame(t){
-    if(motionQuery && motionQuery.matches){
-      needle.setAttribute('transform','rotate(-0.5 80 80)');
-      raf=0;
-      return;
-    }
-    // About four degrees total travel, with a long slow cycle.
-    const angle=-0.4 + (2.0 * Math.sin(t / 2600));
-    needle.setAttribute('transform',`rotate(${angle.toFixed(2)} 80 80)`);
+  let started=performance.now();
+  function frame(now){
+    const angle=((now-started)%duration)/duration*360;
+    rotor.setAttribute('transform',`rotate(${angle})`);
     raf=requestAnimationFrame(frame);
   }
-  function restart(){ stop(); raf=requestAnimationFrame(frame); }
-  restart();
-  if(motionQuery){
-    const onChange=()=>restart();
-    if(motionQuery.addEventListener) motionQuery.addEventListener('change',onChange);
-    else if(motionQuery.addListener) motionQuery.addListener(onChange);
+  function applyMotion(){
+    if(raf){cancelAnimationFrame(raf);raf=0;}
+    if(reduce?.matches){
+      rotor.setAttribute('transform','rotate(0)');
+      return;
+    }
+    started=performance.now();
+    raf=requestAnimationFrame(frame);
   }
+  applyMotion();
+  reduce?.addEventListener?.('change',applyMotion);
 })();
+
 </script>
 </body>
 </html>
