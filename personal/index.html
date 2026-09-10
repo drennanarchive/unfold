@@ -1158,6 +1158,73 @@
         linear-gradient(180deg, rgba(39,104,120,.38), #06141d);
     }
 
+    .scene-loan-payoff::before {
+      background:
+        repeating-linear-gradient(0deg, transparent 0 28px, rgba(138,185,255,.07) 28px 29px),
+        linear-gradient(90deg, transparent 0 10%, rgba(245,180,194,.12) 10.4% 10.8%, transparent 11.2% 30%, rgba(134,229,179,.16) 30.4% 30.9%, transparent 31.3% 55%, rgba(138,185,255,.12) 55.4% 56%, transparent 56.4%),
+        radial-gradient(circle at 78% 24%, rgba(245,180,194,.28), transparent 22%),
+        radial-gradient(circle at 22% 68%, rgba(134,229,179,.18), transparent 25%),
+        linear-gradient(145deg, #17122d 0%, #0d1730 48%, #081521 100%);
+    }
+
+    .scene-loan-payoff::after {
+      background:
+        linear-gradient(180deg, rgba(4,7,16,.02) 0%, rgba(4,7,16,.28) 42%, rgba(4,7,16,.96) 100%);
+    }
+
+    .scene-loan-payoff .payoff-path {
+      position: absolute;
+      left: 9%;
+      right: 9%;
+      top: 35%;
+      height: 90px;
+      z-index: 1;
+      border-top: 2px solid rgba(134,229,179,.72);
+      border-radius: 50%;
+      transform: rotate(-5deg);
+      box-shadow: 0 -1px 18px rgba(134,229,179,.24);
+    }
+
+    .scene-loan-payoff .payoff-path::before,
+    .scene-loan-payoff .payoff-path::after {
+      content: "";
+      position: absolute;
+      top: -7px;
+      width: 11px;
+      height: 11px;
+      border: 2px solid currentColor;
+      border-radius: 50%;
+      background: #0a1425;
+      box-shadow: 0 0 16px currentColor;
+    }
+
+    .scene-loan-payoff .payoff-path::before {
+      left: 8%;
+      color: var(--pink);
+    }
+
+    .scene-loan-payoff .payoff-path::after {
+      right: 4%;
+      color: var(--mint);
+    }
+
+    .scene-loan-payoff .ledger {
+      position: absolute;
+      left: 13%;
+      right: 13%;
+      top: 21%;
+      height: 42%;
+      z-index: 0;
+      border: 1px solid rgba(138,185,255,.13);
+      border-radius: 16px;
+      transform: rotate(-4deg);
+      background:
+        repeating-linear-gradient(0deg, transparent 0 26px, rgba(138,185,255,.08) 26px 27px),
+        linear-gradient(90deg, transparent 0 70%, rgba(245,180,194,.12) 70% 71%, transparent 71%);
+      box-shadow: 0 20px 50px rgba(0,0,0,.32);
+      opacity: .8;
+    }
+
     .signal-color { color: var(--magenta); }
     .wonder-color { color: var(--cyan); }
     .shelter-color { color: var(--amber); }
@@ -1476,9 +1543,9 @@
 
       <div>
         <h2 class="section-title">Navigate the night.</h2>
-        <p class="section-subtitle">The sharper edge of the collection—where planning, movement, and visual identity become part of the experience.</p>
+        <p class="section-subtitle">The sharper edge of the collection—where planning, personal systems, movement, and visual identity become part of the experience.</p>
 
-        <div class="cards">
+        <div class="cards two">
           <a class="world-card featured scene-night-route" href="otakon_night_route_dining_planner.html">
             <span class="city" aria-hidden="true"></span>
             <span class="route-line" aria-hidden="true"></span>
@@ -1492,6 +1559,22 @@
               </div>
               <h3>NIGHT ROUTE: OTAKON // DC // 2026</h3>
               <p>A tactical dining credential for moving through convention weekend with style, options, and a little neon.</p>
+            </div>
+          </a>
+
+          <a class="world-card scene-loan-payoff" href="loan-payoff-tracker.html">
+            <span class="ledger" aria-hidden="true"></span>
+            <span class="payoff-path" aria-hidden="true"></span>
+            <span class="enter" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+            </span>
+            <div class="world-card-content">
+              <div class="world-meta">
+                <span class="world-label signal-color">Steady steps</span>
+                <span>Tracker</span>
+              </div>
+              <h3>LOAN PAYOFF // STEADY STEPS</h3>
+              <p>A living payoff tracker for watching the balance move, one payment at a time, toward a brighter finish.</p>
             </div>
           </a>
         </div>
