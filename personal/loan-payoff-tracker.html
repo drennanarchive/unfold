@@ -1,76 +1,76 @@
-:root{--bg:#071427;--bg2:#0b1d37;--card:rgba(14,31,57,.78);--line:#294467;--text:#eef5ff;--muted:#9eb1ce;--pink:#f5b4c2;--mint:#86e5b3;--blue:#8ab9ff;--gold:#f7d77b;--danger:#b7bfd0;--shadow:0 18px 55px rgba(0,0,0,.28)} *{box-sizing:border-box} body{margin:0;min-height:100vh;color:var(--text);font-family:Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,sans-serif;background:radial-gradient(circle at 75% 8%,#18355c 0,transparent 27%),radial-gradient(circle at 15% 25%,#102c4e 0,transparent 26%),linear-gradient(155deg,var(--bg),#050d1a 75%);overflow-x:hidden} body:before{content:"";position:fixed;inset:0;pointer-events:none;opacity:.42;background-image:radial-gradient(circle,#fff 0 1px,transparent 1.2px);background-size:87px 87px;mask-image:linear-gradient(to bottom,#000,transparent 70%)} .wrap{width:min(1180px,calc(100% - 28px));margin:auto;padding:32px 0 48px}.hero{display:flex;align-items:flex-end;justify-content:space-between;gap:24px;margin-bottom:22px}.eyebrow{font-size:.76rem;letter-spacing:.28em;color:#9fb4d4;text-transform:uppercase}.hero h1{font-family:Georgia,serif;font-weight:500;font-size:clamp(2.3rem,6vw,4.4rem);margin:4px 0 3px;color:#edf4ff;text-shadow:0 0 28px rgba(153,193,255,.15)}.tagline{color:var(--pink);font-family:"Segoe Script","Bradley Hand",cursive;font-size:clamp(1.05rem,2vw,1.5rem);transform:rotate(-2deg);text-align:right}.card{border:1px solid rgba(92,128,177,.38);background:linear-gradient(145deg,rgba(15,34,62,.88),rgba(8,23,43,.76));border-radius:20px;box-shadow:var(--shadow);backdrop-filter:blur(12px)} .summary{padding:24px}.stats{display:grid;grid-template-columns:1fr 1fr 1fr 1.1fr;gap:0}.stat{padding:4px 24px;border-right:1px solid var(--line)}.stat:first-child{padding-left:10px}.stat:last-child{border:0}.label{font-size:.92rem;color:#b9c8dd}.big{font-family:Georgia,serif;font-size:clamp(2rem,5vw,3.2rem);margin-top:4px}.pink{color:var(--pink)}.mint{color:var(--mint)}.blue{color:var(--blue)}.target{padding:15px 18px!important;border:1px solid var(--line)!important;border-radius:15px;background:rgba(10,25,48,.6)}.target strong{display:block;font-size:1.12rem;margin-top:4px}.small{font-size:.84rem;color:var(--muted);margin-top:4px}.progressrow{display:flex;align-items:center;gap:14px;margin-top:22px}.track{height:18px;flex:1;border-radius:999px;background:#263b60;overflow:hidden;box-shadow:inset 0 2px 7px rgba(0,0,0,.25)}.fill{height:100%;width:0;border-radius:inherit;background:linear-gradient(90deg,#79dba8,#9bf0c2);box-shadow:0 0 18px rgba(134,229,179,.35);transition:width .8s cubic-bezier(.2,.8,.2,1)} .plan{margin-top:22px;padding:22px}.planhead{display:flex;justify-content:space-between;align-items:center;gap:15px;margin-bottom:12px}.planhead h2{font-family:Georgia,serif;font-weight:500;margin:0;font-size:1.8rem}.btn{border:1px solid rgba(255,255,255,.16);border-radius:999px;background:linear-gradient(135deg,#8e6a87,#7d637e);color:white;padding:12px 18px;font-weight:650;cursor:pointer;box-shadow:0 8px 22px rgba(0,0,0,.2);transition:.18s transform,.18s filter}.btn:hover{filter:brightness(1.08);transform:translateY(-1px)}.btn:active{transform:scale(.98)}.btn.secondary{background:#142b4a;color:#cfe0f7}.tablewrap{overflow:auto}.rows{min-width:760px}.row{display:grid;grid-template-columns:42px 1.2fr 1.4fr .8fr 1fr 1fr 1fr;align-items:center;min-height:58px;border-top:1px solid rgba(78,108,150,.32);gap:8px;padding:0 8px}.row.header{min-height:40px;border:0;color:#9fb1ca;font-size:.78rem;text-transform:uppercase;letter-spacing:.05em}.check{width:24px;height:24px;border-radius:7px;border:1.5px solid #7188aa;background:transparent;color:#071427;display:grid;place-items:center;font-weight:900;cursor:pointer}.row.paid .check{background:var(--mint);border-color:var(--mint)}.row.paid .status{color:var(--mint)}.row.skipped{color:#7788a3}.row.skipped .date,.row.skipped .amount{text-decoration:line-through}.status{font-size:.9rem}.dot{display:inline-block;width:10px;height:10px;border:2px solid var(--blue);border-radius:50%;margin-right:7px}.paid .dot{background:var(--mint);border-color:var(--mint)}.skipped .dot{background:#73809a;border-color:#73809a}.date.next{color:#a6f0c7;font-weight:700} .bottom{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:20px}.mini{padding:20px;display:flex;gap:14px;align-items:center}.icon{width:46px;height:46px;border-radius:13px;background:#132d50;display:grid;place-items:center;font-size:1.4rem}.mini .value{font-family:Georgia,serif;color:#f4c5d0;font-size:1.35rem;margin-top:3px}.footer{display:flex;justify-content:space-between;gap:20px;align-items:center;color:#9bb0ce;margin-top:26px;padding:0 6px;font-size:.88rem}.script{font-family:"Segoe Script","Bradley Hand",cursive;font-size:1.12rem;color:#c9d8ee}.sound{display:flex;align-items:center;gap:8px}.sound button{border:1px solid var(--line);background:#102847;color:#dce9fb;border-radius:999px;padding:8px 12px;cursor:pointer} .spark{position:fixed;z-index:99;pointer-events:none;font-size:18px;animation:fly 1.15s ease-out forwards;filter:drop-shadow(0 0 6px currentColor)}@keyframes fly{0%{opacity:0;transform:translate(0,0) scale(.3) rotate(0)}15%{opacity:1}100%{opacity:0;transform:translate(var(--x),var(--y)) scale(1.2) rotate(160deg)}}.celebrate{position:fixed;inset:0;z-index:98;pointer-events:none;background:radial-gradient(circle at center,rgba(134,229,179,.12),transparent 50%);animation:fade 1.5s forwards}@keyframes fade{to{opacity:0}} @media(max-width:800px){.wrap{width:min(100% - 18px,1180px);padding-top:20px}.hero{align-items:flex-start}.tagline{font-size:.95rem}.stats{grid-template-columns:1fr 1fr}.stat{border-right:0;border-bottom:1px solid var(--line);padding:14px 10px}.target{margin:8px 0}.bottom{grid-template-columns:1fr}.plan{padding:14px}.planhead{align-items:flex-start}.btn{padding:10px 13px}.footer{flex-direction:column;align-items:flex-start}.row{font-size:.9rem}} @media(max-width:520px){.hero{display:block}.tagline{text-align:left;margin-top:8px}.stats{grid-template-columns:1fr 1fr}.big{font-size:2rem}.planhead h2{font-size:1.5rem}.summary{padding:16px}.progressrow{font-size:.85rem}} 
-
-Steady steps · brighter ahead
-
-Loan Payoff
-
-Same direction.
-Brighter days. ♡
-
-Total Loan
-
-$23,000
-
-Amount Paid
-
-$8,000
-
-34.8% complete
-
-Remaining
-
-$15,000
-
-⚑ Target Payoff
-
-Nov 27, 2026
-
-You’ve got this.
-
-34.8%
-
-▣  Payment Plan
-
-Mark next payment ✓
-
-Date
-
-Type
-
-Amount
-
-Status
-
-Running Total
-
-Remaining
-
-▥
-
-Next Payment
-
-Oct 2, 2026
-
-$3,000
-
-◎
-
-Final Payment
-
-Nov 27, 2026
-
-$1,000
-
-★
-
-Payoff Plan
-
-10 payments
-
-3 paid · 7 upcoming · 1 skipped plan
-
-〰 Progress over perfection.
-
-A calmer tomorrow is worth it ♡🔊 Sounds onReset
-
-const TOTAL=23000; const payments=[ {date:'Earlier',type:'Manual Payment',amount:3000,paid:true}, {date:'Sep 4, 2026',type:'Manual Payment',amount:4000,paid:true}, {date:'Sep 5, 2026',type:'Auto Payment',amount:1000,paid:true}, {date:'Sep 18, 2026',type:'Planned Payment',amount:2000,skip:true}, {date:'Oct 2, 2026',type:'Planned Payment',amount:3000}, {date:'Oct 5, 2026',type:'Auto Payment',amount:1000}, {date:'Oct 16, 2026',type:'Planned Payment',amount:4000}, {date:'Oct 30, 2026',type:'Planned Payment',amount:1000}, {date:'Nov 5, 2026',type:'Auto Payment',amount:1000}, {date:'Nov 13, 2026',type:'Planned Payment',amount:4000}, {date:'Nov 27, 2026',type:'Planned Payment',amount:1000} ]; const saved=JSON.parse(localStorage.getItem('loanPayoff23000')||'null'); if(saved) payments.forEach((p,i)=>{if(!p.skip && typeof saved[i]==='boolean') p.paid=saved[i]}); let soundOn=localStorage.getItem('loanSound')!=='off'; const money=n=>'$'+n.toLocaleString(); function audioCoin(big=false){if(!soundOn)return; const A=window.AudioContext||window.webkitAudioContext,ctx=new A(); const now=ctx.currentTime; [0, .09, .18].slice(0,big?3:2).forEach((d,i)=>{let o=ctx.createOscillator(),g=ctx.createGain();o.type=i%2?'sine':'triangle';o.frequency.setValueAtTime((big?740:620)+i*230,now+d);o.frequency.exponentialRampToValueAtTime((big?1100:880)+i*260,now+d+.16);g.gain.setValueAtTime(.0001,now+d);g.gain.exponentialRampToValueAtTime(.11,now+d+.02);g.gain.exponentialRampToValueAtTime(.0001,now+d+.24);o.connect(g).connect(ctx.destination);o.start(now+d);o.stop(now+d+.26)});setTimeout(()=>ctx.close(),700)} function sparkles(big=false){const count=big?70:18; if(big){let c=document.createElement('div');c.className='celebrate';document.body.append(c);setTimeout(()=>c.remove(),1600)} for(let i=0;i<count;i++){let s=document.createElement('span');s.className='spark';s.textContent=['✦','✧','⋆','★','✶'][Math.floor(Math.random()*5)];s.style.color=['#86e5b3','#f5b4c2','#8ab9ff','#f7d77b'][Math.floor(Math.random()*4)];s.style.left=(big?50:78)+'vw';s.style.top=(big?50:30)+'vh';s.style.setProperty('--x',((Math.random()-.5)*(big?900:280))+'px');s.style.setProperty('--y',((Math.random()-.6)*(big?700:260))+'px');s.style.animationDelay=(Math.random()*.15)+'s';document.body.append(s);setTimeout(()=>s.remove(),1500)}} function save(){localStorage.setItem('loanPayoff23000',JSON.stringify(payments.map(p=>!!p.paid)))} function render(){let run=0;const rows=document.getElementById('rows');rows.querySelectorAll('.data').forEach(x=>x.remove());payments.forEach((p,i)=>{if(p.paid&&!p.skip)run+=p.amount;const rem=TOTAL-run;let r=document.createElement('div');r.className='row data '+(p.skip?'skipped':p.paid?'paid':'');const next=!p.skip&&!p.paid&&payments.findIndex(x=>!x.skip&&!x.paid)===i;r.innerHTML=`<button class="check" aria-label="${p.paid?'Unmark':'Mark'} ${p.date}" ${p.skip?'disabled':''}>${p.paid?'✓':''}</button><div class="date ${next?'next':''}">${p.date}</div><div>${p.type}</div><div class="amount">${money(p.amount)}</div><div class="status"><span class="dot"></span>${p.skip?'Skipped':p.paid?'Paid':'Upcoming'}</div><div>${money(run)}</div><div>${money(rem)}</div>`; if(!p.skip)r.querySelector('.check').onclick=()=>{p.paid=!p.paid;save();render();if(p.paid){audioCoin(run===TOTAL);sparkles(run===TOTAL)}};rows.append(r)}); const paid=payments.filter(p=>p.paid&&!p.skip).reduce((s,p)=>s+p.amount,0),pct=Math.min(100,paid/TOTAL*100),rem=TOTAL-paid;document.getElementById('paidAmount').textContent=money(paid);document.getElementById('remainingAmount').textContent=money(rem);document.getElementById('completeText').textContent=pct.toFixed(1)+'% complete';document.getElementById('pct').textContent=pct.toFixed(1)+'%';requestAnimationFrame(()=>document.getElementById('fill').style.width=pct+'%');let n=payments.find(p=>!p.skip&&!p.paid);document.getElementById('nextDate').textContent=n?n.date:'PAID OFF! ✦';document.getElementById('nextAmt').textContent=n?money(n.amount):'Brighter days achieved ♡';document.getElementById('targetNote').textContent=rem===0?'Paid in full. ✦':'You’ve got this.';document.getElementById('nextBtn').disabled=!n;document.getElementById('nextBtn').textContent=n?'Mark next payment ✓':'Paid off ✦'; } document.getElementById('nextBtn').onclick=()=>{let p=payments.find(p=>!p.skip&&!p.paid);if(p){p.paid=true;save();render();const paid=payments.filter(x=>x.paid&&!x.skip).reduce((s,x)=>s+x.amount,0);audioCoin(paid===TOTAL);sparkles(paid===TOTAL)}}; document.getElementById('soundBtn').onclick=()=>{soundOn=!soundOn;localStorage.setItem('loanSound',soundOn?'on':'off');document.getElementById('soundBtn').textContent=soundOn?'🔊 Sounds on':'🔇 Sounds off';if(soundOn)audioCoin(false)}; document.getElementById('soundBtn').textContent=soundOn?'🔊 Sounds on':'🔇 Sounds off'; document.getElementById('resetBtn').onclick=()=>{if(confirm('Reset the tracker to the original plan (the first $8,000 paid)?')){payments.forEach((p,i)=>p.paid=!p.skip&&i<3);save();render()}}; render(); 
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+<title>Loan Payoff — Steady Steps</title>
+<style>
+:root{--bg:#071427;--bg2:#0b1d37;--card:rgba(14,31,57,.78);--line:#294467;--text:#eef5ff;--muted:#9eb1ce;--pink:#f5b4c2;--mint:#86e5b3;--blue:#8ab9ff;--gold:#f7d77b;--danger:#b7bfd0;--shadow:0 18px 55px rgba(0,0,0,.28)}
+*{box-sizing:border-box} body{margin:0;min-height:100vh;color:var(--text);font-family:Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,sans-serif;background:radial-gradient(circle at 75% 8%,#18355c 0,transparent 27%),radial-gradient(circle at 15% 25%,#102c4e 0,transparent 26%),linear-gradient(155deg,var(--bg),#050d1a 75%);overflow-x:hidden}
+body:before{content:"";position:fixed;inset:0;pointer-events:none;opacity:.42;background-image:radial-gradient(circle,#fff 0 1px,transparent 1.2px);background-size:87px 87px;mask-image:linear-gradient(to bottom,#000,transparent 70%)}
+.wrap{width:min(1180px,calc(100% - 28px));margin:auto;padding:32px 0 48px}.hero{display:flex;align-items:flex-end;justify-content:space-between;gap:24px;margin-bottom:22px}.eyebrow{font-size:.76rem;letter-spacing:.28em;color:#9fb4d4;text-transform:uppercase}.hero h1{font-family:Georgia,serif;font-weight:500;font-size:clamp(2.3rem,6vw,4.4rem);margin:4px 0 3px;color:#edf4ff;text-shadow:0 0 28px rgba(153,193,255,.15)}.tagline{color:var(--pink);font-family:"Segoe Script","Bradley Hand",cursive;font-size:clamp(1.05rem,2vw,1.5rem);transform:rotate(-2deg);text-align:right}.card{border:1px solid rgba(92,128,177,.38);background:linear-gradient(145deg,rgba(15,34,62,.88),rgba(8,23,43,.76));border-radius:20px;box-shadow:var(--shadow);backdrop-filter:blur(12px)}
+.summary{padding:24px}.stats{display:grid;grid-template-columns:1fr 1fr 1fr 1.1fr;gap:0}.stat{padding:4px 24px;border-right:1px solid var(--line)}.stat:first-child{padding-left:10px}.stat:last-child{border:0}.label{font-size:.92rem;color:#b9c8dd}.big{font-family:Georgia,serif;font-size:clamp(2rem,5vw,3.2rem);margin-top:4px}.pink{color:var(--pink)}.mint{color:var(--mint)}.blue{color:var(--blue)}.target{padding:15px 18px!important;border:1px solid var(--line)!important;border-radius:15px;background:rgba(10,25,48,.6)}.target strong{display:block;font-size:1.12rem;margin-top:4px}.small{font-size:.84rem;color:var(--muted);margin-top:4px}.progressrow{display:flex;align-items:center;gap:14px;margin-top:22px}.track{height:18px;flex:1;border-radius:999px;background:#263b60;overflow:hidden;box-shadow:inset 0 2px 7px rgba(0,0,0,.25)}.fill{height:100%;width:0;border-radius:inherit;background:linear-gradient(90deg,#79dba8,#9bf0c2);box-shadow:0 0 18px rgba(134,229,179,.35);transition:width .8s cubic-bezier(.2,.8,.2,1)}
+.plan{margin-top:22px;padding:22px}.planhead{display:flex;justify-content:space-between;align-items:center;gap:15px;margin-bottom:12px}.planhead h2{font-family:Georgia,serif;font-weight:500;margin:0;font-size:1.8rem}.btn{border:1px solid rgba(255,255,255,.16);border-radius:999px;background:linear-gradient(135deg,#8e6a87,#7d637e);color:white;padding:12px 18px;font-weight:650;cursor:pointer;box-shadow:0 8px 22px rgba(0,0,0,.2);transition:.18s transform,.18s filter}.btn:hover{filter:brightness(1.08);transform:translateY(-1px)}.btn:active{transform:scale(.98)}.btn.secondary{background:#142b4a;color:#cfe0f7}.tablewrap{overflow:auto}.rows{min-width:760px}.row{display:grid;grid-template-columns:42px 1.2fr 1.4fr .8fr 1fr 1fr 1fr;align-items:center;min-height:58px;border-top:1px solid rgba(78,108,150,.32);gap:8px;padding:0 8px}.row.header{min-height:40px;border:0;color:#9fb1ca;font-size:.78rem;text-transform:uppercase;letter-spacing:.05em}.check{width:24px;height:24px;border-radius:7px;border:1.5px solid #7188aa;background:transparent;color:#071427;display:grid;place-items:center;font-weight:900;cursor:pointer}.row.paid .check{background:var(--mint);border-color:var(--mint)}.row.paid .status{color:var(--mint)}.row.skipped{color:#7788a3}.row.skipped .date,.row.skipped .amount{text-decoration:line-through}.status{font-size:.9rem}.dot{display:inline-block;width:10px;height:10px;border:2px solid var(--blue);border-radius:50%;margin-right:7px}.paid .dot{background:var(--mint);border-color:var(--mint)}.skipped .dot{background:#73809a;border-color:#73809a}.date.next{color:#a6f0c7;font-weight:700}
+.bottom{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:20px}.mini{padding:20px;display:flex;gap:14px;align-items:center}.icon{width:46px;height:46px;border-radius:13px;background:#132d50;display:grid;place-items:center;font-size:1.4rem}.mini .value{font-family:Georgia,serif;color:#f4c5d0;font-size:1.35rem;margin-top:3px}.footer{display:flex;justify-content:space-between;gap:20px;align-items:center;color:#9bb0ce;margin-top:26px;padding:0 6px;font-size:.88rem}.script{font-family:"Segoe Script","Bradley Hand",cursive;font-size:1.12rem;color:#c9d8ee}.sound{display:flex;align-items:center;gap:8px}.sound button{border:1px solid var(--line);background:#102847;color:#dce9fb;border-radius:999px;padding:8px 12px;cursor:pointer}
+.spark{position:fixed;z-index:99;pointer-events:none;font-size:18px;animation:fly 1.15s ease-out forwards;filter:drop-shadow(0 0 6px currentColor)}@keyframes fly{0%{opacity:0;transform:translate(0,0) scale(.3) rotate(0)}15%{opacity:1}100%{opacity:0;transform:translate(var(--x),var(--y)) scale(1.2) rotate(160deg)}}.celebrate{position:fixed;inset:0;z-index:98;pointer-events:none;background:radial-gradient(circle at center,rgba(134,229,179,.12),transparent 50%);animation:fade 1.5s forwards}@keyframes fade{to{opacity:0}}
+@media(max-width:800px){.wrap{width:min(100% - 18px,1180px);padding-top:20px}.hero{align-items:flex-start}.tagline{font-size:.95rem}.stats{grid-template-columns:1fr 1fr}.stat{border-right:0;border-bottom:1px solid var(--line);padding:14px 10px}.target{margin:8px 0}.bottom{grid-template-columns:1fr}.plan{padding:14px}.planhead{align-items:flex-start}.btn{padding:10px 13px}.footer{flex-direction:column;align-items:flex-start}.row{font-size:.9rem}}
+@media(max-width:520px){.hero{display:block}.tagline{text-align:left;margin-top:8px}.stats{grid-template-columns:1fr 1fr}.big{font-size:2rem}.planhead h2{font-size:1.5rem}.summary{padding:16px}.progressrow{font-size:.85rem}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="hero"><div><div class="eyebrow">Steady steps · brighter ahead</div><h1>Loan Payoff</h1></div><div class="tagline">Same direction.<br>Brighter days. ♡</div></header>
+  <section class="card summary">
+    <div class="stats">
+      <div class="stat"><div class="label">Total Loan</div><div class="big pink">$23,000</div></div>
+      <div class="stat"><div class="label">Amount Paid</div><div class="big mint" id="paidAmount">$8,000</div><div class="small" id="completeText">34.8% complete</div></div>
+      <div class="stat"><div class="label">Remaining</div><div class="big blue" id="remainingAmount">$15,000</div></div>
+      <div class="stat target"><div class="label">⚑ Target Payoff</div><strong>Nov 27, 2026</strong><div class="small" id="targetNote">You’ve got this.</div></div>
+    </div>
+    <div class="progressrow"><div class="track"><div class="fill" id="fill"></div></div><strong id="pct">34.8%</strong></div>
+  </section>
+  <section class="card plan">
+    <div class="planhead"><h2>▣ &nbsp;Payment Plan</h2><button class="btn" id="nextBtn">Mark next payment ✓</button></div>
+    <div class="tablewrap"><div class="rows" id="rows">
+      <div class="row header"><div></div><div>Date</div><div>Type</div><div>Amount</div><div>Status</div><div>Running Total</div><div>Remaining</div></div>
+    </div></div>
+  </section>
+  <div class="bottom">
+    <section class="card mini"><div class="icon">▥</div><div><div class="label">Next Payment</div><div class="value" id="nextDate">Oct 2, 2026</div><div class="small" id="nextAmt">$3,000</div></div></section>
+    <section class="card mini"><div class="icon">◎</div><div><div class="label">Final Payment</div><div class="value">Nov 27, 2026</div><div class="small">$1,000</div></div></section>
+    <section class="card mini"><div class="icon">★</div><div><div class="label">Payoff Plan</div><div class="value">10 payments</div><div class="small">3 paid · 7 upcoming · 1 skipped plan</div></div></section>
+  </div>
+  <footer class="footer"><div class="script">〰 Progress over perfection.</div><div class="sound"><span>A calmer tomorrow is worth it ♡</span><button id="soundBtn" title="Toggle celebration sounds">🔊 Sounds on</button><button class="secondary btn" id="resetBtn">Reset</button></div></footer>
+</div>
+<script>
+const TOTAL=23000;
+const payments=[
+ {date:'Earlier',type:'Manual Payment',amount:3000,paid:true},
+ {date:'Sep 4, 2026',type:'Manual Payment',amount:4000,paid:true},
+ {date:'Sep 5, 2026',type:'Auto Payment',amount:1000,paid:true},
+ {date:'Sep 18, 2026',type:'Planned Payment',amount:2000,skip:true},
+ {date:'Oct 2, 2026',type:'Planned Payment',amount:3000},
+ {date:'Oct 5, 2026',type:'Auto Payment',amount:1000},
+ {date:'Oct 16, 2026',type:'Planned Payment',amount:4000},
+ {date:'Oct 30, 2026',type:'Planned Payment',amount:1000},
+ {date:'Nov 5, 2026',type:'Auto Payment',amount:1000},
+ {date:'Nov 13, 2026',type:'Planned Payment',amount:4000},
+ {date:'Nov 27, 2026',type:'Planned Payment',amount:1000}
+];
+const saved=JSON.parse(localStorage.getItem('loanPayoff23000')||'null');
+if(saved) payments.forEach((p,i)=>{if(!p.skip && typeof saved[i]==='boolean') p.paid=saved[i]});
+let soundOn=localStorage.getItem('loanSound')!=='off';
+const money=n=>'$'+n.toLocaleString();
+function audioCoin(big=false){if(!soundOn)return; const A=window.AudioContext||window.webkitAudioContext,ctx=new A(); const now=ctx.currentTime; [0, .09, .18].slice(0,big?3:2).forEach((d,i)=>{let o=ctx.createOscillator(),g=ctx.createGain();o.type=i%2?'sine':'triangle';o.frequency.setValueAtTime((big?740:620)+i*230,now+d);o.frequency.exponentialRampToValueAtTime((big?1100:880)+i*260,now+d+.16);g.gain.setValueAtTime(.0001,now+d);g.gain.exponentialRampToValueAtTime(.11,now+d+.02);g.gain.exponentialRampToValueAtTime(.0001,now+d+.24);o.connect(g).connect(ctx.destination);o.start(now+d);o.stop(now+d+.26)});setTimeout(()=>ctx.close(),700)}
+function sparkles(big=false){const count=big?70:18; if(big){let c=document.createElement('div');c.className='celebrate';document.body.append(c);setTimeout(()=>c.remove(),1600)} for(let i=0;i<count;i++){let s=document.createElement('span');s.className='spark';s.textContent=['✦','✧','⋆','★','✶'][Math.floor(Math.random()*5)];s.style.color=['#86e5b3','#f5b4c2','#8ab9ff','#f7d77b'][Math.floor(Math.random()*4)];s.style.left=(big?50:78)+'vw';s.style.top=(big?50:30)+'vh';s.style.setProperty('--x',((Math.random()-.5)*(big?900:280))+'px');s.style.setProperty('--y',((Math.random()-.6)*(big?700:260))+'px');s.style.animationDelay=(Math.random()*.15)+'s';document.body.append(s);setTimeout(()=>s.remove(),1500)}}
+function save(){localStorage.setItem('loanPayoff23000',JSON.stringify(payments.map(p=>!!p.paid)))}
+function render(){let run=0;const rows=document.getElementById('rows');rows.querySelectorAll('.data').forEach(x=>x.remove());payments.forEach((p,i)=>{if(p.paid&&!p.skip)run+=p.amount;const rem=TOTAL-run;let r=document.createElement('div');r.className='row data '+(p.skip?'skipped':p.paid?'paid':'');const next=!p.skip&&!p.paid&&payments.findIndex(x=>!x.skip&&!x.paid)===i;r.innerHTML=`<button class="check" aria-label="${p.paid?'Unmark':'Mark'} ${p.date}" ${p.skip?'disabled':''}>${p.paid?'✓':''}</button><div class="date ${next?'next':''}">${p.date}</div><div>${p.type}</div><div class="amount">${money(p.amount)}</div><div class="status"><span class="dot"></span>${p.skip?'Skipped':p.paid?'Paid':'Upcoming'}</div><div>${money(run)}</div><div>${money(rem)}</div>`; if(!p.skip)r.querySelector('.check').onclick=()=>{p.paid=!p.paid;save();render();if(p.paid){audioCoin(run===TOTAL);sparkles(run===TOTAL)}};rows.append(r)});
+ const paid=payments.filter(p=>p.paid&&!p.skip).reduce((s,p)=>s+p.amount,0),pct=Math.min(100,paid/TOTAL*100),rem=TOTAL-paid;document.getElementById('paidAmount').textContent=money(paid);document.getElementById('remainingAmount').textContent=money(rem);document.getElementById('completeText').textContent=pct.toFixed(1)+'% complete';document.getElementById('pct').textContent=pct.toFixed(1)+'%';requestAnimationFrame(()=>document.getElementById('fill').style.width=pct+'%');let n=payments.find(p=>!p.skip&&!p.paid);document.getElementById('nextDate').textContent=n?n.date:'PAID OFF! ✦';document.getElementById('nextAmt').textContent=n?money(n.amount):'Brighter days achieved ♡';document.getElementById('targetNote').textContent=rem===0?'Paid in full. ✦':'You’ve got this.';document.getElementById('nextBtn').disabled=!n;document.getElementById('nextBtn').textContent=n?'Mark next payment ✓':'Paid off ✦';
+}
+document.getElementById('nextBtn').onclick=()=>{let p=payments.find(p=>!p.skip&&!p.paid);if(p){p.paid=true;save();render();const paid=payments.filter(x=>x.paid&&!x.skip).reduce((s,x)=>s+x.amount,0);audioCoin(paid===TOTAL);sparkles(paid===TOTAL)}};
+document.getElementById('soundBtn').onclick=()=>{soundOn=!soundOn;localStorage.setItem('loanSound',soundOn?'on':'off');document.getElementById('soundBtn').textContent=soundOn?'🔊 Sounds on':'🔇 Sounds off';if(soundOn)audioCoin(false)};
+document.getElementById('soundBtn').textContent=soundOn?'🔊 Sounds on':'🔇 Sounds off';
+document.getElementById('resetBtn').onclick=()=>{if(confirm('Reset the tracker to the original plan (the first $8,000 paid)?')){payments.forEach((p,i)=>p.paid=!p.skip&&i<3);save();render()}};
+render();
+</script>
+</body></html>
