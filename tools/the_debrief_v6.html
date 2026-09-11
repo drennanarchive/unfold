@@ -1,0 +1,424 @@
+<!doctype html>
+<html lang="en" data-theme="sunset">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>The Debrief — v6</title>
+<style>
+:root{
+  --bg:url("01_lookout_sunset.webp");
+  --ink:#fff4e6; --soft:#eadbc7;
+  --glass:rgba(20,28,24,.43); --glass2:rgba(9,20,17,.57);
+  --paper:rgba(255,249,239,.97); --paperink:#24362e;
+  --line:rgba(255,255,255,.16);
+  --accent:#e9a34a; --accent2:#f47b42; --accent3:#795064; --ok:#a6bd83; --warn:#e7b567;
+}
+html[data-theme="morning"]{
+  --bg:url("02_mountain_morning.webp");
+  --ink:#fbf7eb; --soft:#e7efe9;
+  --glass:rgba(20,48,40,.40); --glass2:rgba(14,39,33,.53);
+  --paper:rgba(251,248,238,.97); --paperink:#24372e;
+  --accent:#d8b879; --accent2:#6fa6d2; --accent3:#245f8c; --ok:#9eae72; --warn:#d9bf7a;
+}
+html[data-theme="twilight"]{
+  --bg:url("03_twilight_camp.webp");
+  --ink:#fff1e8; --soft:#ead9e0;
+  --glass:rgba(14,20,43,.41); --glass2:rgba(9,14,33,.55);
+  --paper:rgba(253,241,235,.97); --paperink:#332b3d;
+  --accent:#f36b2d; --accent2:#c84d61; --accent3:#70466f; --ok:#a8ad7f; --warn:#dca16e;
+}
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%}
+body{
+  font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
+  color:var(--ink);
+  background:
+    linear-gradient(180deg,rgba(0,0,0,.08),rgba(0,0,0,.16)),
+    var(--bg) center/cover fixed no-repeat;
+}
+button,textarea{font:inherit} button{cursor:pointer}
+.top{
+  position:sticky;top:0;z-index:20;display:flex;gap:16px;align-items:center;justify-content:space-between;
+  padding:13px 18px;background:rgba(7,13,11,.38);backdrop-filter:blur(14px);border-bottom:1px solid var(--line)
+}
+.brand{display:flex;gap:10px;align-items:center}
+.shield{width:34px;height:40px;display:grid;place-items:center;background:linear-gradient(var(--accent),var(--accent2));clip-path:polygon(50% 0,92% 18%,87% 73%,50% 100%,13% 73%,8% 18%);color:#1d3026;font-weight:900}
+.brand b{font:900 18px/1 Georgia,serif;letter-spacing:.05em}.brand small{display:block;margin-top:3px;color:var(--soft);font:700 8px/1 ui-monospace,monospace;letter-spacing:.16em}
+.themes{display:flex;gap:7px;flex-wrap:wrap}.theme{border:1px solid var(--line);background:rgba(255,255,255,.08);color:var(--ink);border-radius:999px;padding:8px 11px;font-size:11px;font-weight:850}
+.theme.active{background:linear-gradient(90deg,var(--accent),var(--accent2));color:#1e2b24;border-color:transparent}
+.wrap{width:min(900px,calc(100% - 28px));margin:auto;padding:30px 0 60px}
+.hero{text-align:center;text-shadow:0 2px 16px rgba(0,0,0,.35);margin-bottom:18px}
+.hero .eyebrow{font:800 10px/1 ui-monospace,monospace;letter-spacing:.22em;text-transform:uppercase;color:var(--soft)}
+.hero h1{font:900 clamp(38px,6vw,64px)/.95 Georgia,serif;margin:11px 0 7px}.hero p{margin:0;color:var(--soft)}
+.card{background:linear-gradient(180deg,var(--glass),var(--glass2));border:1px solid var(--line);border-radius:24px;overflow:hidden;box-shadow:0 26px 70px rgba(0,0,0,.26);backdrop-filter:blur(14px)}
+.pad{padding:24px}.label{font:800 10px/1 ui-monospace,monospace;letter-spacing:.17em;text-transform:uppercase;color:var(--accent)}
+h2{font:900 32px/1.05 Georgia,serif;margin:8px 0 6px}.sub{margin:0;color:var(--soft)}
+textarea{width:100%;min-height:220px;margin-top:18px;padding:19px 20px;resize:vertical;border-radius:16px;border:0;outline:none;background:var(--paper);color:var(--paperink);font-size:17px;line-height:1.55;box-shadow:0 12px 30px rgba(0,0,0,.16)}
+.meta{display:flex;justify-content:space-between;gap:10px;color:var(--soft);font-size:11px;margin-top:7px}
+.primary{width:100%;margin-top:14px;border:0;border-radius:13px;padding:14px 17px;background:linear-gradient(90deg,var(--accent),var(--accent2));color:#17271f;font-weight:950;font-size:17px}
+.nudge{border-top:1px solid var(--line);padding:15px 24px 19px;background:rgba(255,255,255,.02)}
+.nudge-head{display:flex;justify-content:space-between;gap:12px;align-items:center}.nudge strong{display:block}.nudge span{display:block;color:var(--soft);font-size:11px;margin-top:2px}
+.nudge button{border:1px solid var(--line);background:rgba(255,255,255,.08);color:var(--ink);border-radius:11px;padding:9px 12px;font-weight:850}
+.starter-wrap{display:none;margin-top:12px}.starter-wrap.show{display:block}.starter-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.starter{border:1px solid var(--line)!important;background:rgba(255,255,255,.06)!important;text-align:left;line-height:1.2}.starter.selected{border-color:var(--accent)!important;background:rgba(255,255,255,.16)!important}
+.reflection{display:none;border-top:1px solid var(--line)}.reflection.show{display:block}
+.readback{margin-top:16px;background:var(--paper);color:var(--paperink);border-radius:17px;padding:19px;box-shadow:0 12px 28px rgba(0,0,0,.15)}
+.readback p{margin:0 0 13px;line-height:1.5}.readback p:last-child{margin-bottom:0}.readback strong{display:block;margin-bottom:2px}
+.assess{margin-top:14px;padding-top:14px;border-top:1px solid var(--line)}
+.assess-title{font-weight:900;margin-bottom:9px}
+.assess-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:9px}
+.assess-btn{border:1px solid var(--line);border-radius:12px;padding:12px;background:rgba(255,255,255,.07);color:var(--ink);font-weight:900;text-align:left}
+.assess-btn.covered{background:rgba(166,189,131,.18)}
+.assess-btn.missed{background:rgba(231,181,103,.14)}
+.assess-btn.wrong{background:rgba(200,77,97,.12)}
+.detail-box{display:none;margin-top:12px}.detail-box.show{display:block}
+.detail-box textarea{min-height:135px;margin-top:8px}
+.local{margin-top:12px;color:var(--soft);font-size:11px;line-height:1.4;background:rgba(0,0,0,.13);border:1px solid rgba(255,255,255,.05);padding:10px 12px;border-radius:11px}
+.export{display:none;margin-top:16px}.export.show{display:block}.packet{margin-top:14px;background:var(--paper);color:var(--paperink);border-radius:16px;padding:18px;white-space:pre-wrap;font:12px/1.48 ui-monospace,SFMono-Regular,Consolas,monospace;max-height:460px;overflow:auto}
+.export-actions{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:10px}.export-actions button{border:1px solid var(--line);border-radius:12px;padding:12px;background:rgba(255,255,255,.08);color:var(--ink);font-weight:900}.export-actions .copy{background:linear-gradient(90deg,var(--accent),var(--accent2));color:#17271f;border:0}
+.toast{position:fixed;left:50%;bottom:22px;transform:translate(-50%,18px);opacity:0;background:rgba(7,16,13,.88);color:var(--ink);border:1px solid var(--line);border-radius:999px;padding:11px 16px;transition:.2s;z-index:30}.toast.show{opacity:1;transform:translate(-50%,0)}
+.footer{text-align:center;color:rgba(255,255,255,.78);font-size:11px;margin-top:14px;text-shadow:0 2px 6px rgba(0,0,0,.4)}
+@media(max-width:700px){.top{align-items:flex-start;flex-direction:column}.starter-grid,.assess-grid,.export-actions{grid-template-columns:1fr}.pad{padding:19px}.nudge{padding:14px 19px 18px}textarea{font-size:16px}.hero h1{font-size:46px}}
+@media print{
+  body{background:#fff!important;color:#111!important}.top,.hero,.capture,.nudge,.reflection,.footer,.toast{display:none!important}
+  .wrap{width:100%!important;padding:0!important}.export{display:block!important;margin:0!important}.card{background:#fff!important;box-shadow:none!important;border:0!important}.packet{max-height:none!important;overflow:visible!important;background:#fff!important;color:#111!important;border:1px solid #ccc!important}.export h2,.export .sub,.export .label{color:#111!important}.export-actions{display:none!important}
+}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="brand"><div class="shield">▲</div><div><b>THE DEBRIEF</b><small>SAME TERRAIN. DIFFERENT MISSION.</small></div></div>
+  <div class="themes">
+    <button class="theme active" data-theme="sunset">🌅 Lookout Sunset</button>
+    <button class="theme" data-theme="morning">🏔️ Mountain Morning</button>
+    <button class="theme" data-theme="twilight">🔥 Twilight Camp</button>
+  </div>
+</header>
+
+<main class="wrap">
+  <div class="hero">
+    <div class="eyebrow">Messy thoughts still count.</div>
+    <h1>Get it out of your head.</h1>
+    <p>Blank box first. One rescue prompt only if you need it.</p>
+  </div>
+
+  <section class="card">
+    <div class="pad capture">
+      <div class="label">Capture</div>
+      <h2>Okay, what happened?</h2>
+      <p class="sub">Paste the assignment, meeting brain dump, weird moment, or whatever you've got.</p>
+      <textarea id="dump" maxlength="5000" placeholder="Start anywhere..."></textarea>
+      <div class="meta"><span>A sentence is enough. Messy is useful.</span><span><span id="count">0</span>/5000</span></div>
+      <button class="primary" id="reflect">Make this readable →</button>
+    </div>
+
+    <div class="nudge">
+      <div class="nudge-head">
+        <div><strong>Brain won’t start?</strong><span>One quick starter, then back to your own words.</span></div>
+        <button id="nudgeBtn">Help me start</button>
+      </div>
+      <div class="starter-wrap" id="starterWrap">
+        <div style="font-weight:850;margin-bottom:8px">What kind of thing happened?</div>
+        <div class="starter-grid">
+          <button class="starter" data-text="Someone asked me to do something.">Someone asked me to do something</button>
+          <button class="starter" data-text="I left a meeting not sure what happens next.">I left a meeting unsure</button>
+          <button class="starter" data-text="I got stuck because I didn’t know who or what I needed.">I got stuck</button>
+          <button class="starter" data-text="I said I’d follow up on something.">I said I’d follow up</button>
+          <button class="starter" data-text="Too many things hit at once.">Too many things hit at once</button>
+          <button class="starter" data-text="Nothing really went wrong; I just want to capture what happened.">Nothing went wrong</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="pad reflection" id="reflection">
+      <div class="label">Readback</div>
+      <h2>Here’s what I heard.</h2>
+      <p class="sub">Restated in plain language, without pretending it knows more than you said.</p>
+      <div class="readback" id="readback"></div>
+
+      <div class="assess">
+        <div class="assess-title">How did I do?</div>
+        <div class="assess-grid">
+          <button class="assess-btn covered" data-assessment="covered">✓ Yep — that covers it</button>
+          <button class="assess-btn missed" data-assessment="missed">➕ Mostly right, but you missed something</button>
+          <button class="assess-btn wrong" data-assessment="wrong">✎ Something here is wrong</button>
+        </div>
+
+        <div class="detail-box" id="missingBox">
+          <label><strong>What did I miss?</strong></label>
+          <textarea id="missingText" placeholder="Just add the important piece I left out..."></textarea>
+          <button class="primary" id="saveMissing">Add that to the packet →</button>
+        </div>
+
+        <div class="detail-box" id="wrongBox">
+          <label><strong>What needs correcting?</strong></label>
+          <textarea id="wrongText" placeholder="Fix whatever I got wrong..."></textarea>
+          <button class="primary" id="saveWrong">Use my correction →</button>
+        </div>
+      </div>
+
+      <div class="local"><b>Local engine adapter:</b> this build keeps the UI separate from the reflection engine. Today it uses the v6 conservative local parser. Later, an approved AI engine can replace it without changing the capture, assessment, or evidence flow.</div>
+    </div>
+  </section>
+
+  <section class="card export" id="export">
+    <div class="pad">
+      <div class="label">Evidence packet</div>
+      <h2>Ready to send back.</h2>
+      <p class="sub">Original notes + generated readback + your assessment + anything missing or corrected.</p>
+      <div class="packet" id="packet"></div>
+      <div class="export-actions">
+        <button class="copy" id="copy">Copy text packet</button>
+        <button id="print">Print / Save as PDF</button>
+      </div>
+    </div>
+  </section>
+
+  <div class="footer">Capture → readback → completeness check → evidence.</div>
+</main>
+<div class="toast" id="toast">Done.</div>
+
+<script>
+const root=document.documentElement, dump=document.getElementById('dump'), count=document.getElementById('count');
+const reflection=document.getElementById('reflection'), readback=document.getElementById('readback');
+const exportSec=document.getElementById('export'), packet=document.getElementById('packet'), toast=document.getElementById('toast');
+const missingBox=document.getElementById('missingBox'), wrongBox=document.getElementById('wrongBox');
+const missingText=document.getElementById('missingText'), wrongText=document.getElementById('wrongText');
+
+let starterUsed='', generated='', assessment='', missing='', correction='';
+
+document.querySelectorAll('.theme').forEach(b=>b.onclick=()=>{
+  document.querySelectorAll('.theme').forEach(x=>x.classList.remove('active'));
+  b.classList.add('active'); root.dataset.theme=b.dataset.theme;
+});
+dump.oninput=()=>count.textContent=dump.value.length;
+
+document.getElementById('nudgeBtn').onclick=()=>{document.getElementById('starterWrap').classList.add('show');dump.focus()};
+document.querySelectorAll('.starter').forEach(b=>b.onclick=()=>{
+  document.querySelectorAll('.starter').forEach(x=>x.classList.remove('selected'));
+  b.classList.add('selected'); starterUsed=b.dataset.text||'';
+  if(!dump.value.trim()){dump.value=starterUsed+' ';count.textContent=dump.value.length;dump.focus();dump.setSelectionRange(dump.value.length,dump.value.length)}
+});
+
+function clean(s){return s.trim().replace(/\s+/g,' ').replace(/\s+([,.!?;:])/g,'$1')}
+function esc(s){return s.replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]))}
+function split(text){return clean(text).split(/(?<=[.!?])\s+|\n+/).map(x=>x.trim()).filter(Boolean)}
+function first(ss, regs){for(const s of ss)for(const r of regs)if(r.test(s))return s;return ''}
+function period(s){return /[.!?]$/.test(s)?s:s+'.'}
+
+const LocalReflectionEngine = {
+  name: 'local-conservative-v6',
+
+  secondPerson(s){
+    s=clean(s)
+      .replace(/\bi\b/g,'I')
+      .replace(/^At one point\s+/i,'')
+      .replace(/^Someone asked me to /i,'You were asked to ')
+      .replace(/^My boss asked me to /i,'You were asked to ')
+      .replace(/^They asked me to /i,'You were asked to ')
+      .replace(/^I was asked to /i,'You were asked to ')
+      .replace(/^I said I[’']d /i,"You said you'd ")
+      .replace(/^I said I would /i,'You said you would ')
+      .replace(/^I told .*? I[’']d /i,"You said you'd ")
+      .replace(/^I told .*? I would /i,'You said you would ')
+      .replace(/^I don[’']?t know /i,"You don't know ")
+      .replace(/^I do not know /i,"You don't know ")
+      .replace(/^I[’']?m not sure /i,"You're not sure ")
+      .replace(/^I am not sure /i,"You're not sure ")
+      .replace(/^I have no idea /i,'You have no idea ')
+      .replace(/^I[’']?ll /i,'You’ll ')
+      .replace(/^I will /i,'You will ')
+      .replace(/^I /i,'You ');
+    return period(s)
+  },
+
+  timingClause(text){
+    const patterns=[
+      /\b(?:before|by)\s+(?:the\s+)?(?:next\s+)?(?:milestone\s+review|status\s+review|meeting|review|deadline)\b[^.!?]*/i,
+      /\b(?:due|deadline(?: is)?|needs? to be done)\s+(?:on\s+|by\s+)?(?:today|tomorrow|monday|tuesday|wednesday|thursday|friday|saturday|sunday|next week|end of (?:the )?week|EOD|COB|\w+\s+\d{1,2}(?:st|nd|rd|th)?)[^.!?]*/i,
+      /\b(?:september|october|november|december|january|february|march|april|may|june|july|august)\s+\d{1,2}(?:st|nd|rd|th)?\b[^.!?]*/i
+    ];
+    for(const p of patterns){const m=text.match(p);if(m)return clean(m[0])}
+    return ''
+  },
+
+  extractDeliverableAmbiguity(text){
+    const patterns = [
+      /\b(?:not 100% sure|not sure|unsure|don't know|do not know)\s+(?:if|whether)\s+(?:they\s+)?want\s+(?:a\s+)?([^.!?]+)/i,
+      /\b(?:not 100% sure|not sure|unsure|don't know|do not know)\s+(?:if|whether)\s+([^.!?]+)/i,
+      /\b(?:deck|email|talking points)\b[^.!?]*(?:or|versus|vs\.?)[^.!?]*/i
+    ];
+    for(const p of patterns){
+      const m = text.match(p);
+      if(m) return clean(m[0]);
+    }
+    return '';
+  },
+
+  synthesize(text){
+    const ss=split(text), out=[];
+
+    const assignment=first(ss,[
+      /\b(take point on|pull(?:ing)? this together|asked me|told me|tasked me|assigned me|wanted me to|needed me to|need me to|supposed to|had to|have to)\b/i
+    ]);
+
+    const deliverableAmbiguity = this.extractDeliverableAmbiguity(text);
+
+    const unclear=first(ss,[
+      /\b(don[’']?t know|do not know|not sure|unsure|unclear|confus\w*|no idea|who to ask|who .* ask|which .* contact|which one|what .* want|what .* supposed|where .*|how .*)\b/i
+    ]);
+
+    const ownership=first(ss,[
+      /\b(same title|point of contact|POC|who .* point of contact|which .* person|who actually|who owns|ownership)\b/i
+    ]);
+
+    const commitment=first(ss,[
+      /\b(I said I[’']?d|I said I would|I told .* I[’']?d|I told .* I would|I[’']?ll check|I will check|I[’']?ll follow up|I will follow up|I agreed|I volunteered|I promised|I did message|I messaged|I emailed|I reached out)\b/i
+    ]);
+
+    const surprise=first(ss,[
+      /\b(compliance|nobody mentioned|no one mentioned|sprung on|new requirement|also now|apparently there[’']?s|apparently there's)\b/i
+    ]);
+
+    const outcome=first(ss,[
+      /\b(I figured out|I found|I sent|I got|I finished|I completed|I submitted|I checked|I followed up|I put|I delivered)\b/i
+    ]);
+
+    const timing=this.timingClause(text);
+
+    if(assignment){
+      out.push(['What you were trying to handle', this.secondPerson(assignment)]);
+    }
+
+    if(deliverableAmbiguity){
+      out.push(['What was unclear', this.secondPerson(deliverableAmbiguity)]);
+    } else if(unclear && unclear !== assignment){
+      out.push(['What was unclear', this.secondPerson(unclear)]);
+    }
+
+    if(ownership && ownership!==assignment && ownership!==unclear){
+      out.push(['Who / ownership was unclear', this.secondPerson(ownership)]);
+    }
+
+    if(commitment){
+      out.push(['What you took on / already did', this.secondPerson(commitment)]);
+    }
+
+    if(surprise && ![assignment,unclear,ownership,commitment].includes(surprise)){
+      out.push(['What changed or got added', this.secondPerson(surprise)]);
+    }
+
+    if(timing){
+      out.push(['Timing mentioned', period('You mentioned '+timing.charAt(0).toLowerCase()+timing.slice(1))]);
+    }
+
+    if(outcome && ![commitment,assignment].includes(outcome)){
+      out.push(['What happened next', this.secondPerson(outcome)]);
+    }
+
+    if(!out.length){
+      const s=ss[0]||clean(text);
+      out.push(['What I can safely say','You described this: '+s]);
+    }
+
+    const seenText=new Set();
+    return out.filter(([l,t])=>{
+      const k=t.toLowerCase().replace(/\s+/g,' ').trim();
+      if(seenText.has(k)) return false;
+      seenText.add(k);
+      return true;
+    }).slice(0,7);
+  }
+};
+
+let reflectionEngine = LocalReflectionEngine;
+
+function render(items){
+  generated=items.map(([l,t])=>l+': '+t).join('\n');
+  readback.innerHTML=items.map(([l,t])=>`<p><strong>${esc(l)}</strong>${esc(t)}</p>`).join('');
+}
+
+function buildPacket(){
+  return [
+    'THE DEBRIEF — EVIDENCE PACKET',
+    new Date().toLocaleString(),
+    '',
+    'ENGINE',
+    reflectionEngine.name,
+    '',
+    'OPTIONAL STARTER USED',
+    starterUsed||'None',
+    '',
+    'ORIGINAL NOTES',
+    dump.value.trim(),
+    '',
+    'GENERATED READBACK',
+    generated,
+    '',
+    'USER ASSESSMENT',
+    assessment||'Not recorded',
+    '',
+    'WHAT WAS MISSING',
+    missing||'None recorded',
+    '',
+    'WHAT WAS CORRECTED',
+    correction||'None recorded',
+    '',
+    'END PACKET'
+  ].join('\n')
+}
+
+function showExport(){
+  packet.textContent=buildPacket();
+  exportSec.classList.add('show');
+  exportSec.scrollIntoView({behavior:'smooth',block:'start'});
+}
+function showToast(msg){toast.textContent=msg;toast.classList.add('show');setTimeout(()=>toast.classList.remove('show'),1700)}
+
+document.getElementById('reflect').onclick=()=>{
+  if(!dump.value.trim()){showToast('A sentence is enough.');dump.focus();return}
+  generated='';assessment='';missing='';correction='';
+  missingText.value='';wrongText.value='';
+  missingBox.classList.remove('show');wrongBox.classList.remove('show');exportSec.classList.remove('show');
+  render(reflectionEngine.synthesize(dump.value));
+  reflection.classList.add('show');
+  reflection.scrollIntoView({behavior:'smooth',block:'center'})
+};
+
+document.querySelectorAll('.assess-btn').forEach(b=>b.onclick=()=>{
+  assessment=b.dataset.assessment;
+  missingBox.classList.remove('show');
+  wrongBox.classList.remove('show');
+
+  if(assessment==='covered'){
+    missing=''; correction='';
+    showExport();
+  }else if(assessment==='missed'){
+    missingBox.classList.add('show');
+    missingText.focus();
+  }else if(assessment==='wrong'){
+    wrongBox.classList.add('show');
+    wrongText.value=generated;
+    wrongText.focus();
+  }
+});
+
+document.getElementById('saveMissing').onclick=()=>{
+  missing=missingText.value.trim();
+  showExport();
+};
+document.getElementById('saveWrong').onclick=()=>{
+  correction=wrongText.value.trim();
+  showExport();
+};
+
+document.getElementById('copy').onclick=async()=>{
+  const txt=buildPacket();packet.textContent=txt;
+  try{await navigator.clipboard.writeText(txt)}catch(e){
+    const ta=document.createElement('textarea');ta.value=txt;document.body.appendChild(ta);ta.select();document.execCommand('copy');ta.remove()
+  }
+  showToast('Text packet copied.')
+};
+document.getElementById('print').onclick=()=>{packet.textContent=buildPacket();window.print()};
+</script>
+</body>
+</html>
