@@ -59,7 +59,11 @@ textarea{width:100%;min-height:220px;margin-top:18px;padding:19px 20px;resize:ve
 .nudge{border-top:1px solid var(--line);padding:15px 24px 19px;background:rgba(255,255,255,.02)}
 .nudge-head{display:flex;justify-content:space-between;gap:12px;align-items:center}.nudge strong{display:block}.nudge span{display:block;color:var(--soft);font-size:11px;margin-top:2px}
 .nudge button{border:1px solid var(--line);background:rgba(255,255,255,.08);color:var(--ink);border-radius:11px;padding:9px 12px;font-weight:850}
-.starter-wrap{display:none;margin-top:12px}.starter-wrap.show{display:block}.starter-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.starter{border:1px solid var(--line)!important;background:rgba(255,255,255,.06)!important;text-align:left;line-height:1.2}.starter.selected{border-color:var(--accent)!important;background:rgba(255,255,255,.16)!important}
+.starter-wrap{display:none;margin-top:12px}.starter-wrap.show{display:block}
+.rotating-nudge{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 14px;border-radius:13px;border:1px solid var(--line);background:rgba(255,255,255,.055)}
+.rotating-question{font-family:Georgia,serif;font-size:17px;line-height:1.35;color:var(--ink);min-width:0}
+.another-nudge{border:0!important;background:none!important;color:var(--accent)!important;padding:6px!important;font-weight:900!important;white-space:nowrap}
+.starter-note{margin-top:8px;color:var(--soft);font-size:11px}
 .reflection{display:none;border-top:1px solid var(--line)}.reflection.show{display:block}
 .readback{margin-top:16px;background:var(--paper);color:var(--paperink);border-radius:17px;padding:19px;box-shadow:0 12px 28px rgba(0,0,0,.15)}
 .readback p{margin:0 0 13px;line-height:1.5}.readback p:last-child{margin-bottom:0}.readback strong{display:block;margin-bottom:2px}
@@ -77,7 +81,7 @@ textarea{width:100%;min-height:220px;margin-top:18px;padding:19px 20px;resize:ve
 .export-actions{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:10px}.export-actions button{border:1px solid var(--line);border-radius:12px;padding:12px;background:rgba(255,255,255,.08);color:var(--ink);font-weight:900}.export-actions .copy{background:linear-gradient(90deg,var(--accent),var(--accent2));color:#17271f;border:0}
 .toast{position:fixed;left:50%;bottom:22px;transform:translate(-50%,18px);opacity:0;background:rgba(7,16,13,.88);color:var(--ink);border:1px solid var(--line);border-radius:999px;padding:11px 16px;transition:.2s;z-index:30}.toast.show{opacity:1;transform:translate(-50%,0)}
 .footer{text-align:center;color:rgba(255,255,255,.78);font-size:11px;margin-top:14px;text-shadow:0 2px 6px rgba(0,0,0,.4)}
-@media(max-width:700px){.top{align-items:flex-start;flex-direction:column}.starter-grid,.assess-grid,.export-actions{grid-template-columns:1fr}.pad{padding:19px}.nudge{padding:14px 19px 18px}textarea{font-size:16px}.hero h1{font-size:46px}}
+@media(max-width:700px){.top{align-items:flex-start;flex-direction:column}.assess-grid,.export-actions{grid-template-columns:1fr}.pad{padding:19px}.nudge{padding:14px 19px 18px}textarea{font-size:16px}.hero h1{font-size:46px}}
 @media print{
   body{background:#fff!important;color:#111!important}.top,.hero,.capture,.nudge,.reflection,.footer,.toast{display:none!important}
   .wrap{width:100%!important;padding:0!important}.export{display:block!important;margin:0!important}.card{background:#fff!important;box-shadow:none!important;border:0!important}.packet{max-height:none!important;overflow:visible!important;background:#fff!important;color:#111!important;border:1px solid #ccc!important}.export h2,.export .sub,.export .label{color:#111!important}.export-actions{display:none!important}
@@ -117,15 +121,11 @@ textarea{width:100%;min-height:220px;margin-top:18px;padding:19px 20px;resize:ve
         <button id="nudgeBtn">Help me start</button>
       </div>
       <div class="starter-wrap" id="starterWrap">
-        <div style="font-weight:850;margin-bottom:8px">What kind of thing happened?</div>
-        <div class="starter-grid">
-          <button class="starter" data-text="Someone asked me to do something.">Someone asked me to do something</button>
-          <button class="starter" data-text="I left a meeting not sure what happens next.">I left a meeting unsure</button>
-          <button class="starter" data-text="I got stuck because I didn’t know who or what I needed.">I got stuck</button>
-          <button class="starter" data-text="I said I’d follow up on something.">I said I’d follow up</button>
-          <button class="starter" data-text="Too many things hit at once.">Too many things hit at once</button>
-          <button class="starter" data-text="Nothing really went wrong; I just want to capture what happened.">Nothing went wrong</button>
+        <div class="rotating-nudge" id="rotatingNudge">
+          <div class="rotating-question" id="rotatingQuestion">What happened right before you thought, “uh…?”</div>
+          <button type="button" class="another-nudge" id="anotherNudge">Another nudge →</button>
         </div>
+        <div class="starter-note">Nothing gets added to your notes automatically. Use the thought if it helps, then type in your own words.</div>
       </div>
     </div>
 
@@ -173,7 +173,10 @@ textarea{width:100%;min-height:220px;margin-top:18px;padding:19px 20px;resize:ve
     </div>
   </section>
 
-  <div class="footer">Capture → readback → completeness check → evidence.</div>
+  <div class="footer">
+    Capture → readback → completeness check → evidence.
+    <div style="margin-top:6px;font-weight:800;letter-spacing:.04em">Built in collaboration: Clara × Cari × CJ</div>
+  </div>
 </main>
 <div class="toast" id="toast">Done.</div>
 
@@ -192,12 +195,32 @@ document.querySelectorAll('.theme').forEach(b=>b.onclick=()=>{
 });
 dump.oninput=()=>count.textContent=dump.value.length;
 
-document.getElementById('nudgeBtn').onclick=()=>{document.getElementById('starterWrap').classList.add('show');dump.focus()};
-document.querySelectorAll('.starter').forEach(b=>b.onclick=()=>{
-  document.querySelectorAll('.starter').forEach(x=>x.classList.remove('selected'));
-  b.classList.add('selected'); starterUsed=b.dataset.text||'';
-  if(!dump.value.trim()){dump.value=starterUsed+' ';count.textContent=dump.value.length;dump.focus();dump.setSelectionRange(dump.value.length,dump.value.length)}
-});
+const nudgeQuestions=[
+  'What happened right before you thought, “uh…?”',
+  'What did someone ask you to do?',
+  'What part are you least sure about?',
+  'What did you say you would follow up on?',
+  'What were you missing or unsure who to ask?',
+  'What felt harder than it probably should have?',
+  'Nothing wrong? What happened that is worth remembering?'
+];
+let nudgeIndex=0;
+const starterWrap=document.getElementById('starterWrap');
+const rotatingQuestion=document.getElementById('rotatingQuestion');
+
+document.getElementById('nudgeBtn').onclick=()=>{
+  starterWrap.classList.add('show');
+  rotatingQuestion.textContent=nudgeQuestions[nudgeIndex];
+  starterUsed=nudgeQuestions[nudgeIndex];
+  dump.focus();
+};
+
+document.getElementById('anotherNudge').onclick=()=>{
+  nudgeIndex=(nudgeIndex+1)%nudgeQuestions.length;
+  rotatingQuestion.textContent=nudgeQuestions[nudgeIndex];
+  starterUsed=nudgeQuestions[nudgeIndex];
+  dump.focus();
+};
 
 function clean(s){return s.trim().replace(/\s+/g,' ').replace(/\s+([,.!?;:])/g,'$1')}
 function esc(s){return s.replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]))}
@@ -345,7 +368,7 @@ function buildPacket(){
     'ENGINE',
     reflectionEngine.name,
     '',
-    'OPTIONAL STARTER USED',
+    'OPTIONAL STARTER THOUGHT USED',
     starterUsed||'None',
     '',
     'ORIGINAL NOTES',
