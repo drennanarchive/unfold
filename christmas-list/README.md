@@ -1,138 +1,119 @@
-# Christmas Wish Lists
+# Christmas Wishlists
 
-A small shared gift list for Clara and Cameron. Family members open the link, pick a
-gift, and claim it. Everyone else then sees that gift as **Claimed**. Nobody, not even
-Clara or Cameron, can see *who* claimed it. Only the browser that claimed it shows
-**Claimed by you**, and that browser can undo the claim.
+A small family Christmas app for **Clara** and **Cameron**.
+
+- **Family** open one link, pick Clara's or Cameron's list, and claim gifts so nobody doubles up. No accounts.
+  Others only ever see **Available / Claimed / Purchased ✓**, never who.
+- **Clara and Cameron** sign in on a separate page (`manage.html`) to add, edit, reorder and remove
+  their own gifts. They never see claim or purchase status, so surprises survive.
 
 Live address (once merged to `main`): `https://drennanarchive.github.io/unfold/christmas-list/`
+Owner page: `https://drennanarchive.github.io/unfold/christmas-list/manage.html`
 
 ## How it fits together
 
 ```
-GitHub Pages ──► index.html + style.css + app.js     (the page)
-                     │
-                     ├── gifts.js    the gift lists (edit this file)
-                     ├── config.js   where the shared database is
-                     │
-                     ▼
-                 Supabase: one tiny "claims" table   (who-claimed-what memory)
+GitHub Pages (static files)                       Supabase (shared memory)
+──────────────────────────                        ───────────────────────────
+index.html  family page ── get_list / claim ───►  gifts        (owner-edited)
+manage.html owner page  ── sign in, owner_* ───►  claims       (anonymous, separate)
+                                                  list_owners  (login → clara/cameron)
 ```
 
-| File | What it's for | Edit it? |
-|---|---|---|
-| `gifts.js` | The gifts on each list | **Yes**, this is the one you'll change |
-| `config.js` | Supabase project URL + publishable key | Once, during setup |
-| `supabase-setup.sql` | Creates the database table and rules | Paste into Supabase once |
-| `index.html`, `style.css`, `app.js` | The page, its look, and its behaviour | Only to change the design/behaviour |
+No framework, no build step, no server. Browsers can't touch the tables directly. Everything goes
+through a handful of database functions that enforce the rules (see `supabase/setup.sql`).
 
-No build step, no frameworks, no server. Plain files that GitHub Pages serves as-is.
-
----
-
-## One-time Supabase setup (about 5 minutes)
-
-1. **Create an account.** Go to <https://supabase.com> → **Start your project** → sign in
-   (GitHub sign-in is easiest).
-2. **Create a project.** Click **New project**.
-   - Name: anything, e.g. `christmas-list`
-   - Database password: click **Generate a password**. You won't need it for this app,
-     but save it somewhere in case.
-   - Region: whichever is closest to your family.
-   - Leave the other options at their defaults (the Data API must stay enabled).
-   - Click **Create new project** and wait a minute or two for it to finish.
-3. **Create the table and rules.** In the left sidebar click **SQL Editor** → **New query**.
-   Open `supabase-setup.sql` from this folder, copy *everything*, paste it in, and click
-   **Run**. You should see "Success. No rows returned."
-4. **Copy two values.** Click the **Connect** button at the top of the project page
-   (or go to **Project Settings → API Keys** and **Project Settings → Data API**) and copy:
-   - the **Project URL**, which looks like `https://abcdefghijklmnop.supabase.co`
-   - the **Publishable key**, which looks like `sb_publishable_...`
-     (older projects call this the `anon` `public` key; that works too)
-
-   ⚠️ Do **not** copy the *secret* / `service_role` key. It must never go in this folder.
-5. **Paste them into `config.js`** (or hand them to Claude to do it):
-
-   ```js
-   supabaseUrl: "https://abcdefghijklmnop.supabase.co",
-   supabasePublishableKey: "sb_publishable_...",
-   ```
-
-That's it. Reload the page: the "Demo mode" banner disappears and claims are shared.
-
-### Good to know about Supabase's free plan
-Free projects are **paused after about a week with no visits**. If the page says it
-can't reach the list, sign in to Supabase and click **Restore project** on the project.
-Claims are kept.
+| File | What it's for |
+|---|---|
+| `index.html`, `app.js` | Family page: front door, both lists, claiming |
+| `manage.html`, `manage.js`, `manage.css` | Owner page: sign in, edit your own list |
+| `style.css` | Shared look. Each theme (home / clara / cameron) is a block of variables plus its art. Search for `THEME:` |
+| `shared.js` | Small helpers both pages use (toast, confirm dialog, snow) |
+| `config.js` | Supabase URL + publishable key, year, names. **Edit once during setup.** |
+| `assets/` | Background art: `clara-winter-{desktop,mobile}.webp`, `cameron-bonsai-{desktop,mobile}.webp` (portrait screens get the mobile art, landscape screens the desktop art) |
+| `supabase/setup.sql` | Creates/updates the database. Safe to re-run |
+| `supabase/link-owners.sql` | Links Clara's and Cameron's logins to their lists |
+| `supabase/sample-gifts.sql` | Optional sample gifts for trying it out |
 
 ---
 
-## Editing the gift lists
+## Setup (about 10 minutes, once)
 
-Open `gifts.js`. Each gift looks like this:
+### 1. Create the Supabase project
+1. <https://supabase.com> → sign in → **New project**. Any name; click **Generate a password**
+   (you won't need it, but save it). Leave the defaults, including the **Data API enabled**. Click **Create**.
+2. **SQL Editor → New query**: paste all of `supabase/setup.sql` → **Run**. You should see "Success".
+   (Already ran the Round 1 script? That's fine: this upgrades it. The old claims table is kept as
+   `claims_round1_old` and can be deleted later in the Table Editor.)
+3. Optional: run `supabase/sample-gifts.sql` the same way to get a few example gifts.
 
-```js
-{
-  id: "clara-cozy-blanket",        // unique, lowercase-and-dashes, never change it later
-  recipient: "Clara",              // "Clara" or "Cameron"
-  name: "Cozy oversized blanket",
-  description: "Soft knit throw, cream or sage.",   // optional
-  price: "$35",                                      // optional, any text
-  link: "https://www.example.com/blanket",           // optional
-  image: "https://www.example.com/blanket.jpg",      // optional
-  emoji: "🧶",                                       // optional, shown when there's no image
-},
-```
+### 2. Lock down sign-ups and create the two owner logins
+1. **Authentication → Sign In / Providers** (on some dashboards: **Authentication → Settings**):
+   turn **off** "Allow new users to sign up". Leave **Email** enabled.
+2. **Authentication → Users → Add user → Create new user**: Clara's email + a strong password,
+   tick **Auto Confirm User**. Repeat for Cameron.
+3. **Authentication → URL Configuration**: set **Site URL** to the live address above, and add the
+   `.../christmas-list/manage.html` address under **Redirect URLs** (this is where password-reset
+   emails send people).
 
-- **Adding** a gift: copy an entry, give it a new `id`.
-- **Removing** a gift: delete its entry. (Any old claim on it is simply ignored.)
-- **Don't rename an `id`** after people have started claiming: the claim is tied to the id.
-- If you make a mistake (duplicate id, misspelled recipient, …) the page shows a red box
-  explaining exactly what to fix.
+### 3. Link each login to its list
+Open `supabase/link-owners.sql`, replace the two example emails with the real ones, then paste it into
+**SQL Editor → New query → Run**. The result table should list both `clara` and `cameron`.
+If one is missing, the email didn't match exactly.
 
-Commit and push the change; GitHub Pages updates in about a minute.
+### 4. Connect the site
+Click **Connect** at the top of the Supabase project (or **Project Settings → Data API / API Keys**) and copy:
+- the **Project URL** (`https://abcdefghijklmnop.supabase.co`)
+- the **Publishable key** (`sb_publishable_...`; older projects call it the `anon` `public` key)
+
+Paste both into `config.js`. ⚠️ Never use the **secret** / `service_role` key anywhere in this folder.
+The publishable key is designed to be public. The database functions decide what it can do.
+
+Commit and push; GitHub Pages republishes in about a minute. This repo already deploys the whole
+repository with `.github/workflows/static.yml`, so nothing else needs configuring.
+
+---
+
+## Everyday use
+
+**Clara / Cameron:** open `manage.html`, sign in once (the browser remembers you), then
+**+ Add gift**, **Edit**, **Move** (up / down / to top / to bottom), **Remove** (with Undo).
+- Removing hides the gift from family. If someone had already claimed it, only their browser sees a
+  small "removed after you claimed it" note.
+- Edits keep existing claims. If you change a claimed gift, its claimer sees "Updated since you claimed it".
+- For a genuinely different gift, add a new one rather than renaming an old one, so claims stay meaningful.
+- Forgot your password? Type your email on the sign-in page and press **Forgot password?**
+  (Supabase's free plan sends only a few emails per hour.)
+
+**Family:** claim → (later) **Mark purchased**. Mistakes can be undone: **Undo claim**, or
+**Details → Mark as not purchased**. A browser only recognises claims it made itself. Claim on a phone,
+and a laptop will just show "Claimed".
+
+### Fixing things by hand (Supabase → Table Editor)
+- A stuck claim (claimer switched devices or cleared their browser): `claims` → delete that row.
+- Fresh start next year: SQL Editor → `delete from public.claims;` (and remove old gifts on `manage.html`).
+- Free projects **pause after about a week with no visits**. If the page says it can't reach the list,
+  open the project in Supabase and click **Restore**.
 
 ---
 
-## How the privacy and safety work
+## Security model, briefly
 
-- **No accounts, no names.** The database stores only: gift id, a scrambled (SHA-256)
-  version of the claiming browser's random token, and the time. Nothing identifies a person.
-- **"Claimed by you"** works because each browser makes a random secret token the first
-  time it opens the page and keeps it in that browser's storage. The page sends the token
-  when checking claims, and the database answers "yes, that one's yours" without ever
-  revealing anyone else's token.
-- **Nobody can overwrite or undo someone else's claim.** The browser can't touch the table
-  directly; it can only call three small database functions (`list_claims`, `claim_gift`,
-  `unclaim_gift`) that enforce the rules. If two people click the same gift at the same
-  instant, the database accepts exactly one and the other person is told it was just taken.
-- **Nobody can wipe the list.** There is no delete-everything path from the browser, and a
-  safety cap (500 claims) stops anyone flooding the table.
-- **The key in `config.js` is meant to be public.** That's how Supabase's publishable key
-  is designed; the rules above are enforced inside the database, not in the page.
-
-### Limits (by design, to keep it simple)
-- "Claimed by you" and **Undo** only work on the same browser the claim was made from.
-  Claim on your phone, and your laptop will just show "Claimed".
-- Clearing browser data, or using a private window, forgets that browser's claims
-  (they stay claimed for everyone; that browser just can't undo them).
-- Anyone who has the link can claim gifts. Share it with family only.
-
-### Fixing a stuck claim
-If someone claimed by mistake and can't undo it (different device, cleared browser):
-Supabase → **Table Editor** → `claims` → find the row with that gift's `id` → delete it.
-Starting fresh next year: **SQL Editor** → run `delete from public.claims;`
-
----
+- Tables have Row Level Security on and **no** direct grants. Browsers only call functions.
+- Family functions (`get_list`, `claim_gift`, `release_claim`, `mark_purchased`, `mark_not_purchased`)
+  identify a browser by a random 64-character token kept in its storage. The database stores only a
+  SHA-256 hash and never returns hashes, tokens or timestamps. One claim per gift is enforced by a
+  primary key, so two simultaneous claims can't both win.
+- Owner functions (`owner_*`) are callable only when signed in, look up the list from the login via
+  `list_owners`, and never take "which list" from the browser. They never read the claims table.
+- All functions are `security definer` with an empty `search_path`, and execute rights are granted
+  explicitly (nothing to `PUBLIC`).
 
 ## Previewing locally
 
-Double-click `index.html`, or open it in any browser. With `config.js` left blank the page
-runs in **demo mode**: everything works, but claims are only saved in your own browser
-(one Cameron gift starts out "claimed by someone else" so you can see all three states).
+Open `index.html` (or `manage.html`) directly in a browser. Once `config.js` has the Supabase settings,
+the local copy talks to the real database, which is handy for checking setup before sharing the link.
+Without settings, both pages say they aren't connected yet.
 
-Once `config.js` is filled in, opening `index.html` locally talks to the real shared
-database, which is handy for checking setup before you share the link.
-
-The page checks for other people's claims every 15 seconds (changeable in `config.js`)
-and whenever you switch back to the tab.
+Tests were run from outside the repo (headless Chrome + an in-browser Postgres running
+`supabase/setup.sql`), so nothing test-related lives in this folder.

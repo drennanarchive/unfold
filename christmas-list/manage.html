@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#f6f1e7" />
+  <meta name="robots" content="noindex" />
+  <title>Manage your wishlist</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎄</text></svg>" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,600;1,600&family=Fraunces:opsz,wght@9..144,500..700&family=Nunito+Sans:opsz,wght@6..12,400..800&display=swap" />
+  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="manage.css" />
+</head>
+<body data-theme="home" data-mode="manage">
+  <div class="backdrop" aria-hidden="true"></div>
+
+  <div class="page">
+    <main class="manage">
+      <div class="manage-column">
+        <nav class="manage-top" aria-label="Page">
+          <a class="nav-link" href="index.html"><span aria-hidden="true">←</span> Family page</a>
+          <button id="sign-out" class="nav-link" type="button" hidden>Sign out</button>
+        </nav>
+
+        <p id="loading" class="manage-loading">Loading…</p>
+
+        <!-- Sign in -->
+        <section id="signin" class="panel" aria-labelledby="signin-title" hidden>
+          <p class="panel-kicker">For Clara &amp; Cameron</p>
+          <h1 id="signin-title">Manage your wishlist</h1>
+          <p class="panel-sub">Family members don't need to sign in. This page is only for editing your own list.</p>
+          <form id="signin-form" novalidate>
+            <label class="field">
+              <span class="field-label">Email</span>
+              <input id="signin-email" type="email" autocomplete="username" required />
+            </label>
+            <label class="field">
+              <span class="field-label">Password</span>
+              <input id="signin-password" type="password" autocomplete="current-password" required />
+            </label>
+            <p id="signin-message" class="form-message" role="alert"></p>
+            <button id="signin-submit" class="btn btn-primary btn-block" type="submit">Sign in</button>
+            <button id="forgot" class="btn-text forgot" type="button">Forgot password?</button>
+          </form>
+        </section>
+
+        <!-- Set a new password (after following a reset email) -->
+        <section id="recovery" class="panel" aria-labelledby="recovery-title" hidden>
+          <h1 id="recovery-title">Choose a new password</h1>
+          <form id="recovery-form" novalidate>
+            <label class="field">
+              <span class="field-label">New password</span>
+              <input id="recovery-password" type="password" autocomplete="new-password" minlength="8" required />
+              <span class="field-hint">At least 8 characters.</span>
+            </label>
+            <p id="recovery-message" class="form-message" role="alert"></p>
+            <button class="btn btn-primary btn-block" type="submit">Save password</button>
+          </form>
+        </section>
+
+        <!-- Signed in, but not linked to a list -->
+        <section id="nolist" class="panel" aria-labelledby="nolist-title" hidden>
+          <h1 id="nolist-title">No wishlist for this account</h1>
+          <p class="panel-sub">You're signed in as <strong id="nolist-email"></strong>, but this account isn't linked to Clara's or Cameron's list.</p>
+        </section>
+
+        <!-- The owner's list -->
+        <section id="editor" aria-labelledby="editor-title" hidden>
+          <header class="panel editor-head">
+            <p class="panel-kicker" id="editor-kicker"></p>
+            <h1 id="editor-title">Your Christmas List</h1>
+            <p class="panel-sub" id="editor-sub"></p>
+            <button id="add-gift" class="btn btn-primary btn-block" type="button">+ Add gift</button>
+          </header>
+          <p class="manage-hint">Family sees your gifts in this order. Claims stay private, even from you, so the surprises survive.</p>
+          <div id="editor-notice" class="notice" role="status" hidden></div>
+          <ul id="owner-gifts" class="owner-gifts"></ul>
+        </section>
+      </div>
+    </main>
+  </div>
+
+  <!-- Add / edit gift -->
+  <dialog id="gift-dialog" class="dialog dialog-form" aria-labelledby="gift-form-title">
+    <form id="gift-form" novalidate>
+      <h2 id="gift-form-title">Add a gift</h2>
+      <label class="field">
+        <span class="field-label">Gift name <span class="req">(required)</span></span>
+        <input id="f-name" name="name" maxlength="120" required aria-describedby="e-name" />
+        <span class="field-error" id="e-name"></span>
+      </label>
+      <label class="field">
+        <span class="field-label">Details / preferences</span>
+        <textarea id="f-details" name="details" rows="3" maxlength="1000" aria-describedby="h-details e-details"></textarea>
+        <span class="field-hint" id="h-details">Size, colour, edition, "any brand is fine"…</span>
+        <span class="field-error" id="e-details"></span>
+      </label>
+      <label class="field">
+        <span class="field-label">Approximate price</span>
+        <input id="f-price" name="price" maxlength="40" placeholder="$35, or about $20–30" aria-describedby="e-price" />
+        <span class="field-error" id="e-price"></span>
+      </label>
+      <label class="field">
+        <span class="field-label">Shopping link</span>
+        <input id="f-link" name="link" type="url" inputmode="url" placeholder="https://…" aria-describedby="e-link" />
+        <span class="field-error" id="e-link"></span>
+      </label>
+      <label class="field">
+        <span class="field-label">Image link</span>
+        <input id="f-image" name="image_url" type="url" inputmode="url" placeholder="https://… (optional)" aria-describedby="h-image e-image" />
+        <span class="field-hint" id="h-image">Optional. A link to a picture of the gift.</span>
+        <span class="field-error" id="e-image"></span>
+      </label>
+      <p id="gift-form-message" class="form-message" role="alert"></p>
+      <div class="dialog-actions">
+        <button id="gift-cancel" class="btn btn-quiet" type="button">Cancel</button>
+        <button id="gift-save" class="btn btn-primary" type="submit">Save</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="confirm" class="dialog" aria-labelledby="confirm-title" aria-describedby="confirm-body">
+    <form method="dialog">
+      <h2 id="confirm-title"></h2>
+      <p id="confirm-body"></p>
+      <div class="dialog-actions">
+        <button id="confirm-no" value="cancel" class="btn btn-quiet">Not now</button>
+        <button id="confirm-yes" value="confirm" class="btn btn-primary">Yes</button>
+      </div>
+    </form>
+  </dialog>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+  <!-- Supabase's client library, pinned to one version; the integrity hash makes the browser refuse a tampered copy. -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"
+          integrity="sha384-GFr3yTh5lJznCbZfpTtXnwboFsxqtTQoeTZCRHhE0579KrRmlCzen5AA8ohaB5ug"
+          crossorigin="anonymous"></script>
+  <script src="config.js"></script>
+  <script src="shared.js"></script>
+  <script src="manage.js"></script>
+</body>
+</html>

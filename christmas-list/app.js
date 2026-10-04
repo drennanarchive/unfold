@@ -1,542 +1,548 @@
 /*
- * Christmas Wish Lists: page logic.
+ * Family page (index.html): the front door plus Clara's and Cameron's lists.
  *
- * How it works, in short:
- *   - The gifts come from gifts.js. The database only knows which gift ids are claimed.
- *   - Each browser gets a random "claim token", saved in localStorage. Claiming sends
- *     that token along; the database stores a hash of it. That's how a device
- *     recognises its own claims ("Claimed by you") and is allowed to undo them.
- *   - The page re-checks claims every few seconds and whenever the tab comes back
- *     into view, so everyone's view stays current.
+ *   #          front door
+ *   #clara     Clara's list
+ *   #cameron   Cameron's list
+ *
+ * Each browser gets a random token (kept in localStorage). The database stores
+ * only a hash of it, which is how this browser recognises "Claimed by you" and
+ * is allowed to undo its own claims. Nobody's identity is ever stored or shown.
  */
 (function () {
   "use strict";
 
-  const config = window.CHRISTMAS_LIST_CONFIG || {};
+  const { config, el, $ } = XL;
   const REFRESH_MS = Math.max(5, Number(config.refreshSeconds) || 15) * 1000;
   const TOKEN_KEY = "christmas-list-claim-token";
-  const ID_PATTERN = /^[a-z0-9][a-z0-9-]{0,63}$/;
 
   // ---------------------------------------------------------------------------
-  // Small helpers
+  // This browser's token
   // ---------------------------------------------------------------------------
 
-  const $ = (selector) => document.querySelector(selector);
-
-  function el(tag, className, text) {
-    const node = document.createElement(tag);
-    if (className) node.className = className;
-    if (text != null) node.textContent = text;
-    return node;
-  }
-
-  function safeStorageGet(key) {
-    try { return window.localStorage.getItem(key); } catch (e) { return null; }
-  }
-  function safeStorageSet(key, value) {
-    try { window.localStorage.setItem(key, value); return true; } catch (e) { return false; }
-  }
-
-  function randomToken() {
+  let tokenSaved = true;
+  const token = (function () {
+    let value = null;
+    try { value = window.localStorage.getItem(TOKEN_KEY); } catch (e) { /* storage blocked */ }
+    if (value && /^[0-9a-f]{64}$/.test(value)) return value;
     const bytes = new Uint8Array(32);
     crypto.getRandomValues(bytes);
-    return Array.from(bytes, (b) => b.toString(16).padStart(2, "0")).join("");
-  }
-
-  // This browser's claim token. If storage is blocked (some private windows), the
-  // token only lasts until the page is closed.
-  function getClaimToken() {
-    let token = safeStorageGet(TOKEN_KEY);
-    if (!token || !/^[0-9a-f]{64}$/.test(token)) {
-      token = randomToken();
-      safeStorageSet(TOKEN_KEY, token);
-    }
-    return token;
-  }
-
-  function isHttpUrl(value) {
+    value = Array.from(bytes, (b) => b.toString(16).padStart(2, "0")).join("");
     try {
-      const url = new URL(value);
-      return url.protocol === "https:" || url.protocol === "http:";
+      window.localStorage.setItem(TOKEN_KEY, value);
+      tokenSaved = window.localStorage.getItem(TOKEN_KEY) === value;
     } catch (e) {
-      return false;
+      tokenSaved = false;
     }
-  }
+    return value;
+  })();
 
   // ---------------------------------------------------------------------------
-  // Backends. Both offer the same three calls:
-  //   listClaims(token)    -> [{ gift_id, mine }]
-  //   claim(id, token)     -> "claimed" | "already_yours" | "taken"
-  //   unclaim(id, token)   -> true | false
+  // Database calls (the functions in supabase/setup.sql)
   // ---------------------------------------------------------------------------
 
-  // The real one: calls the database functions defined in supabase-setup.sql.
-  function createSupabaseBackend(url, key) {
-    const base = url.replace(/\/+$/, "") + "/rest/v1/rpc/";
+  async function api(name, args) {
+    const url = config.supabaseUrl.replace(/\/+$/, "") + "/rest/v1/rpc/" + name;
+    const key = config.supabasePublishableKey;
     const headers = { "Content-Type": "application/json", apikey: key };
-    // Older Supabase projects use a JWT "anon" key, which also goes in Authorization.
+    // Older projects use a JWT "anon" key, which also goes in Authorization.
     if (key.startsWith("eyJ")) headers.Authorization = "Bearer " + key;
 
-    async function rpc(name, args) {
-      const response = await fetch(base + name, {
-        method: "POST",
-        headers,
-        body: JSON.stringify(args),
-        cache: "no-store",
-      });
-      if (!response.ok) {
-        const detail = await response.text().catch(() => "");
-        throw new Error(name + " failed (" + response.status + "): " + detail);
-      }
-      return response.json();
+    let response;
+    try {
+      response = await fetch(url, { method: "POST", headers, body: JSON.stringify(args), cache: "no-store" });
+    } catch (e) {
+      const error = new Error("Network error");
+      error.network = true;
+      throw error;
     }
-
-    return {
-      listClaims: (token) => rpc("list_claims", { p_token: token }),
-      claim: (id, token) => rpc("claim_gift", { p_gift_id: id, p_token: token }),
-      unclaim: (id, token) => rpc("unclaim_gift", { p_gift_id: id, p_token: token }),
-    };
-  }
-
-  // Demo mode: claims are kept in this browser only, so the page can be tried
-  // before Supabase is set up. One gift starts out "claimed by someone else" so
-  // all three states are visible.
-  function createDemoBackend(gifts) {
-    const KEY = "christmas-list-demo-claims";
-    let claims;
-    try { claims = JSON.parse(safeStorageGet(KEY)) || null; } catch (e) { claims = null; }
-    if (!claims) {
-      claims = {};
-      const sample = gifts.find((g) => g.recipient === (window.RECIPIENTS || [])[1]) || gifts[1];
-      if (sample) claims[sample.id] = "someone-else";
+    if (!response.ok) {
+      let body = {};
+      try { body = await response.json(); } catch (e) { /* not JSON */ }
+      const error = new Error(body.message || "Request failed (" + response.status + ")");
+      error.status = response.status;
+      error.code = body.code;
+      // Supabase paused / unreachable gateways look like 5xx: treat as "can't reach".
+      if (response.status >= 500 || response.status === 0) error.network = true;
+      throw error;
     }
-    const save = () => safeStorageSet(KEY, JSON.stringify(claims));
-    const wait = () => new Promise((resolve) => setTimeout(resolve, 250));
-
-    return {
-      async listClaims(token) {
-        await wait();
-        return Object.keys(claims).map((id) => ({ gift_id: id, mine: claims[id] === token }));
-      },
-      async claim(id, token) {
-        await wait();
-        if (!claims[id]) { claims[id] = token; save(); return "claimed"; }
-        return claims[id] === token ? "already_yours" : "taken";
-      },
-      async unclaim(id, token) {
-        await wait();
-        if (claims[id] !== token) return false;
-        delete claims[id];
-        save();
-        return true;
-      },
-    };
+    return response.json();
   }
 
   // ---------------------------------------------------------------------------
-  // Gift catalog: check gifts.js for mistakes and show them clearly
+  // State
   // ---------------------------------------------------------------------------
-
-  function loadCatalog() {
-    const raw = Array.isArray(window.GIFTS) ? window.GIFTS : [];
-    const recipients = Array.isArray(window.RECIPIENTS) && window.RECIPIENTS.length
-      ? window.RECIPIENTS
-      : Array.from(new Set(raw.map((g) => g && g.recipient).filter(Boolean)));
-    const problems = [];
-    const seen = new Set();
-    const gifts = [];
-
-    raw.forEach((gift, index) => {
-      const label = (gift && gift.name) ? '"' + gift.name + '"' : "gift #" + (index + 1);
-      if (!gift || typeof gift !== "object") { problems.push(label + " isn't a valid entry."); return; }
-      if (!gift.name) { problems.push(label + " has no name."); return; }
-      if (!ID_PATTERN.test(gift.id || "")) {
-        problems.push(label + ' needs an id made of lowercase letters, numbers and dashes (e.g. "clara-blanket").');
-        return;
-      }
-      if (seen.has(gift.id)) { problems.push(label + ' reuses the id "' + gift.id + '". Every id must be unique.'); return; }
-      if (!recipients.includes(gift.recipient)) {
-        problems.push(label + ' has recipient "' + gift.recipient + '", which isn\'t one of: ' + recipients.join(", ") + ".");
-        return;
-      }
-      if (gift.link && !isHttpUrl(gift.link)) problems.push(label + " has a link that doesn't start with http:// or https:// (link hidden).");
-      seen.add(gift.id);
-      gifts.push(gift);
-    });
-
-    return { gifts, recipients, problems };
-  }
-
-  // ---------------------------------------------------------------------------
-  // App state
-  // ---------------------------------------------------------------------------
-
-  const catalog = loadCatalog();
-  const token = getClaimToken();
-  const demoMode = !(config.supabaseUrl && config.supabasePublishableKey);
-  const backend = demoMode
-    ? createDemoBackend(catalog.gifts)
-    : createSupabaseBackend(config.supabaseUrl, config.supabasePublishableKey);
 
   const state = {
-    loaded: false,          // have we heard from the database at least once?
-    claims: new Map(),      // gift id -> "mine" | "taken"
-    pending: new Set(),     // gift ids with a claim/undo in progress
-    active: catalog.recipients[0],
+    gifts: [],              // rows from get_list (both people)
+    loaded: false,          // got the list at least once
+    offline: false,         // last refresh failed
+    view: null,             // null (front door) or "clara" / "cameron"
+    pending: new Set(),     // gift ids with an action in flight
+    open: new Set(),        // gift ids with details expanded
     refreshing: false,
     refreshAgain: false,
-    version: 0,             // bumped whenever this page claims or undoes something
+    version: 0,             // bumped by every action, so stale refreshes are ignored
+    lastSync: null,
   };
-  const cards = new Map();  // gift id -> { root, status, button }
+  const cards = new Map();  // gift id -> { li, sig }
 
-  function giftState(id) {
-    if (state.pending.has(id)) return "pending";
-    if (!state.loaded) return "loading";
-    return state.claims.get(id) || "available";
+  const giftById = (id) => state.gifts.find((g) => g.id === id);
+
+  // ---------------------------------------------------------------------------
+  // Routing
+  // ---------------------------------------------------------------------------
+
+  function route() {
+    const key = decodeURIComponent(location.hash.slice(1)).toLowerCase();
+    const person = XL.person(key);
+    state.view = person ? person.key : null;
+
+    $("#door").hidden = Boolean(person);
+    $("#list").hidden = !person;
+
+    if (!person) {
+      XL.setTheme("home");
+      document.title = "Our Christmas Wishlists";
+      return;
+    }
+
+    XL.setTheme(person.key);
+    document.title = person.name + "'s Wishlist · Christmas " + config.year;
+    $("#list-kicker").textContent = "Christmas " + config.year;
+    $("#list-title").textContent = person.name + "'s Wishlist";
+    $("#list-tagline").textContent = person.tagline || "";
+    const other = XL.people.find((p) => p.key !== person.key);
+    const otherLink = $("#nav-other");
+    otherLink.hidden = !other;
+    if (other) {
+      otherLink.href = "#" + other.key;
+      otherLink.textContent = other.name + "'s list →";
+    }
+
+    cards.clear();
+    $("#gifts").textContent = "";
+    window.scrollTo(0, 0);
+    renderList();
+    refresh();
   }
 
   // ---------------------------------------------------------------------------
   // Rendering
   // ---------------------------------------------------------------------------
 
-  const STATUS_TEXT = {
-    loading: "Checking…",
-    pending: "Saving…",
-    available: "Available",
-    mine: "Claimed by you",
-    taken: "Claimed",
+  const ICONS = {
+    available: '<svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="5.5" fill="none" stroke="currentColor" stroke-width="2"/></svg>',
+    claimed: '<svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="5.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M8 2.5a5.5 5.5 0 0 1 0 11z" fill="currentColor"/></svg>',
+    purchased: '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8.5l3.2 3.2L13 4.8" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+    chevron: '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4 6l4 4 4-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
   };
 
-  function buildCard(gift) {
-    const root = el("article", "card");
+  function statusLabel(g) {
+    if (g.status === "available") return "Available";
+    if (g.status === "claimed") return g.mine ? "Claimed by you" : "Claimed";
+    return g.mine ? "Purchased by you" : "Purchased";
+  }
 
-    const art = el("div", "card-art");
-    const emoji = el("span", "card-emoji", gift.emoji || "🎁");
-    emoji.setAttribute("aria-hidden", "true");
-    if (gift.image) {
-      const img = el("img");
-      img.src = gift.image;
-      img.alt = "";
-      img.loading = "lazy";
-      img.addEventListener("error", () => img.replaceWith(emoji));
-      art.append(img);
-    } else {
-      art.append(emoji);
+  function chip(g, pending) {
+    const node = el("span", "chip");
+    node.dataset.status = pending ? "loading" : g.status;
+    node.innerHTML = pending ? "" : ICONS[g.status];
+    node.append(el("span", null, pending ? "Saving…" : statusLabel(g)));
+    return node;
+  }
+
+  function button(label, className, role, onClick, disabled) {
+    const b = el("button", className, label);
+    b.type = "button";
+    b.dataset.role = role;
+    b.disabled = Boolean(disabled);
+    b.addEventListener("click", onClick);
+    return b;
+  }
+
+  function hasMore(g) {
+    const longDetails = g.details && (g.details.length > 90 || g.details.includes("\n"));
+    return Boolean(longDetails || XL.isHttpUrl(g.link) || XL.isHttpUrl(g.image_url) || (g.mine && g.status === "purchased"));
+  }
+
+  function buildRemoved(g, pending) {
+    const li = el("li", "gift is-removed");
+    li.dataset.status = g.status;
+    li.append(el("h3", "gift-name", g.name));
+    li.append(el("p", "removed-msg",
+      g.status === "purchased"
+        ? "Removed from the list after you bought it. You may want to check with " + (XL.person(g.recipient) || {}).name + "."
+        : "Removed from the list after you claimed it. It's no longer needed."));
+    const foot = el("div", "gift-foot");
+    foot.append(el("span", "spacer"));
+    foot.append(button("Dismiss", "btn-text", "dismiss", () => dismissRemoved(g), pending));
+    li.append(foot);
+    return li;
+  }
+
+  function buildGift(g) {
+    const pending = state.pending.has(g.id);
+    if (g.removed) return buildRemoved(g, pending);
+
+    const open = state.open.has(g.id);
+    const li = el("li", "gift");
+    li.dataset.status = g.status;
+    li.classList.toggle("is-mine", g.mine);
+    li.classList.toggle("is-open", open);
+
+    const top = el("div", "gift-top");
+    top.append(el("h3", "gift-name", g.name));
+    if (g.price) {
+      const price = el("span", "gift-price");
+      price.append(el("span", "sr-only", "Approximate price: "), document.createTextNode(g.price));
+      top.append(price);
+    }
+    li.append(top);
+
+    if (g.details) li.append(el("p", "gift-details", g.details));
+    if (g.mine && g.updated_since_claim) {
+      li.append(el("p", "gift-note", "✎ Updated since you claimed it"));
     }
 
-    const body = el("div", "card-body");
-    body.append(el("h3", "card-title", gift.name));
-    if (gift.description) body.append(el("p", "card-desc", gift.description));
-
-    if (gift.price || (gift.link && isHttpUrl(gift.link))) {
-      const meta = el("div", "card-meta");
-      if (gift.price) meta.append(el("span", "card-price", gift.price));
-      if (gift.link && isHttpUrl(gift.link)) {
-        const link = el("a", "card-link", "View item ↗");
-        link.href = gift.link;
-        link.target = "_blank";
-        link.rel = "noopener noreferrer";
-        meta.append(link);
+    const more = hasMore(g);
+    const extraId = "extra-" + g.id;
+    if (more) {
+      const extra = el("div", "gift-extra");
+      extra.id = extraId;
+      extra.hidden = !open;
+      if (XL.isHttpUrl(g.image_url)) {
+        const img = el("img", "gift-image");
+        img.src = g.image_url;
+        img.alt = "";
+        img.loading = "lazy";
+        img.referrerPolicy = "no-referrer";
+        img.addEventListener("error", () => img.remove());
+        extra.append(img);
       }
-      body.append(meta);
+      if (XL.isHttpUrl(g.link)) {
+        const a = el("a", "gift-link", "View item ↗");
+        a.href = g.link;
+        a.target = "_blank";
+        a.rel = "noopener noreferrer";
+        a.setAttribute("aria-label", "View " + g.name + " (opens in a new tab)");
+        extra.append(a);
+      }
+      if (g.mine && g.status === "purchased") {
+        extra.append(button("Mark as not purchased", "btn-text gift-secondary", "unpurchase", () => markNotPurchased(g), pending));
+      }
+      li.append(extra);
     }
 
-    const foot = el("div", "card-foot");
-    const status = el("span", "status");
-    const button = el("button", "btn");
-    button.type = "button";
-    button.addEventListener("click", () => onCardButton(gift));
-    foot.append(status, button);
-    body.append(foot);
+    const foot = el("div", "gift-foot");
+    foot.append(chip(g, pending), el("span", "spacer"));
+    if (more) {
+      const toggle = button("Details", "more", "more", () => toggleOpen(g));
+      toggle.insertAdjacentHTML("beforeend", ICONS.chevron);
+      toggle.setAttribute("aria-expanded", String(open));
+      toggle.setAttribute("aria-controls", extraId);
+      toggle.setAttribute("aria-label", (open ? "Hide details for " : "Show details for ") + g.name);
+      foot.append(toggle);
+    }
+    if (g.status === "available") {
+      const claimButton = button("Claim", "btn btn-primary", "claim", () => claim(g), pending);
+      claimButton.setAttribute("aria-label", "Claim " + g.name);
+      foot.append(claimButton);
+    }
+    li.append(foot);
 
-    root.append(art, body);
-    cards.set(gift.id, { root, status, button });
-    return root;
+    if (g.mine && g.status === "claimed") {
+      const actions = el("div", "gift-actions");
+      actions.append(
+        button("Mark purchased", "btn btn-primary", "purchase", () => markPurchased(g), pending),
+        button("Undo claim", "btn btn-quiet", "release", () => release(g), pending)
+      );
+      li.append(actions);
+    }
+    return li;
   }
 
-  function updateCard(gift) {
-    const card = cards.get(gift.id);
-    if (!card) return;
-    const s = giftState(gift.id);
-    // Cards keep their last settled look while saving, so they don't flicker.
-    const look = s === "pending" ? (state.claims.get(gift.id) || "available") : s;
+  function signature(g) {
+    return JSON.stringify([g, state.pending.has(g.id), state.open.has(g.id)]);
+  }
 
-    card.root.dataset.state = look;
-    card.status.dataset.state = s === "pending" ? "loading" : s;
-    card.status.textContent = STATUS_TEXT[s];
+  function renderList() {
+    if (!state.view) return;
+    const list = $("#gifts");
+    const items = state.gifts.filter((g) => g.recipient === state.view);
+    const person = XL.person(state.view);
 
-    const button = card.button;
-    button.disabled = s === "loading" || s === "pending" || s === "taken";
-    if (s === "mine") {
-      button.className = "btn btn-ghost";
-      button.textContent = "Undo my claim";
-      button.setAttribute("aria-label", "Undo my claim on " + gift.name);
-    } else {
-      button.className = "btn btn-primary";
-      button.textContent = s === "taken" ? "Already claimed" : s === "pending" ? "One moment…" : "Claim this gift";
-      button.setAttribute("aria-label", button.textContent + ": " + gift.name);
+    // Notices
+    const notice = $("#notice");
+    notice.textContent = "";
+    notice.className = "notice";
+    notice.hidden = true;
+    if (!XL.configured) {
+      showNotice("This wishlist isn't connected yet. (For the list owner: add the Supabase settings to config.js.)", true);
+    } else if (!state.loaded && state.offline) {
+      showNotice("Can't reach the wishlist right now. It will keep trying automatically.", true, true);
+    } else if (state.loaded && items.length === 0) {
+      showNotice("Nothing on " + person.name + "'s list yet. Check back soon!");
+    } else if (state.loaded && !tokenSaved) {
+      showNotice("This browser isn't saving site data (private window?). You can still claim gifts, but it will forget which ones are yours once it's closed.");
+    }
+
+    // Cards: rebuild only the ones whose data changed, keeping focus where it was.
+    const wanted = [];
+    items.forEach((g) => {
+      const sig = signature(g);
+      let entry = cards.get(g.id);
+      if (!entry || entry.sig !== sig) {
+        const focusedRole = entry && entry.li.contains(document.activeElement) ? document.activeElement.dataset.role : null;
+        const li = buildGift(g);
+        if (entry) entry.li.replaceWith(li);
+        entry = { li, sig };
+        cards.set(g.id, entry);
+        if (focusedRole) {
+          const again = li.querySelector('[data-role="' + focusedRole + '"]') || li.querySelector("button");
+          if (again) again.focus();
+        }
+      }
+      wanted.push(entry.li);
+    });
+    for (const [id, entry] of cards) {
+      if (!items.some((g) => g.id === id)) { entry.li.remove(); cards.delete(id); }
+    }
+    const current = Array.from(list.children);
+    if (current.length !== wanted.length || current.some((node, i) => node !== wanted[i])) {
+      wanted.forEach((li) => list.append(li));
+    }
+
+    renderSummary(items);
+    renderSync();
+  }
+
+  function showNotice(text, isError, withRetry) {
+    const notice = $("#notice");
+    notice.hidden = false;
+    notice.classList.toggle("is-error", Boolean(isError));
+    notice.append(el("div", null, text));
+    if (withRetry) {
+      const retry = button("Try again", "btn btn-quiet", "retry", () => refresh());
+      notice.append(retry);
     }
   }
 
-  function updateAll() {
-    catalog.gifts.forEach(updateCard);
-    updateTabCounts();
-  }
-
-  function renderTabs() {
-    const tabs = $(".tabs");
-    tabs.textContent = "";
-    catalog.recipients.forEach((name) => {
-      const tab = el("button", "tab");
-      tab.type = "button";
-      tab.id = "tab-" + slug(name);
-      tab.setAttribute("role", "tab");
-      tab.setAttribute("aria-controls", "panel");
-      tab.dataset.recipient = name;
-      tab.append(el("span", null, name), el("span", "tab-count"));
-      tab.addEventListener("click", () => selectRecipient(name, true));
-      tabs.append(tab);
-    });
-
-    // Arrow keys move between tabs.
-    tabs.addEventListener("keydown", (event) => {
-      if (event.key !== "ArrowLeft" && event.key !== "ArrowRight") return;
-      const i = catalog.recipients.indexOf(state.active);
-      const step = event.key === "ArrowRight" ? 1 : -1;
-      const next = catalog.recipients[(i + step + catalog.recipients.length) % catalog.recipients.length];
-      selectRecipient(next, true);
-      document.getElementById("tab-" + slug(next)).focus();
+  function renderSummary(items) {
+    const node = $("#summary");
+    node.textContent = "";
+    if (!state.loaded) return;
+    const visible = items.filter((g) => !g.removed);
+    const count = (s) => visible.filter((g) => g.status === s).length;
+    [["available", "available"], ["claimed", "claimed"], ["purchased", "purchased"]].forEach(([key, word]) => {
+      const n = count(key);
+      if (!n && key !== "available") return;
+      const span = el("span");
+      span.append(el("i", "dot dot-" + key), document.createTextNode(n + " " + word));
+      node.append(span);
     });
   }
 
-  // Number of gifts still available, shown on each tab.
-  function updateTabCounts() {
-    catalog.recipients.forEach((name) => {
-      const tab = document.getElementById("tab-" + slug(name));
-      const count = tab && tab.querySelector(".tab-count");
-      if (!count) return;
-      const gifts = catalog.gifts.filter((g) => g.recipient === name);
-      const open = gifts.filter((g) => !state.claims.has(g.id)).length;
-      count.textContent = state.loaded ? String(open) : "";
-      count.hidden = !state.loaded;
-      count.title = open + " of " + gifts.length + " still available";
-    });
-  }
-
-  function selectRecipient(name, updateHash) {
-    if (!catalog.recipients.includes(name)) name = catalog.recipients[0];
-    state.active = name;
-
-    document.querySelectorAll(".tab").forEach((tab) => {
-      const selected = tab.dataset.recipient === name;
-      tab.setAttribute("aria-selected", String(selected));
-      tab.tabIndex = selected ? 0 : -1;
-    });
-
-    const panel = $("#panel");
-    panel.setAttribute("aria-labelledby", "tab-" + slug(name));
-    const grid = $("#grid");
-    grid.textContent = "";
-    const gifts = catalog.gifts.filter((g) => g.recipient === name);
-    if (!gifts.length) {
-      grid.append(el("p", "notice", "Nothing on " + name + "'s list yet. Check back soon!"));
-    }
-    gifts.forEach((gift) => {
-      const card = cards.get(gift.id) ? cards.get(gift.id).root : buildCard(gift);
-      grid.append(card);
-      updateCard(gift);
-    });
-
-    if (updateHash) history.replaceState(null, "", "#" + slug(name));
-  }
-
-  function slug(name) {
-    return String(name).toLowerCase().replace(/[^a-z0-9]+/g, "-");
-  }
-
-  function recipientFromHash() {
-    const wanted = decodeURIComponent(location.hash.slice(1));
-    return catalog.recipients.find((name) => slug(name) === wanted);
-  }
-
-  // ---------------------------------------------------------------------------
-  // Messages
-  // ---------------------------------------------------------------------------
-
-  let toastTimer;
-  function toast(message) {
-    const node = $("#toast");
-    node.textContent = message;
-    node.classList.add("is-visible");
-    clearTimeout(toastTimer);
-    toastTimer = setTimeout(() => node.classList.remove("is-visible"), 3500);
-  }
-
-  function setSync(ok) {
+  function renderSync() {
     const node = $("#sync");
-    node.classList.toggle("is-offline", !ok);
-    if (ok) {
-      const time = new Date().toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
-      node.textContent = (demoMode ? "Demo mode · " : "") + "Up to date as of " + time;
-    } else {
-      node.textContent = "Can't reach the list right now. Retrying automatically…";
-    }
-  }
-
-  function showNotices() {
-    const node = $("#notice");
-    if (catalog.problems.length) {
-      node.hidden = false;
-      node.className = "notice is-error";
-      node.textContent = "";
-      node.append(el("strong", null, "Some gifts in gifts.js need fixing:"));
-      const list = el("ul");
-      catalog.problems.forEach((p) => list.append(el("li", null, p)));
-      node.append(list);
-    } else if (demoMode) {
-      node.hidden = false;
-      node.className = "notice";
-      node.textContent = "Demo mode: claims are only saved in this browser. Add the Supabase settings in config.js to share them with everyone.";
-    }
+    node.textContent = "";
+    node.classList.toggle("is-offline", state.offline && state.loaded);
+    if (!state.loaded) return;
+    const text = state.offline
+      ? "Can't reach the list. Showing what we last saw, and retrying…"
+      : "Up to date · " + state.lastSync.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
+    node.append(el("span", null, text));
   }
 
   // ---------------------------------------------------------------------------
-  // Talking to the database
+  // Loading the list
   // ---------------------------------------------------------------------------
 
-  // If a claim or undo finishes while a refresh is in flight, that refresh's
-  // answer may be stale, so it's thrown away and a fresh one runs.
-  async function refresh() {
-    if (state.refreshing) { state.refreshAgain = true; return; }
+  // Only one refresh runs at a time; asking again while one is running queues
+  // one more pass. If an action finished mid-refresh, that answer may be stale,
+  // so it's discarded and fetched again. Returns a promise for when it's done.
+  function refresh() {
+    if (!XL.configured) { renderList(); return Promise.resolve(); }
+    if (state.refreshing) { state.refreshAgain = true; return state.refreshPromise; }
     state.refreshing = true;
-    state.refreshAgain = false;
-    const versionAtStart = state.version;
-    try {
-      const rows = await backend.listClaims(token);
-      if (state.version !== versionAtStart) {
-        state.refreshAgain = true;
-      } else {
-        const next = new Map();
-        (rows || []).forEach((row) => next.set(row.gift_id, row.mine ? "mine" : "taken"));
-        state.claims = next;
-        state.loaded = true;
-      }
-      setSync(true);
-    } catch (error) {
-      console.error(error);
-      setSync(false);
-    } finally {
+    state.refreshPromise = (async () => {
+      do {
+        state.refreshAgain = false;
+        const versionAtStart = state.version;
+        try {
+          const rows = await api("get_list", { p_token: token });
+          if (state.version !== versionAtStart) {
+            state.refreshAgain = true;
+          } else {
+            state.gifts = Array.isArray(rows) ? rows : [];
+            state.loaded = true;
+          }
+          state.offline = false;
+          state.lastSync = new Date();
+        } catch (error) {
+          console.error(error);
+          state.offline = true;
+        }
+        renderList();
+      } while (state.refreshAgain);
       state.refreshing = false;
-      updateAll();
-      if (state.refreshAgain) refresh();
-    }
-  }
-
-  function onCardButton(gift) {
-    const s = giftState(gift.id);
-    if (s === "available") askToClaim(gift);
-    else if (s === "mine") unclaim(gift);
-  }
-
-  // The confirm dialog. "Yes, claim it" starts the claim; "Not yet", Esc or
-  // clicking outside just closes it.
-  let giftToClaim = null;
-
-  function askToClaim(gift) {
-    giftToClaim = gift;
-    $("#confirm-gift").textContent = gift.name;
-    $("#confirm").showModal();
-  }
-
-  $("#confirm-yes").addEventListener("click", () => {
-    const gift = giftToClaim;
-    giftToClaim = null;
-    if (gift) claim(gift);
-  });
-  $("#confirm").addEventListener("close", () => { giftToClaim = null; });
-
-  async function claim(gift) {
-    state.pending.add(gift.id);
-    updateCard(gift);
-    try {
-      const result = await backend.claim(gift.id, token);
-      if (result === "claimed" || result === "already_yours") {
-        state.claims.set(gift.id, "mine");
-        toast("🎁 It's yours! Only this device shows that you claimed it.");
-      } else {
-        state.claims.set(gift.id, "taken");
-        toast("Someone else just claimed that one!");
-      }
-    } catch (error) {
-      console.error(error);
-      toast("Couldn't save your claim. Please try again.");
-    } finally {
-      state.pending.delete(gift.id);
-      state.version++;
-      updateAll();
-      refresh();
-    }
-  }
-
-  async function unclaim(gift) {
-    state.pending.add(gift.id);
-    updateCard(gift);
-    try {
-      const removed = await backend.unclaim(gift.id, token);
-      if (removed) {
-        state.claims.delete(gift.id);
-        toast("Claim undone. It's available again.");
-      } else {
-        toast("That claim can't be undone from this device.");
-      }
-    } catch (error) {
-      console.error(error);
-      toast("Couldn't undo your claim. Please try again.");
-    } finally {
-      state.pending.delete(gift.id);
-      state.version++;
-      updateAll();
-      refresh();
-    }
+    })();
+    return state.refreshPromise;
   }
 
   // ---------------------------------------------------------------------------
-  // Snow (decorative; skipped when the device asks for reduced motion)
+  // Actions
   // ---------------------------------------------------------------------------
 
-  function letItSnow() {
-    if (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-    const snow = $(".snow");
-    for (let i = 0; i < 36; i++) {
-      const flake = el("span", "flake");
-      const size = 2 + Math.random() * 4;
-      flake.style.width = flake.style.height = size + "px";
-      flake.style.left = Math.random() * 100 + "%";
-      flake.style.opacity = String(0.3 + Math.random() * 0.6);
-      flake.style.animationDuration = 9 + Math.random() * 12 + "s";
-      flake.style.animationDelay = -Math.random() * 20 + "s";
-      flake.style.setProperty("--drift", (Math.random() * 80 - 40).toFixed(0) + "px");
-      snow.append(flake);
+  function toggleOpen(g) {
+    if (state.open.has(g.id)) state.open.delete(g.id);
+    else state.open.add(g.id);
+    renderList();
+  }
+
+  function setLocal(id, changes) {
+    const g = giftById(id);
+    if (g) Object.assign(g, changes);
+  }
+
+  /*
+   * Runs one database action for a gift.
+   *   call()        the request
+   *   onResult(r)   handle the answer
+   *   verify(g)     if the answer got lost (network), does the fresh list show it worked?
+   *                 (g is undefined if the gift is no longer on the list)
+   *   success       message to show if verify() says it did
+   */
+  async function act(g, { call, onResult, verify, success }) {
+    if (state.pending.has(g.id)) return;
+    state.pending.add(g.id);
+    renderList();
+    let lost = false;
+    try {
+      const result = await call();
+      state.version++;
+      onResult(result);
+    } catch (error) {
+      state.version++;
+      console.error(error);
+      if (error.network) lost = true;
+      else XL.toast("Something went wrong, so nothing was changed. Please try again.");
+    } finally {
+      state.pending.delete(g.id);
+      renderList();
     }
+    await refresh();
+    if (lost) {
+      const fresh = giftById(g.id);
+      if (state.offline) XL.toast("Can't reach the list right now. Nothing has changed yet. Please try again.");
+      else if (verify(fresh)) XL.toast(success);
+      else XL.toast("Couldn't reach the list, so nothing changed. Please try again.");
+    }
+  }
+
+  async function claim(g) {
+    const ok = await XL.confirm({
+      title: "Claim “" + g.name + "”?",
+      body: "Everyone else will see it as Claimed. Nobody can see who claimed it. This browser will remember it's yours, so you can mark it purchased or undo later.",
+      confirmLabel: "Claim it",
+    });
+    if (!ok) return;
+    act(g, {
+      call: () => api("claim_gift", { p_gift_id: g.id, p_token: token }),
+      onResult: (r) => {
+        if (r === "claimed" || r === "already_yours") {
+          setLocal(g.id, { status: "claimed", mine: true });
+          XL.toast("🎁 It's yours. Only this browser knows.");
+        } else if (r === "taken") {
+          setLocal(g.id, { status: "claimed", mine: false });
+          XL.toast("Someone just claimed this one.");
+        } else {
+          XL.toast("That gift was just removed from the list.");
+        }
+      },
+      verify: (fresh) => Boolean(fresh && fresh.mine),
+      success: "🎁 It went through. It's yours.",
+    });
+  }
+
+  async function release(g) {
+    const ok = await XL.confirm({
+      title: "Undo your claim?",
+      body: "“" + g.name + "” will be available again for everyone.",
+      confirmLabel: "Undo claim",
+      cancelLabel: "Keep it",
+    });
+    if (!ok) return;
+    act(g, {
+      call: () => api("release_claim", { p_gift_id: g.id, p_token: token }),
+      onResult: (r) => {
+        if (r === "released") {
+          setLocal(g.id, { status: "available", mine: false, updated_since_claim: false });
+          XL.toast("Claim undone. It's available again.");
+        } else if (r === "purchased") {
+          XL.toast("Mark it as not purchased first.");
+        } else {
+          XL.toast("That claim wasn't made from this browser.");
+        }
+      },
+      verify: (fresh) => !fresh || !fresh.mine,
+      success: "Claim undone.",
+    });
+  }
+
+  function markPurchased(g) {
+    act(g, {
+      call: () => api("mark_purchased", { p_gift_id: g.id, p_token: token }),
+      onResult: (r) => {
+        if (r === "purchased") {
+          setLocal(g.id, { status: "purchased" });
+          XL.toast("Marked as purchased ✓", { label: "Undo", onClick: () => markNotPurchased(giftById(g.id) || g, true) });
+        } else {
+          XL.toast("That claim wasn't made from this browser.");
+        }
+      },
+      verify: (fresh) => Boolean(fresh && fresh.mine && fresh.status === "purchased"),
+      success: "Marked as purchased ✓",
+    });
+  }
+
+  function markNotPurchased(g, fromUndo) {
+    act(g, {
+      call: () => api("mark_not_purchased", { p_gift_id: g.id, p_token: token }),
+      onResult: (r) => {
+        if (r === "claimed") {
+          setLocal(g.id, { status: "claimed" });
+          XL.toast(fromUndo ? "Undone. Still claimed by you." : "Marked as not purchased. Still claimed by you.");
+        } else {
+          XL.toast("That claim wasn't made from this browser.");
+        }
+      },
+      verify: (fresh) => Boolean(fresh && fresh.mine && fresh.status === "claimed"),
+      success: "Marked as not purchased.",
+    });
+  }
+
+  function dismissRemoved(g) {
+    act(g, {
+      call: () => api("release_claim", { p_gift_id: g.id, p_token: token }),
+      onResult: () => {
+        state.gifts = state.gifts.filter((x) => x.id !== g.id);
+      },
+      verify: (fresh) => !fresh,
+      success: "Dismissed.",
+    });
   }
 
   // ---------------------------------------------------------------------------
   // Start
   // ---------------------------------------------------------------------------
 
-  showNotices();
-  renderTabs();
-  selectRecipient(recipientFromHash() || catalog.recipients[0], false);
-  updateTabCounts();
-  letItSnow();
-  refresh();
+  $("#door-year").textContent = config.year;
+  window.addEventListener("hashchange", route);
+  route();
+  if (!state.view) refresh(); // warm the data while people read the front door
 
-  window.addEventListener("hashchange", () => {
-    const name = recipientFromHash();
-    if (name && name !== state.active) selectRecipient(name, false);
-  });
-
-  setInterval(() => { if (!document.hidden) refresh(); }, REFRESH_MS);
-  document.addEventListener("visibilitychange", () => { if (!document.hidden) refresh(); });
-  window.addEventListener("focus", refresh);
+  setInterval(() => { if (state.view && !document.hidden) refresh(); }, REFRESH_MS);
+  document.addEventListener("visibilitychange", () => { if (state.view && !document.hidden) refresh(); });
+  window.addEventListener("focus", () => { if (state.view) refresh(); });
 })();
