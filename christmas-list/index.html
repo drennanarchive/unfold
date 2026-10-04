@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#123326" />
+  <meta name="robots" content="noindex" />
+  <title>Christmas Wish Lists</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎁</text></svg>" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700&family=Nunito+Sans:wght@400;600;700&display=swap" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="snow" aria-hidden="true"></div>
+
+  <header class="hero">
+    <p class="hero-kicker">✦ Christmas ✦</p>
+    <h1>Our Wish Lists</h1>
+    <p class="hero-sub">Pick something to give, claim it, and it'll show as taken for everyone else. Your claim stays a secret.</p>
+  </header>
+
+  <main class="wrap">
+    <div id="notice" class="notice" hidden></div>
+
+    <nav class="tabs" role="tablist" aria-label="Whose list"></nav>
+
+    <section id="panel" class="panel" role="tabpanel" tabindex="-1">
+      <div id="grid" class="grid"></div>
+    </section>
+
+    <p id="sync" class="sync" aria-live="polite"></p>
+  </main>
+
+  <dialog id="confirm" class="dialog" aria-labelledby="confirm-title">
+    <form method="dialog">
+      <div class="dialog-emoji" aria-hidden="true">🎁</div>
+      <h2 id="confirm-title">Claim this gift?</h2>
+      <p class="dialog-gift" id="confirm-gift"></p>
+      <p class="dialog-note">Everyone else will see it as <strong>Claimed</strong>. Nobody sees who claimed it. This device will show <strong>Claimed by you</strong> and lets you undo it.</p>
+      <div class="dialog-actions">
+        <button value="cancel" class="btn btn-ghost">Not yet</button>
+        <button value="confirm" id="confirm-yes" class="btn btn-primary" autofocus>Yes, claim it</button>
+      </div>
+    </form>
+  </dialog>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+  <script src="config.js"></script>
+  <script src="gifts.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
