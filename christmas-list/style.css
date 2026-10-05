@@ -33,6 +33,9 @@
   --blur: 10px;
   --accent: #2f5a40;
   --accent-hover: #24492f;
+  --accent-fill: linear-gradient(180deg, #3a6c4c 0%, #2f5a40 55%, #284f37 100%);
+  --accent-fill-hover: linear-gradient(180deg, #32613f, #213f2c);
+  --accent-glint: inset 0 1px 0 rgba(255, 255, 255, .22);
   --accent-ink: #fffaf0;
   --accent-soft: rgba(47, 90, 64, .1);
   --btn-radius: 12px;
@@ -124,14 +127,18 @@ body[data-theme="clara"] {
   --hero-ink: #25304b;
   --hero-glow: rgba(255, 255, 255, .95);
   --kicker: #7d5f2f;
-  --surface: rgba(255, 255, 255, .7);
-  --surface-quiet: rgba(255, 255, 255, .52);
+  /* layered glass: white into the faintest ice and lavender */
+  --surface: linear-gradient(155deg, rgba(255, 255, 255, .82) 0%, rgba(240, 245, 254, .7) 55%, rgba(244, 238, 251, .68) 100%);
+  --surface-quiet: linear-gradient(155deg, rgba(255, 255, 255, .62) 0%, rgba(238, 242, 252, .5) 60%, rgba(242, 236, 249, .48) 100%);
   --surface-solid: #f9fbff;
-  --border: rgba(255, 255, 255, .85);
-  --shadow: 0 8px 28px rgba(60, 80, 130, .16), inset 0 1px 0 rgba(255, 255, 255, .9);
-  --blur: 16px;
+  --border: rgba(255, 255, 255, .88);
+  --shadow: 0 8px 28px rgba(72, 84, 150, .17), inset 0 1px 0 rgba(255, 255, 255, .95), inset 0 0 0 1px rgba(255, 255, 255, .25);
+  --blur: 18px;
   --accent: #40598a;
   --accent-hover: #334a76;
+  --accent-fill: linear-gradient(180deg, #5874ab 0%, #46619a 55%, #3b5487 100%);
+  --accent-fill-hover: linear-gradient(180deg, #4b669c, #314877);
+  --accent-glint: inset 0 1px 0 rgba(255, 255, 255, .3);
   --accent-ink: #fff;
   --accent-soft: rgba(64, 89, 138, .1);
   --btn-radius: 999px;
@@ -146,6 +153,20 @@ body[data-theme="clara"] .backdrop {
   background-position: 50% 50%;
 }
 
+/* Atmosphere: a soft wash where the scene meets the list, so the cards sit
+   in light (Clara) or dusk (Cameron) instead of directly on busy detail. */
+.backdrop::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+body[data-theme="clara"] .backdrop::before {
+  background:
+    radial-gradient(120% 60% at 50% 108%, rgba(236, 230, 252, .55), transparent 62%),
+    linear-gradient(180deg, rgba(255, 255, 255, .18) 0%, transparent 22%, transparent 48%, rgba(232, 238, 252, .32) 66%, rgba(228, 230, 250, .55) 100%);
+}
+
 /* =====================================================================
    THEME: cameron — Bonsai Christmas (evergreen, moss, ivory, amber, wood)
    ===================================================================== */
@@ -157,14 +178,19 @@ body[data-theme="cameron"] {
   --hero-ink: #fff4e2;
   --hero-glow: rgba(40, 22, 10, .55);
   --kicker: #f0c27a;
-  --surface: rgba(251, 245, 233, .86);
-  --surface-quiet: rgba(251, 245, 233, .68);
+  /* warm cream, deepening slightly toward parchment */
+  --surface: linear-gradient(165deg, rgba(253, 249, 240, .95) 0%, rgba(246, 238, 220, .9) 100%);
+  --surface-quiet: linear-gradient(165deg, rgba(250, 245, 234, .8) 0%, rgba(241, 232, 213, .74) 100%);
   --surface-solid: #fbf5e9;
-  --border: rgba(214, 178, 120, .5);
-  --shadow: 0 8px 26px rgba(30, 16, 6, .3);
+  --border: rgba(201, 160, 90, .45);
+  --shadow: 0 10px 28px rgba(16, 24, 14, .34), inset 0 1px 0 rgba(255, 246, 225, .8);
   --blur: 10px;
   --accent: #2e5a3c;
   --accent-hover: #234a2f;
+  --accent-fill: linear-gradient(180deg, #3a704c 0%, #2e5a3c 55%, #244a31 100%);
+  --accent-fill-hover: linear-gradient(180deg, #326244, #1e3f2a);
+  --accent-glint: inset 0 1px 0 rgba(255, 222, 160, .3);
+  --berry: #8a2e22;
   --accent-ink: #fffaf0;
   --accent-soft: rgba(46, 90, 60, .1);
   --btn-radius: 10px;
@@ -180,6 +206,11 @@ body[data-theme="cameron"] .backdrop {
   /* Anchor left/bottom so the bonsai (lower-left of the art) never gets cropped away. */
   background-position: 0% 100%;
 }
+body[data-theme="cameron"] .backdrop::before {
+  background:
+    radial-gradient(90% 28% at 50% 0%, rgba(26, 14, 6, .28), transparent 70%),
+    linear-gradient(180deg, transparent 0%, transparent 66%, rgba(22, 36, 24, .38) 80%, rgba(16, 28, 18, .66) 100%);
+}
 
 /* Landscape screens get the landscape compositions. */
 @media (min-aspect-ratio: 1/1) {
@@ -190,6 +221,18 @@ body[data-theme="cameron"] .backdrop {
   body[data-theme="cameron"] .backdrop {
     background-image: url("assets/cameron-bonsai-desktop.webp");
     background-position: 0% 75%;
+  }
+  body[data-theme="clara"] .backdrop::before {
+    background:
+      radial-gradient(60% 70% at 50% 100%, rgba(238, 234, 252, .5), transparent 70%),
+      linear-gradient(180deg, rgba(255, 255, 255, .12) 0%, transparent 30%, transparent 55%, rgba(230, 236, 252, .35) 100%);
+  }
+  /* A gentle evergreen dusk behind the centred list, plus a deeper floor. */
+  body[data-theme="cameron"] .backdrop::before {
+    background:
+      radial-gradient(34% 75% at 50% 62%, rgba(18, 32, 22, .34), transparent 75%),
+      radial-gradient(70% 30% at 50% 0%, rgba(26, 14, 6, .3), transparent 70%),
+      linear-gradient(180deg, transparent 0%, transparent 60%, rgba(18, 30, 20, .45) 100%);
   }
 }
 
@@ -272,12 +315,82 @@ body[data-theme="cameron"] .backdrop {
 .door-foot { padding-top: 32px; text-align: center; font-size: .85rem; }
 .door-foot a { color: var(--ink-soft); text-decoration: none; border-bottom: 1px solid currentColor; padding: 10px 2px; }
 
+/* Small ornamental touches: a gold divider and three slow twinkles */
+.door-inner { position: relative; }
+.door-divider {
+  display: flex; align-items: center; justify-content: center; gap: 12px;
+  margin: -12px auto 22px;
+  color: #c39a52;
+  font-size: .8rem;
+}
+.door-divider::before, .door-divider::after {
+  content: ""; width: 70px; height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(195, 154, 82, .7));
+}
+.door-divider::after { transform: scaleX(-1); }
+.door-twinkle {
+  position: absolute;
+  color: #d4ad62;
+  text-shadow: 0 0 10px rgba(255, 236, 190, .9);
+  animation: twinkle 3.6s ease-in-out infinite;
+  pointer-events: none;
+}
+.door-twinkle.t1 { top: 6px; left: 8%; font-size: .9rem; }
+.door-twinkle.t2 { top: 62px; right: 6%; font-size: .7rem; animation-delay: 1.2s; color: #9dbad0; }
+.door-twinkle.t3 { top: 128px; left: 2%; font-size: .6rem; animation-delay: 2.3s; }
+.choice-tag { display: none; }
+
 @media (min-width: 680px) {
-  .door-inner { max-width: 640px; }
-  .choices { grid-template-columns: 1fr 1fr; gap: 16px; }
-  .choice { grid-template-columns: 1fr; padding: 10px 10px 18px; text-align: center; }
-  .choice-art { width: 100%; height: 150px; border-radius: 14px; }
+  .door-inner { max-width: 680px; }
+  .choices { position: relative; grid-template-columns: 1fr 1fr; gap: 22px; }
+  /* A shared glow beneath both cards, and a small ornament between them */
+  .choices::before {
+    content: "";
+    position: absolute; inset: 12% -6% -10%;
+    z-index: -1;
+    background:
+      radial-gradient(45% 60% at 28% 55%, rgba(170, 196, 235, .45), transparent 70%),
+      radial-gradient(45% 60% at 72% 55%, rgba(222, 186, 116, .4), transparent 70%);
+    filter: blur(8px);
+  }
+  .choices::after {
+    content: "✦";
+    position: absolute; left: 50%; top: 50%;
+    display: grid; place-items: center;
+    width: 30px; height: 30px;
+    transform: translate(-50%, -50%);
+    border-radius: 50%;
+    background: #fffaf0;
+    border: 1px solid rgba(195, 154, 82, .45);
+    color: #b98d43;
+    font-size: .75rem;
+    box-shadow: 0 4px 12px rgba(36, 57, 45, .12);
+  }
+  .choice { grid-template-columns: 1fr; padding: 10px 10px 20px; text-align: center; border-radius: 24px; }
+  .choice-art { width: 100%; height: 170px; border-radius: 16px; }
   .choice-cameron .choice-art { background-size: cover; background-position: 25% 70%; }
+  .choice-tag { display: block; margin: 2px 0 6px; font-size: .9rem; opacity: .8; }
+  .choice-clara:hover { box-shadow: 0 16px 40px rgba(96, 128, 200, .28); }
+  .choice-cameron:hover { box-shadow: 0 16px 40px rgba(190, 132, 48, .28); }
+}
+
+@media (min-width: 1000px) {
+  /* THEME: home — a little more depth on big screens: warm light above, ice and pine at the edges */
+  body[data-theme="home"] .backdrop {
+    background-image:
+      radial-gradient(1100px 600px at 50% -12%, rgba(236, 204, 136, .42), transparent 62%),
+      radial-gradient(800px 640px at 108% 108%, rgba(143, 182, 205, .4), transparent 60%),
+      radial-gradient(760px 600px at -8% 100%, rgba(47, 90, 64, .16), transparent 62%),
+      radial-gradient(600px 500px at -5% 0%, rgba(214, 226, 240, .5), transparent 60%),
+      radial-gradient(1400px 900px at 50% 50%, transparent 55%, rgba(120, 110, 80, .1) 100%),
+      linear-gradient(180deg, #fcf8ef 0%, #f4efe3 55%, #e6eef2 100%);
+  }
+  .door-inner { max-width: 780px; }
+  .door h1 { font-size: 3.6rem; }
+  .choice-art { height: 210px; }
+  .door-twinkle.t1 { left: 4%; top: 0; font-size: 1.1rem; }
+  .door-twinkle.t2 { right: 2%; top: 70px; font-size: .85rem; }
+  .door-twinkle.t3 { left: -2%; top: 150px; font-size: .7rem; }
 }
 
 /* =====================================================================
@@ -332,6 +445,10 @@ body[data-theme="cameron"] .backdrop {
 
 /* THEME: clara — elegant italic title with a few twinkles */
 body[data-theme="clara"] .hero h1 { font-style: italic; font-weight: 600; letter-spacing: .01em; font-size: clamp(2.6rem, 12vw, 3.6rem); }
+body[data-theme="clara"] .hero-kicker::before { content: "❄"; margin-right: .7em; letter-spacing: 0; }
+body[data-theme="clara"] .hero-kicker::after { content: "❄"; margin-left: .45em; letter-spacing: 0; }
+body[data-theme="cameron"] .hero-kicker::before { content: "✦"; margin-right: .7em; letter-spacing: 0; color: #e3b45c; }
+body[data-theme="cameron"] .hero-kicker::after { content: "✦"; margin-left: .45em; letter-spacing: 0; color: #e3b45c; }
 body[data-theme="clara"] .hero::before,
 body[data-theme="clara"] .hero::after {
   content: "✦";
@@ -371,6 +488,19 @@ body[data-theme="cameron"] .hero-tagline { color: #fbe9cd; text-shadow: 0 1px 3p
   box-shadow: var(--shadow);
 }
 .list-head h2 { margin: 0; font-family: var(--font-display); font-size: 1.25rem; font-weight: 600; }
+.list-head h2::after { margin-left: 6px; font-size: .7em; vertical-align: .15em; }
+/* THEME: clara — a snowflake and a soft ice-to-lavender rule */
+body[data-theme="clara"] .list-head h2::after { content: "❄"; color: #8ea6d6; }
+body[data-theme="clara"] .list-head { position: relative; }
+body[data-theme="clara"] .list-head::after,
+body[data-theme="cameron"] .list-head::after {
+  content: ""; position: absolute; left: 14px; right: 14px; bottom: -1px; height: 1px;
+}
+body[data-theme="clara"] .list-head::after { background: linear-gradient(90deg, transparent, #b9cbee, #d8c9ef, transparent); }
+/* THEME: cameron — a gold sprig mark and a moss-to-gold rule */
+body[data-theme="cameron"] .list-head h2::after { content: "✦"; color: #c9973a; }
+body[data-theme="cameron"] .list-head { position: relative; }
+body[data-theme="cameron"] .list-head::after { background: linear-gradient(90deg, transparent, #7d9d55, #d4a24a, transparent); }
 .summary { margin: 0; display: flex; gap: 10px; font-size: .82rem; color: var(--ink-soft); }
 .summary span { display: inline-flex; align-items: center; gap: 5px; white-space: nowrap; }
 .dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
@@ -479,9 +609,17 @@ body[data-theme="cameron"] .hero-tagline { color: #fbe9cd; text-shadow: 0 1px 3p
 .gift.is-mine { opacity: 1; box-shadow: var(--shadow), inset 3px 0 0 var(--accent); }
 .gift.is-mine[data-status="purchased"] { opacity: .92; }
 
-/* THEME: cameron — available gifts carry a small moss accent on the left edge */
-body[data-theme="cameron"] .gift[data-status="available"] { box-shadow: var(--shadow), inset 3px 0 0 #6f8f4e; }
-body[data-theme="cameron"] .gift.is-mine { box-shadow: var(--shadow), inset 3px 0 0 #c98b2f; }
+/* THEME: cameron — a moss-to-gold edge on available gifts (amber-to-berry on
+   your own claims), and prices in a restrained berry red */
+body[data-theme="cameron"] .gift[data-status="available"]::before,
+body[data-theme="cameron"] .gift.is-mine::before {
+  content: ""; position: absolute; left: 0; top: 12px; bottom: 12px; width: 3px;
+  border-radius: 0 3px 3px 0;
+  background: linear-gradient(180deg, #7d9d55, #c9973a);
+}
+body[data-theme="cameron"] .gift.is-mine { box-shadow: var(--shadow); }
+body[data-theme="cameron"] .gift.is-mine::before { background: linear-gradient(180deg, #d9a443, #a4442f); }
+body[data-theme="cameron"] .gift[data-status="available"] .gift-price { color: var(--berry); }
 /* THEME: clara — a faint frost line along the top of each card */
 body[data-theme="clara"] .gift::before {
   content: ""; position: absolute; left: 18px; right: 18px; top: 0; height: 1px;
@@ -507,8 +645,8 @@ body[data-theme="clara"] .gift::before {
 }
 .btn:active:not(:disabled) { transform: scale(.97); }
 .btn:disabled { cursor: progress; opacity: .6; }
-.btn-primary { background: var(--accent); color: var(--accent-ink); }
-.btn-primary:hover:not(:disabled) { background: var(--accent-hover); }
+.btn-primary { background: var(--accent-fill, var(--accent)); color: var(--accent-ink); box-shadow: var(--accent-glint, none), 0 2px 6px rgba(0, 0, 0, .12); }
+.btn-primary:hover:not(:disabled) { background: var(--accent-fill-hover, var(--accent-hover)); }
 .btn-quiet { background: var(--accent-soft); color: var(--accent); }
 .btn-quiet:hover:not(:disabled) { background: rgba(0, 0, 0, .08); }
 .btn-text {
@@ -604,12 +742,12 @@ body[data-theme="clara"] .gift::before {
    --------------------------------------------------------------------- */
 @media (min-width: 900px) and (min-aspect-ratio: 1/1) {
   body[data-theme="clara"] { --panel-top: 30vh; }
-  body[data-theme="cameron"] { --panel-top: 24vh; }
+  body[data-theme="cameron"] { --panel-top: 28vh; }
   .list-view { padding-bottom: 64px; }
   .hero h1 { font-size: 3.6rem; }
   body[data-theme="clara"] .hero h1 { font-size: 4.2rem; }
-  /* THEME: cameron — the column sits right so the bonsai keeps the left of the scene */
-  body[data-theme="cameron"] .list-column { margin-left: auto; margin-right: max(4vw, 24px); width: min(var(--column), 50vw); }
+  /* Both lists stay centred: the wishlist is the main content. Cameron's art is
+     anchored left so the bonsai frames the list from the left side. */
   .gift { padding: 14px 18px; }
 }
 

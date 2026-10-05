@@ -92,13 +92,80 @@ body[data-theme="cameron"] .manage-hint { color: #fbeed8; text-shadow: 0 1px 3px
 .owner-empty p { margin: 0 0 4px; }
 .position { font-variant-numeric: tabular-nums; }
 
-/* The add/edit form gets more room, and fills a phone screen. */
-.dialog-form { width: min(520px, calc(100vw - 24px)); max-height: calc(100dvh - 24px); overflow: auto; }
+/* ---------- Add / edit gift form ----------
+   A themed card: accent strip, kicker + title, the one required field up
+   front, optional extras grouped, and a footer that stays in reach. */
+.dialog-form {
+  --form-strip: linear-gradient(90deg, #c39a52, #e5cf9c, #9dbad0);
+  --form-tint: linear-gradient(180deg, rgba(255, 252, 245, 1), rgba(250, 245, 234, 1));
+  width: min(540px, calc(100vw - 24px));
+  max-height: calc(100dvh - 24px);
+  padding: 0;
+  overflow: hidden;
+  background: var(--form-tint);
+}
+body[data-theme="clara"] .dialog-form {
+  --form-strip: linear-gradient(90deg, #a9c1ea, #d6cbef, #ead9bd, #a9c1ea);
+  --form-tint: linear-gradient(170deg, #fbfcff 0%, #f1f4fc 60%, #f5f0fb 100%);
+}
+body[data-theme="cameron"] .dialog-form {
+  --form-strip: linear-gradient(90deg, #2e5a3c, #7d9d55, #d4a24a, #2e5a3c);
+  --form-tint: linear-gradient(170deg, #fdf9f0 0%, #f6eedd 100%);
+}
+.gift-form { display: flex; flex-direction: column; max-height: inherit; }
+.form-head { position: relative; padding: 26px 22px 6px; }
+.form-head::before {
+  content: ""; position: absolute; top: 0; left: 0; right: 0; height: 5px;
+  background: var(--form-strip);
+}
+.form-kicker {
+  margin: 0 0 2px;
+  color: var(--kicker);
+  font-size: .72rem; font-weight: 800; letter-spacing: .22em; text-transform: uppercase;
+}
+body[data-theme="cameron"] .form-kicker { color: #a86b1f; }
+.dialog-form h2 { margin: 0; font-size: 1.7rem; }
+body[data-theme="clara"] .dialog-form h2 { font-style: italic; font-size: 1.95rem; }
+.form-lede { margin: 4px 0 0; color: var(--ink-soft); font-size: .9rem; }
+.form-lede:empty { display: none; }
+
+.form-body { padding: 14px 22px 4px; overflow: auto; flex: 1; }
+.field-main input { min-height: 50px; font-size: 1.08rem; font-weight: 600; }
+.form-extras {
+  margin: 6px 0 4px;
+  padding: 12px 14px 2px;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, .45);
+}
+.form-extras legend { padding: 0 6px; font-size: .78rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-soft); }
+.form-extras legend span { font-weight: 600; text-transform: none; letter-spacing: 0; }
+.field-row { display: grid; gap: 0 12px; }
+@media (min-width: 521px) {
+  .field-row { grid-template-columns: 9rem 1fr; }
+}
+.gift-form .field input, .gift-form .field textarea {
+  border-color: rgba(0, 0, 0, .1);
+  background: #fff;
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, .04);
+  transition: border-color .15s, box-shadow .15s;
+}
+.gift-form .field input:hover, .gift-form .field textarea:hover { border-color: rgba(0, 0, 0, .2); }
+.gift-form ::placeholder { color: #9a9a9a; font-weight: 400; }
+
+.form-foot {
+  padding: 12px 22px max(16px, env(safe-area-inset-bottom));
+  border-top: 1px solid var(--border);
+  background: inherit;
+}
+
+/* On a phone the form fills the screen and its buttons stay pinned at the bottom. */
 @media (max-width: 520px) {
-  .dialog-form { width: 100vw; max-width: 100vw; height: 100dvh; max-height: 100dvh; margin: 0; border-radius: 0; padding-top: max(20px, env(safe-area-inset-top)); }
+  .dialog-form { width: 100vw; max-width: 100vw; height: 100dvh; max-height: 100dvh; margin: 0; border-radius: 0; border: 0; }
+  .gift-form { height: 100%; }
+  .form-head { padding-top: max(26px, calc(env(safe-area-inset-top) + 18px)); }
 }
 
 @media (min-width: 900px) and (min-aspect-ratio: 1/1) {
   .manage-column { max-width: 680px; }
-  body[data-theme="cameron"] .manage-column { margin-left: auto; margin-right: max(4vw, 24px); }
 }

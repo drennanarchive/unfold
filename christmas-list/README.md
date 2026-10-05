@@ -34,6 +34,7 @@ through a handful of database functions that enforce the rules (see `supabase/se
 | `supabase/setup.sql` | Creates/updates the database. Safe to re-run |
 | `supabase/link-owners.sql` | Links Clara's and Cameron's logins to their lists |
 | `supabase/sample-gifts.sql` | Optional sample gifts for trying it out |
+| `test/` | Automated tests (database, pages, layout) that run in a browser. See `test/README.md` |
 
 ---
 
@@ -115,5 +116,10 @@ Open `index.html` (or `manage.html`) directly in a browser. Once `config.js` has
 the local copy talks to the real database, which is handy for checking setup before sharing the link.
 Without settings, both pages say they aren't connected yet.
 
-Tests were run from outside the repo (headless Chrome + an in-browser Postgres running
-`supabase/setup.sql`), so nothing test-related lives in this folder.
+## Tests
+
+`bash christmas-list/test/run-headless.sh` runs about 250 checks (database security and ownership,
+the claim/purchase lifecycle, both pages, and phone-to-desktop layout) against an in-browser Postgres
+running the real `setup.sql`. Nothing touches the live project. After setup,
+`test/live-concurrency.html` confirms simultaneous claims behave on the real Supabase database.
+Details in `test/README.md`.

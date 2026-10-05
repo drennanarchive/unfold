@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex" />
+  <title>running</title>
+  <style>
+    :root { color-scheme: light dark; --ok: #1f7a43; --bad: #b3261e; --muted: #777; }
+    body { margin: 0; padding: 20px 16px 60px; font: 14px/1.5 system-ui, sans-serif; max-width: 900px; margin-inline: auto; background: Canvas; color: CanvasText; }
+    h1 { font-size: 1.3rem; margin: 0 0 4px; }
+    p { margin: 0 0 14px; color: var(--muted); }
+    #summary { font-size: 1.1rem; font-weight: 700; margin: 10px 0 16px; }
+    #summary.ok { color: var(--ok); } #summary.bad { color: var(--bad); }
+    #log { white-space: pre-wrap; font: 12.5px/1.55 ui-monospace, Consolas, monospace; }
+    .suite { font-weight: 700; margin-top: 16px; } .sec { color: var(--muted); margin-top: 6px; }
+    .pass { color: var(--ok); } .fail { color: var(--bad); font-weight: 700; } .note { color: var(--muted); font-style: italic; }
+    #frames { position: absolute; left: -10000px; top: 0; }
+  </style>
+</head>
+<body>
+  <h1>Christmas wishlists: automated tests</h1>
+  <p>Runs the real pages and <code>supabase/setup.sql</code> against Postgres in this browser tab (PGlite). Nothing touches the live Supabase project. Takes about a minute.</p>
+  <div id="summary">Running…</div>
+  <div id="log"></div>
+  <div id="frames"></div>
+
+  <script src="harness.js"></script>
+  <script src="db.test.js"></script>
+  <script src="ui.test.js"></script>
+  <script src="layout.test.js"></script>
+  <script>
+    (async function () {
+      const log = document.getElementById("log");
+      const summary = document.getElementById("summary");
+      const only = new URLSearchParams(location.search).get("suite"); // e.g. ?suite=db
+      const lines = [];
+      let passed = 0, failed = 0;
+      const add = (cls, text) => { const div = document.createElement("div"); div.className = cls; div.textContent = text; log.append(div); lines.push(text); };
+
+      for (const suite of window.SUITES) {
+        if (only && !suite.name.toLowerCase().startsWith(only.toLowerCase())) continue;
+        add("suite", "■ " + suite.name);
+        const t = {
+          section: (name) => add("sec", "  — " + name),
+          note: (text) => add("note", "    " + text),
+          check(name, ok, detail) {
+            if (ok) passed++; else failed++;
+            add(ok ? "pass" : "fail", (ok ? "    PASS " : "    FAIL ") + name + (!ok && detail !== undefined ? "  → " + detail : ""));
+            document.title = "running: " + name;
+          },
+        };
+        try { await suite.run(t); }
+        catch (e) { failed++; add("fail", "    ERROR " + (e && e.stack || e)); }
+        document.getElementById("frames").textContent = "";
+      }
+
+      const ok = failed === 0 && passed > 0;
+      summary.textContent = ok ? `All ${passed} checks passed` : `${failed} failed, ${passed} passed`;
+      summary.className = ok ? "ok" : "bad";
+      // run-headless.sh reads these two lines.
+      add(ok ? "pass" : "fail", "");
+      add(ok ? "pass" : "fail", ok ? `RESULT: PASS ${passed}` : `RESULT: FAIL ${failed} (passed ${passed})`);
+      document.title = ok ? "PASS" : "FAIL";
+    })();
+  </script>
+</body>
+</html>

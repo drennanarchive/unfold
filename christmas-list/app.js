@@ -282,7 +282,7 @@
     } else if (!state.loaded && state.offline) {
       showNotice("Can't reach the wishlist right now. It will keep trying automatically.", true, true);
     } else if (state.loaded && items.length === 0) {
-      showNotice("Nothing on " + person.name + "'s list yet. Check back soon!");
+      showNotice("Nothing here yet. " + person.name + " is still thinking. Check back soon!");
     } else if (state.loaded && !tokenSaved) {
       showNotice("This browser isn't saving site data (private window?). You can still claim gifts, but it will forget which ones are yours once it's closed.");
     }
@@ -443,7 +443,7 @@
   async function claim(g) {
     const ok = await XL.confirm({
       title: "Claim “" + g.name + "”?",
-      body: "Everyone else will see it as Claimed. Nobody can see who claimed it. This browser will remember it's yours, so you can mark it purchased or undo later.",
+      body: "Everyone else will just see “Claimed”, never who. This browser remembers it's yours, so you can mark it purchased (or change your mind) later.",
       confirmLabel: "Claim it",
     });
     if (!ok) return;
@@ -468,7 +468,7 @@
   async function release(g) {
     const ok = await XL.confirm({
       title: "Undo your claim?",
-      body: "“" + g.name + "” will be available again for everyone.",
+      body: "“" + g.name + "” goes back on the list for everyone.",
       confirmLabel: "Undo claim",
       cancelLabel: "Keep it",
     });
@@ -478,7 +478,7 @@
       onResult: (r) => {
         if (r === "released") {
           setLocal(g.id, { status: "available", mine: false, updated_since_claim: false });
-          XL.toast("Claim undone. It's available again.");
+          XL.toast("Claim undone. It's back on the list.");
         } else if (r === "purchased") {
           XL.toast("Mark it as not purchased first.");
         } else {
@@ -538,6 +538,10 @@
   // ---------------------------------------------------------------------------
 
   $("#door-year").textContent = config.year;
+  XL.people.forEach((p) => {
+    const tag = $(".choice-" + p.key + " .choice-tag");
+    if (tag && p.tagline) tag.textContent = p.tagline;
+  });
   window.addEventListener("hashchange", route);
   route();
   if (!state.view) refresh(); // warm the data while people read the front door

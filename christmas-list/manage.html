@@ -84,37 +84,51 @@
 
   <!-- Add / edit gift -->
   <dialog id="gift-dialog" class="dialog dialog-form" aria-labelledby="gift-form-title">
-    <form id="gift-form" novalidate>
-      <h2 id="gift-form-title">Add a gift</h2>
-      <label class="field">
-        <span class="field-label">Gift name <span class="req">(required)</span></span>
-        <input id="f-name" name="name" maxlength="120" required aria-describedby="e-name" />
-        <span class="field-error" id="e-name"></span>
-      </label>
-      <label class="field">
-        <span class="field-label">Details / preferences</span>
-        <textarea id="f-details" name="details" rows="3" maxlength="1000" aria-describedby="h-details e-details"></textarea>
-        <span class="field-hint" id="h-details">Size, colour, edition, "any brand is fine"…</span>
-        <span class="field-error" id="e-details"></span>
-      </label>
-      <label class="field">
-        <span class="field-label">Approximate price</span>
-        <input id="f-price" name="price" maxlength="40" placeholder="$35, or about $20–30" aria-describedby="e-price" />
-        <span class="field-error" id="e-price"></span>
-      </label>
-      <label class="field">
-        <span class="field-label">Shopping link</span>
-        <input id="f-link" name="link" type="url" inputmode="url" placeholder="https://…" aria-describedby="e-link" />
-        <span class="field-error" id="e-link"></span>
-      </label>
-      <label class="field">
-        <span class="field-label">Image link</span>
-        <input id="f-image" name="image_url" type="url" inputmode="url" placeholder="https://… (optional)" aria-describedby="h-image e-image" />
-        <span class="field-hint" id="h-image">Optional. A link to a picture of the gift.</span>
-        <span class="field-error" id="e-image"></span>
-      </label>
-      <p id="gift-form-message" class="form-message" role="alert"></p>
-      <div class="dialog-actions">
+    <form id="gift-form" class="gift-form" novalidate>
+      <header class="form-head">
+        <p class="form-kicker" id="gift-form-kicker"></p>
+        <h2 id="gift-form-title">Add a gift</h2>
+        <p class="form-lede" id="gift-form-lede"></p>
+      </header>
+
+      <div class="form-body">
+        <label class="field field-main">
+          <span class="field-label">Gift name</span>
+          <input id="f-name" name="name" maxlength="120" required aria-describedby="e-name" placeholder="What are you wishing for?" />
+          <span class="field-error" id="e-name"></span>
+        </label>
+
+        <fieldset class="form-extras">
+          <legend>Helpful extras <span>· optional</span></legend>
+          <label class="field">
+            <span class="field-label">Details / preferences</span>
+            <textarea id="f-details" name="details" rows="3" maxlength="1000" aria-describedby="h-details e-details"></textarea>
+            <span class="field-hint" id="h-details">Size, colour, edition, "any brand is fine"…</span>
+            <span class="field-error" id="e-details"></span>
+          </label>
+          <div class="field-row">
+            <label class="field field-price">
+              <span class="field-label">Approx. price</span>
+              <input id="f-price" name="price" maxlength="40" placeholder="~$35" aria-describedby="e-price" />
+              <span class="field-error" id="e-price"></span>
+            </label>
+            <label class="field">
+              <span class="field-label">Shopping link</span>
+              <input id="f-link" name="link" type="url" inputmode="url" placeholder="https://…" aria-describedby="e-link" />
+              <span class="field-error" id="e-link"></span>
+            </label>
+          </div>
+          <label class="field">
+            <span class="field-label">Image link</span>
+            <input id="f-image" name="image_url" type="url" inputmode="url" placeholder="https://…" aria-describedby="h-image e-image" />
+            <span class="field-hint" id="h-image">A picture helps, but isn't needed.</span>
+            <span class="field-error" id="e-image"></span>
+          </label>
+        </fieldset>
+        <p id="gift-form-message" class="form-message" role="alert"></p>
+      </div>
+
+      <div class="form-foot dialog-actions">
         <button id="gift-cancel" class="btn btn-quiet" type="button">Cancel</button>
         <button id="gift-save" class="btn btn-primary" type="submit">Save</button>
       </div>

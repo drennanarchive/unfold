@@ -237,7 +237,7 @@
 
     if (!total) {
       const empty = el("li", "owner-gift owner-empty");
-      empty.append(el("p", null, "Your list is empty."), el("p", "field-hint", "Add your first gift and it will appear on the family page right away."));
+      empty.append(el("p", null, "Your list is still a blank page."), el("p", "field-hint", "Add your first wish and it appears on the family page right away."));
       list.append(empty);
       return;
     }
@@ -331,7 +331,7 @@
   async function removeGift(g) {
     const ok = await XL.confirm({
       title: "Remove “" + g.name + "”?",
-      body: "Family won't see it on your list anymore.",
+      body: "Family won't see it anymore. If someone had already claimed it, only they get a gentle heads-up.",
       confirmLabel: "Remove",
       cancelLabel: "Keep it",
     });
@@ -378,8 +378,13 @@
 
   function openForm(gift) {
     state.editing = gift || null;
+    const person = XL.person(state.recipient) || { name: "Your" };
+    $("#gift-form-kicker").textContent = person.name + "'s list";
     $("#gift-form-title").textContent = gift ? "Edit gift" : "Add a gift";
-    $("#gift-save").textContent = gift ? "Save changes" : "Add gift";
+    $("#gift-form-lede").textContent = gift
+      ? "A different gift deserves a new entry. Small edits are fine."
+      : "Only the name is needed. The extras help everyone get it right.";
+    $("#gift-save").textContent = gift ? "Save changes" : "Add to my list";
     Object.entries(fields).forEach(([key, f]) => {
       f.input.value = gift && gift[key] ? gift[key] : "";
       f.error.textContent = "";
