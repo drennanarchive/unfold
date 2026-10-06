@@ -84,8 +84,10 @@
     refreshAgain: false,
     version: 0,             // bumped by every action, so stale refreshes are ignored
     lastSync: null,
+    purchasedDefaultSet: false, // "Already purchased" starts open on wide screens, closed on narrow
   };
-  const cards = new Map();  // gift id -> { li, sig }
+  const cards = new Map();  // gift id -> { li, sig }  (main list)
+  const rows = new Map();   // gift id -> { li, sig }  ("Already purchased")
 
   const giftById = (id) => state.gifts.find((g) => g.id === id);
 
@@ -121,7 +123,10 @@
     }
 
     cards.clear();
+    rows.clear();
     $("#gifts").textContent = "";
+    $("#purchased-list").textContent = "";
+    state.purchasedDefaultSet = false;
     window.scrollTo(0, 0);
     renderList();
     refresh();
@@ -163,7 +168,7 @@
 
   function hasMore(g) {
     const longDetails = g.details && (g.details.length > 90 || g.details.includes("\n"));
-    return Boolean(longDetails || XL.isHttpUrl(g.link) || XL.isHttpUrl(g.image_url) || (g.mine && g.status === "purchased"));
+    return Boolean(longDetails || XL.isHttpUrl(g.link) || XL.isHttpUrl(g.image_url));
   }
 
   function buildRemoved(g, pending) {
@@ -228,9 +233,6 @@
         a.setAttribute("aria-label", "View " + g.name + " (opens in a new tab)");
         extra.append(a);
       }
-      if (g.mine && g.status === "purchased") {
-        extra.append(button("Mark as not purchased", "btn-text gift-secondary", "unpurchase", () => markNotPurchased(g), pending));
-      }
       li.append(extra);
     }
 
@@ -262,8 +264,95 @@
     return li;
   }
 
+  // A compact row for the "Already purchased" area. Only the browser that bought
+  // it gets a control (to undo the purchase); everyone else just sees "Purchased".
+  function buildPurchased(g) {
+    const pending = state.pending.has(g.id);
+    const li = el("li", "bought");
+    li.classList.toggle("is-mine", g.mine);
+
+    const top = el("div", "bought-top");
+    top.insertAdjacentHTML("beforeend", ICONS.purchased);
+    top.append(el("span", "bought-name", g.name));
+    if (g.price) {
+      const price = el("span", "bought-price");
+      price.append(el("span", "sr-only", "Approximate price: "), document.createTextNode(g.price));
+      top.append(price);
+    }
+    li.append(top);
+
+    const meta = el("p", "bought-meta");
+    meta.append(el("span", "bought-status", pending ? "Saving…" : statusLabel(g)));
+    if (XL.isHttpUrl(g.link)) {
+      const a = el("a", "bought-link", "View item ↗");
+      a.href = g.link;
+      a.target = "_blank";
+      a.rel = "noopener noreferrer";
+      a.setAttribute("aria-label", "View " + g.name + " (opens in a new tab)");
+      meta.append(a);
+    }
+    li.append(meta);
+    if (g.mine && g.updated_since_claim) li.append(el("p", "gift-note", "✎ Updated since you claimed it"));
+
+    if (g.mine) {
+      const undo = button("Undo purchase", "btn-text bought-undo", "unpurchase", () => markNotPurchased(g), pending);
+      undo.setAttribute("aria-label", "Mark " + g.name + " as not purchased");
+      li.append(undo);
+    }
+    return li;
+  }
+
   function signature(g) {
     return JSON.stringify([g, state.pending.has(g.id), state.open.has(g.id)]);
+  }
+
+  // Puts the given items into a list element in order, rebuilding only the ones
+  // whose data changed and keeping keyboard focus where it was.
+  function syncList(listEl, items, cache, build) {
+    const wanted = [];
+    items.forEach((g) => {
+      const sig = signature(g);
+      let entry = cache.get(g.id);
+      if (!entry || entry.sig !== sig) {
+        const focusedRole = entry && entry.li.contains(document.activeElement) ? document.activeElement.dataset.role : null;
+        const li = build(g);
+        li.dataset.id = g.id;
+        if (entry) entry.li.replaceWith(li);
+        entry = { li, sig };
+        cache.set(g.id, entry);
+        if (focusedRole) {
+          const again = li.querySelector('[data-role="' + focusedRole + '"]') || li.querySelector("button");
+          if (again) again.focus();
+        }
+      }
+      wanted.push(entry.li);
+    });
+    for (const [id, entry] of cache) {
+      if (!items.some((g) => g.id === id)) { entry.li.remove(); cache.delete(id); }
+    }
+    const current = Array.from(listEl.children);
+    if (current.length !== wanted.length || current.some((node, i) => node !== wanted[i])) {
+      wanted.forEach((li) => listEl.append(li));
+    }
+  }
+
+  // Purchased gifts leave the main list for a compact "Already purchased" area
+  // (beside the list on wide screens, below it on phones). Claimed-but-not-
+  // purchased gifts stay in the main list. Removal notes stay in the main list.
+  const isPurchasedRow = (g) => !g.removed && g.status === "purchased";
+
+  function renderPurchased(items) {
+    const section = $("#purchased");
+    const bought = items.filter(isPurchasedRow);
+    section.hidden = bought.length === 0;
+    $("#purchased-count").textContent = "(" + bought.length + ")";
+    const details = $("#purchased-details");
+    if (!state.purchasedDefaultSet && bought.length) {
+      // Open by default where it sits beside the list; tucked away on narrower screens.
+      details.open = window.matchMedia("(min-width: 1240px) and (min-aspect-ratio: 1/1)").matches;
+      state.purchasedDefaultSet = true;
+    }
+    syncList($("#purchased-list"), bought, rows, buildPurchased);
   }
 
   function renderList() {
@@ -287,31 +376,8 @@
       showNotice("This browser isn't saving site data (private window?). You can still claim gifts, but it will forget which ones are yours once it's closed.");
     }
 
-    // Cards: rebuild only the ones whose data changed, keeping focus where it was.
-    const wanted = [];
-    items.forEach((g) => {
-      const sig = signature(g);
-      let entry = cards.get(g.id);
-      if (!entry || entry.sig !== sig) {
-        const focusedRole = entry && entry.li.contains(document.activeElement) ? document.activeElement.dataset.role : null;
-        const li = buildGift(g);
-        if (entry) entry.li.replaceWith(li);
-        entry = { li, sig };
-        cards.set(g.id, entry);
-        if (focusedRole) {
-          const again = li.querySelector('[data-role="' + focusedRole + '"]') || li.querySelector("button");
-          if (again) again.focus();
-        }
-      }
-      wanted.push(entry.li);
-    });
-    for (const [id, entry] of cards) {
-      if (!items.some((g) => g.id === id)) { entry.li.remove(); cards.delete(id); }
-    }
-    const current = Array.from(list.children);
-    if (current.length !== wanted.length || current.some((node, i) => node !== wanted[i])) {
-      wanted.forEach((li) => list.append(li));
-    }
+    syncList(list, items.filter((g) => !isPurchasedRow(g)), cards, buildGift);
+    renderPurchased(items);
 
     renderSummary(items);
     renderSync();
@@ -415,6 +481,10 @@
    */
   async function act(g, { call, onResult, verify, success }) {
     if (state.pending.has(g.id)) return;
+    // If the action came from this gift's own controls, keep keyboard focus with
+    // the gift afterwards, even if it moved between the list and "Already purchased".
+    const active = document.activeElement && document.activeElement.closest && document.activeElement.closest("[data-id]");
+    const keepFocus = Boolean(active && active.dataset.id === g.id);
     state.pending.add(g.id);
     renderList();
     let lost = false;
@@ -430,6 +500,12 @@
     } finally {
       state.pending.delete(g.id);
       renderList();
+      if (keepFocus) {
+        const li = document.querySelector('[data-id="' + g.id + '"]');
+        const target = li && (li.querySelector('[data-role="purchase"], [data-role="unpurchase"], [data-role="claim"], [data-role="release"]')
+          || li.querySelector("button:not(:disabled)"));
+        if (target) target.focus();
+      }
     }
     await refresh();
     if (lost) {
@@ -496,7 +572,9 @@
       onResult: (r) => {
         if (r === "purchased") {
           setLocal(g.id, { status: "purchased" });
-          XL.toast("Marked as purchased ✓", { label: "Undo", onClick: () => markNotPurchased(giftById(g.id) || g, true) });
+          $("#purchased-details").open = true; // so you can see where it went
+          state.purchasedDefaultSet = true;    // ...and don't let the phone default close it again
+          XL.toast("Purchased ✓ Moved to “Already purchased”.", { label: "Undo", onClick: () => markNotPurchased(giftById(g.id) || g, true) });
         } else {
           XL.toast("That claim wasn't made from this browser.");
         }

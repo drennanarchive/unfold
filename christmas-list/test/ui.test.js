@@ -6,7 +6,7 @@ window.SUITES = window.SUITES || [];
 window.SUITES.push({
   name: "Pages: family list and owner management",
   async run(t) {
-    const { USERS, CONFIG, sleep, makeDb, makeEnv, open, reopen, rpc, card, chip, btn, toast, refocus, confirmYes } = T;
+    const { USERS, CONFIG, sleep, makeDb, makeEnv, open, reopen, rpc, card, chip, btn, toast, refocus, confirmYes, boughtStatus } = T;
     const { db } = await makeDb();
     const env = makeEnv(db);
     const C = USERS.clara.id;
@@ -46,16 +46,15 @@ window.SUITES.push({
     t.check("late claimer sees plain 'Claimed', no actions", chip(B, "Cozy oversized blanket") === "Claimed" && !btn(B, "Cozy oversized blanket", "release"));
 
     btn(A, "Cozy oversized blanket", "purchase").click(); await sleep(400);
-    t.check("mark purchased -> 'Purchased by you'", chip(A, "Cozy oversized blanket") === "Purchased by you");
+    t.check("mark purchased -> 'Purchased by you' in Already purchased", boughtStatus(A, "Cozy oversized blanket") === "Purchased by you" && !card(A, "Cozy oversized blanket"));
     t.check("purchase message offers Undo", !!A.d.querySelector("#toast .toast-action"));
     await refocus(B);
-    t.check("others see 'Purchased', never who", chip(B, "Cozy oversized blanket") === "Purchased");
+    t.check("others see 'Purchased', never who", boughtStatus(B, "Cozy oversized blanket") === "Purchased");
     A.d.querySelector("#toast .toast-action").click(); await sleep(500);
-    t.check("Undo -> back to 'Claimed by you'", chip(A, "Cozy oversized blanket") === "Claimed by you");
+    t.check("Undo -> back to 'Claimed by you' in the main list", chip(A, "Cozy oversized blanket") === "Claimed by you" && !T.bought(A, "Cozy oversized blanket"));
     btn(A, "Cozy oversized blanket", "purchase").click(); await sleep(400);
-    btn(A, "Cozy oversized blanket", "more").click(); await sleep(100);
-    btn(A, "Cozy oversized blanket", "unpurchase").click(); await sleep(400);
-    t.check("'Mark as not purchased' in Details works", chip(A, "Cozy oversized blanket") === "Claimed by you");
+    T.bought(A, "Cozy oversized blanket").querySelector('[data-role="unpurchase"]').click(); await sleep(400);
+    t.check("'Undo purchase' in Already purchased works", chip(A, "Cozy oversized blanket") === "Claimed by you");
 
     const A2 = await reopen(A, "clara");
     t.check("after a reload the browser still recognises its claim", chip(A2, "Cozy oversized blanket") === "Claimed by you");

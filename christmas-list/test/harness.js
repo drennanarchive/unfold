@@ -83,7 +83,12 @@
     }
     const setup = await readFile("supabase/setup.sql");
     await db.exec(setup);
-    await db.exec(await readFile("supabase/link-owners.sql")); // uses the example emails above
+    // Run the real link-owners.sql, but with the test accounts' emails swapped in
+    // (the file holds Clara's and Cameron's real addresses once set up).
+    const link = (await readFile("supabase/link-owners.sql"))
+      .replace(/('clara' from auth\.users u where lower\(u\.email\) = lower\(')[^']*'/, `$1${USERS.clara.email}'`)
+      .replace(/('cameron' from auth\.users u where lower\(u\.email\) = lower\(')[^']*'/, `$1${USERS.cameron.email}'`);
+    await db.exec(link);
     if (samples) await db.exec(await readFile("supabase/sample-gifts.sql"));
     return { db, setup };
   }
@@ -121,7 +126,7 @@
    * open(env, "index.html", "browser-A", "clara", { config, brokenStorage, width, height })
    */
   function makeEnv(db) {
-    const env = { db, server: { down: false, loseNext: null, calls: [] }, stores: {} };
+    const env = { db, server: { down: false, loseNext: null, calls: [] }, stores: {}, clientsCreated: [] };
 
     // Family page: fetch() -> database.
     env.fetch = async (url, opts) => {
@@ -187,7 +192,7 @@
       var S = parent.${id}.stores[${JSON.stringify(label)}];
       Object.defineProperty(window, "localStorage", { value: ${storage} });
       window.fetch = (u, o) => parent.${id}.fetch(u, o);
-      window.supabase = { createClient: () => parent.${id}.supabase(${JSON.stringify(label)}) };
+      window.supabase = { createClient: () => { parent.${id}.clientsCreated.push(${JSON.stringify(page)}); return parent.${id}.supabase(${JSON.stringify(label)}); } };
       ${hash ? `location.hash = ${JSON.stringify("#" + hash)};` : ""}
     <\/script>`;
     const doc = html
@@ -212,11 +217,16 @@
   const chip = (dev, name) => { const c = card(dev, name); return c && c.querySelector(".chip") ? c.querySelector(".chip").textContent : undefined; };
   const btn = (dev, name, role) => { const c = card(dev, name); return c ? c.querySelector(`[data-role="${role}"]`) : null; };
   const toast = (dev) => dev.d.getElementById("toast").textContent;
+  // "Already purchased" area helpers
+  const bought = (dev, name) => [...dev.d.querySelectorAll("#purchased-list > li")].find((li) => li.querySelector(".bought-name").textContent === name);
+  const boughtStatus = (dev, name) => { const r = bought(dev, name); return r ? r.querySelector(".bought-status").textContent : undefined; };
+  const activeNames = (dev) => [...dev.d.querySelectorAll("#gifts > li .gift-name")].map((n) => n.textContent);
+  const boughtNames = (dev) => [...dev.d.querySelectorAll("#purchased-list > li .bought-name")].map((n) => n.textContent);
   async function refocus(dev) { dev.w.dispatchEvent(new Event("focus")); await sleep(300); }
   async function confirmYes(dev) { dev.d.getElementById("confirm-yes").click(); await sleep(400); }
 
   window.T = {
     APP, USERS, CONFIG, sleep, readFile, makeDb, asRole, rpc, makeEnv, open, reopen,
-    card, chip, btn, toast, refocus, confirmYes,
+    card, chip, btn, toast, refocus, confirmYes, bought, boughtStatus, activeNames, boughtNames,
   };
 })();

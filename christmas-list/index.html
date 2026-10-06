@@ -50,7 +50,7 @@
 
         <p class="door-note">Claim a gift so nobody doubles up. Your secret's safe: not even Clara or Cameron can see who claimed what.</p>
       </div>
-      <footer class="door-foot"><a href="manage.html">List owner? Manage your list</a></footer>
+      <footer class="door-foot"><a href="manage.html">Manage list</a></footer>
     </main>
 
     <!-- One person's list (Clara or Cameron, chosen by the #hash) -->
@@ -68,14 +68,28 @@
           </header>
         </div>
 
-        <section aria-labelledby="gifts-heading">
+        <section class="list-section" aria-labelledby="gifts-heading">
           <div class="list-head">
             <h2 id="gifts-heading">Wishlist</h2>
             <p class="summary" id="summary" aria-live="polite"></p>
           </div>
           <div id="notice" class="notice" role="status" hidden></div>
           <ul id="gifts" class="gifts"></ul>
+
+          <!-- Purchased gifts: below the list on phones, a quiet side panel on wide screens -->
+          <section id="purchased" class="purchased" aria-labelledby="purchased-title" hidden>
+            <details id="purchased-details">
+              <summary>
+                <h2 id="purchased-title">Already purchased <span id="purchased-count"></span></h2>
+                <svg class="purchased-chevron" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 6l4 4 4-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </summary>
+              <p class="purchased-note">Bought, and maybe already wrapped. No need to look further.</p>
+              <ul id="purchased-list" class="purchased-list"></ul>
+            </details>
+          </section>
+
           <p id="sync" class="sync" aria-live="polite"></p>
+          <p class="list-foot"><a href="manage.html">Manage list</a></p>
         </section>
       </div>
     </main>

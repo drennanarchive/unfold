@@ -7,10 +7,20 @@ window.SUITES = window.SUITES || [];
 window.SUITES.push({
   name: "Layout: phone, tablet and desktop",
   async run(t) {
-    const { sleep, makeDb, makeEnv, open } = T;
+    const { sleep, makeDb, makeEnv, open, rpc, USERS } = T;
     const { db } = await makeDb();
     const env = makeEnv(db);
-    const SIZES = [[390, 844, "phone"], [430, 932, "large phone"], [768, 1024, "tablet"], [1280, 800, "desktop"]];
+    const SIZES = [[390, 844, "phone"], [430, 932, "large phone"], [768, 1024, "tablet"], [820, 1180, "tablet / narrow"],
+      [1280, 800, "desktop"], [1440, 900, "wide desktop"]];
+
+    // Some purchased gifts on both lists, so the "Already purchased" area shows.
+    const OTHER = "f".repeat(64);
+    for (const [uid, names] of [[USERS.clara.id, ["Winter candle set", "Loose-leaf tea sampler"]], [USERS.cameron.id, ["Warm wool socks"]]]) {
+      for (const g of (await rpc(db, uid, "owner_list", {})).data.filter((x) => names.includes(x.name))) {
+        await rpc(db, null, "claim_gift", { p_gift_id: g.id, p_token: OTHER });
+        await rpc(db, null, "mark_purchased", { p_gift_id: g.id, p_token: OTHER });
+      }
+    }
 
     const smallTargets = (d) => [...d.querySelectorAll("button, a.nav-link, a.choice")]
       .filter((b) => b.offsetParent && b.getBoundingClientRect().height < 43.5)
@@ -53,6 +63,27 @@ window.SUITES.push({
             t.check(`${label}: winter scene left open above the list (≥50% down)`, head.top >= h * 0.5, Math.round(head.top) + " of " + h);
           }
           t.check(`${label}: first gift is visible without scrolling`, d.querySelector("#gifts > li").getBoundingClientRect().top < h);
+        }
+
+        // "Already purchased" — measured opened, its largest state
+        const section = d.getElementById("purchased");
+        d.getElementById("purchased-details").open = true;
+        await sleep(50);
+        const box = section.getBoundingClientRect();
+        const rowsH = [...d.querySelectorAll("#purchased-list > li")].map((li) => li.getBoundingClientRect().height);
+        const lastCard = [...d.querySelectorAll("#gifts > li")].pop().getBoundingClientRect();
+        const rail = w >= 1240 && !portrait;
+        t.check(`${label}: purchased area shown with its rows`, !section.hidden && rowsH.length === (person === "clara" ? 2 : 1));
+        t.check(`${label}: 28/29/J. purchased area causes no sideways scrolling`, d.documentElement.scrollWidth <= w && box.right <= viewW + 0.5, Math.round(box.right) + " vs " + viewW);
+        t.check(`${label}: purchased rows are compact (≤ 90px, smaller than cards)`, Math.max(...rowsH) <= 90 && Math.max(...rowsH) < Math.min(...cards), rowsH.map(Math.round).join(","));
+        t.check(`${label}: tap targets still ≥44px with it open`, smallTargets(d).length === 0, smallTargets(d).join(", "));
+        if (rail) {
+          t.check(`${label}: 31. side panel sits beside the list without overlapping it`, box.left >= column.right + 8, Math.round(box.left) + " vs list edge " + Math.round(column.right));
+          t.check(`${label}: 31. side panel is clearly secondary (much narrower than the list)`, box.width <= column.width * 0.5, Math.round(box.width) + " vs " + Math.round(column.width));
+          t.check(`${label}: side panel starts open`, d.getElementById("purchased-details").open);
+        } else {
+          t.check(`${label}: 30. purchased area follows the main list`, box.top >= lastCard.bottom - 1, Math.round(box.top) + " vs " + Math.round(lastCard.bottom));
+          t.check(`${label}: purchased area stays within the list column`, box.left >= column.left - 1 && box.right <= column.right + 1);
         }
         P.frame.remove();
       }
