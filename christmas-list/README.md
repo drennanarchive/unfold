@@ -87,7 +87,7 @@ repository with `.github/workflows/static.yml`, so nothing else needs configurin
   (Supabase's free plan sends only a few emails per hour.)
 
 **Family:** claim → (later) **Mark purchased**. Mistakes can be undone: **Undo claim**, or
-**Details → Mark as not purchased**. A browser only recognises claims it made itself. Claim on a phone,
+**Already purchased → Undo purchase**. A browser only recognises claims it made itself. Claim on a phone,
 and a laptop will just show "Claimed".
 
 ### Fixing things by hand (Supabase → Table Editor)
@@ -118,8 +118,6 @@ Without settings, both pages say they aren't connected yet.
 
 ## Tests
 
-`bash christmas-list/test/run-headless.sh` runs about 250 checks (database security and ownership,
+`bash christmas-list/test/run-headless.sh` runs about 400 checks (database security and ownership,
 the claim/purchase lifecycle, both pages, and phone-to-desktop layout) against an in-browser Postgres
-running the real `setup.sql`. Nothing touches the live project. After setup,
-`test/live-concurrency.html` confirms simultaneous claims behave on the real Supabase database.
-Details in `test/README.md`.
+running the real `setup.sql`. Nothing touches the live project. Details in `test/README.md`.

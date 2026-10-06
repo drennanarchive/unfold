@@ -216,12 +216,5 @@ window.SUITES.push({
 
     const ownerCalls = env.server.calls.filter((c) => c.owner).map((c) => c.name);
     t.check("owner page only ever calls owner_* functions", ownerCalls.length > 0 && ownerCalls.every((n) => n.startsWith("owner_")), [...new Set(ownerCalls)].join(","));
-
-    t.section("Live concurrency check page (run here against the test database)");
-    const L = await open(env, "test/live-concurrency.html", "live");
-    t.check("run button stays disabled until confirmed", L.d.getElementById("run").disabled);
-    L.d.getElementById("ok").click();
-    L.d.getElementById("run").click(); await sleep(1500);
-    t.check("live check reports PASS and releases the gift", /PASS: exactly one of 8/.test(L.d.getElementById("out").textContent), L.d.getElementById("out").textContent);
   },
 });

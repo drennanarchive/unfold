@@ -7,10 +7,10 @@
  */
 window.CHRISTMAS_LIST_CONFIG = {
   // Supabase > Connect (or Project Settings > Data API). Looks like "https://abcdefghijklmnop.supabase.co"
-  supabaseUrl: "",
+  supabaseUrl: "https://ailjalhouwzjayzcphpi.supabase.co",
 
   // Supabase > Connect (or Project Settings > API Keys). Looks like "sb_publishable_..."
-  supabasePublishableKey: "",
+  supabasePublishableKey: "sb_publishable_ijgRaY-20R-L60TRVo2sEA_nf_xdWY-",
 
   // Shown on the front door.
   year: 2026,

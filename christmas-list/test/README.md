@@ -10,7 +10,6 @@ Supabase project. Everything runs in a browser tab.
 | `ui.test.js` | The pages: front door, navigation, the whole claim lifecycle across two browsers, auto-refresh, details expansion, offline / lost reply / first-load failure / not configured / blocked storage, owner sign-in, session persistence and expiry, add/edit/move/remove with Undo, unlinked accounts, owner page never calling claim functions |
 | `layout.test.js` | Phone (390, 430), tablet (768) and desktop (1280): no sideways scrolling, 44px tap targets, the right art for portrait vs landscape, compact cards, centred column, Cameron's bonsai left clear on phones, Clara's scene left open, reduced motion |
 | `run-headless.sh` | Runs everything in headless Chrome/Edge (normal + reduced motion) and exits non-zero on failure |
-| `live-concurrency.html` | Optional check against the real Supabase project (see below) |
 
 ## Running
 
@@ -33,10 +32,9 @@ Needs Chrome or Edge and an internet connection (PGlite and fonts load from a CD
 
 PGlite is real Postgres, but it handles one request at a time. The tests do fire simultaneous claims
 (and confirm exactly one wins), but the guarantee in production comes from the `claims` table's
-primary key, which Postgres enforces under true concurrency. To see that on the real project,
-open **`test/live-concurrency.html`** (on the published site or a local server, with `config.js`
-filled in). It sends 8 claims for one available gift at the same instant, checks exactly one wins, and
-releases it again. That gift shows as "Claimed" for about a second, so run it before sharing the link.
+primary key, which Postgres enforces under true concurrency. To see it on the real project, open the
+same available gift on two phones, tap **Claim** on both at the same moment, and check that one gets
+it and the other is told it was just claimed (then undo the claim).
 
 The automated tests also stand in for two things: a small fake of the Supabase sign-in client
 (the real one only runs against a real project), and a fake network for the family page. The real
