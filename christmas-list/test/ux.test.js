@@ -300,6 +300,86 @@ window.SUITES.push({
     step2(names2()[3], "up").click(); await sleep(500);
     t.check("saved but couldn't re-read: says so, instead of claiming nothing changed", /Moved, but/.test(T.toast(O2)) && (await ownerOrder(C)).join() !== beforeRefreshFail, T.toast(O2));
     t.check("and doesn't show a new order it hasn't confirmed", names2().join() === beforeRefreshFail, names2().join());
+
+    // -------------------------------------------------------------------
+    t.section("GIFs and reduced motion");
+    // A real two-frame GIF (red, then blue). The page asks for web addresses; each frame
+    // quietly swaps them for this data, so no outside site is involved and pixels can be read.
+    const ANIM = "data:image/gif;base64,R0lGODlhAQABAIAAANAwMDBg0CH/C05FVFNDQVBFMi4wAwEAAAAh+QQEHgAAACwAAAAAAQABAAACAkQBACH5BAQeAAAALAAAAAABAAEAAAICTAEAOw==";
+    const BROKEN = "data:image/gif;base64,AAAA";
+    const RED = "208,48,48";
+    const forceMotion = (dev, reduced) => {
+      const realMatch = dev.w.matchMedia.bind(dev.w);
+      dev.w.matchMedia = (q) => (/reduced-motion/.test(q) ? { matches: reduced } : realMatch(q));
+      const proto = dev.w.HTMLImageElement.prototype;
+      const real = dev.w.Object.getOwnPropertyDescriptor(proto, "src");
+      dev.srcSet = [];
+      dev.w.Object.defineProperty(proto, "src", { configurable: true, get: real.get, set(url) {
+        dev.srcSet.push({ url, referrer: this.referrerPolicy, hidden: this.style.visibility === "hidden" });
+        this.loading = "eager";
+        real.set.call(this, /bad-gif\.gif/.test(url) ? BROKEN : /gifs\.test/.test(url) ? ANIM : url);
+      } });
+    };
+    const G = "https://gifs.test/";
+    const CALM = await open(env, "index.html", "gif-reduced", "clara", { width: 390, height: 844 });
+    const LIVE = await open(env, "index.html", "gif-normal", "clara", { width: 390, height: 844 });
+    forceMotion(CALM, true);
+    forceMotion(LIVE, false);
+    const GIFS = [["GIF one", "$1", G + "anim.gif"], ["GIF capitals and query", "$2", G + "ANIM.GIF?w=500"], ["GIF bought", "$3", G + "anim-bought.gif"],
+      ["GIF that fails", "$4", G + "bad-gif.gif"], ["GIF bought that fails", "$5", G + "bad-gif.gif?where=bought"], ["Not really a gif", "$6", G + "photo.gif.png"]];
+    for (let i = 0; i < GIFS.length; i++) {
+      await db.query("insert into public.gifts (recipient, name, price, image_url, sort_order) values ('clara', $1, $2, $3, $4)", [GIFS[i][0], GIFS[i][1], GIFS[i][2], 200 + i]);
+    }
+    const storedGifs = async () => JSON.stringify((await db.query("select name, image_url from public.gifts where image_url like 'https://gifs.test/%' order by name")).rows);
+    const gifRowsBefore = await storedGifs();
+    await buyAs(C, "GIF bought");
+    await buyAs(C, "GIF bought that fails");
+    for (const dev of [CALM, LIVE]) {
+      await refocus(dev);
+      dev.d.getElementById("purchased-details").open = true;
+      await sleep(600);
+    }
+    const thumbOf = (dev, name) => card(dev, name).querySelector(".gift-thumb");
+    const boughtThumb = (dev, name) => bought(dev, name).querySelector(".bought-thumb");
+    const firstFrame = (node) => [...node.getContext("2d").getImageData(0, 0, 1, 1).data].slice(0, 3).join();
+
+    t.check("normal motion: a GIF thumbnail stays a plain, visible image", thumbOf(LIVE, "GIF one").tagName === "IMG" && thumbOf(LIVE, "GIF one").style.visibility === "");
+    t.check("normal motion: it isn't frozen in Already purchased either", boughtThumb(LIVE, "GIF bought").tagName === "IMG" && !LIVE.d.querySelector("#gifts canvas, #purchased-list canvas"));
+    btn(LIVE, "GIF one", "more").click(); await sleep(300);
+    t.check("normal motion: the Details picture stays an image too", card(LIVE, "GIF one").querySelector(".gift-image").tagName === "IMG");
+
+    const still = thumbOf(CALM, "GIF one");
+    t.check("reduced motion: the thumbnail becomes a still canvas", still.tagName === "CANVAS" && still.width === 1 && !still.closest("li").querySelector("img"));
+    const samples = [];
+    for (let i = 0; i < 6; i++) { samples.push(firstFrame(thumbOf(CALM, "GIF one"))); await sleep(120); } // longer than one 300ms frame
+    t.check("reduced motion: it shows the first frame and never moves", samples.every((s) => s === RED), samples.join(" / "));
+    t.check("reduced motion: thumbnail keeps its frame size", Math.round(still.getBoundingClientRect().width) === 52 && Math.round(still.getBoundingClientRect().height) === 52, still.getBoundingClientRect().width);
+    t.check("reduced motion: hidden from screen readers like the image was", still.getAttribute("aria-hidden") === "true");
+    t.check("reduced motion: capitals and a query string still count as a GIF", thumbOf(CALM, "GIF capitals and query").tagName === "CANVAS");
+    const frozenRow = boughtThumb(CALM, "GIF bought");
+    t.check("reduced motion: purchased thumbnail is frozen on its first frame", frozenRow.tagName === "CANVAS" && firstFrame(frozenRow) === RED && Math.round(frozenRow.getBoundingClientRect().width) === 34);
+    btn(CALM, "GIF one", "more").click(); await sleep(400);
+    const bigStill = card(CALM, "GIF one").querySelector(".gift-image");
+    t.check("reduced motion: the Details picture is frozen on its first frame", bigStill && bigStill.tagName === "CANVAS" && firstFrame(bigStill) === RED, bigStill && bigStill.tagName);
+    t.check("reduced motion: the Details picture keeps its size limit", bigStill.getBoundingClientRect().height <= 200 && CALM.d.documentElement.scrollWidth <= 390, bigStill.getBoundingClientRect().height);
+    t.check("reduced motion: only GIFs are frozen", thumbOf(CALM, "Not really a gif").tagName === "IMG" && thumbOf(CALM, "Not really a gif").style.visibility === "");
+    const firstLoads = CALM.srcSet.filter((s) => /anim\.gif$/.test(s.url));
+    t.check("reduced motion: hidden before it starts loading, so no frames can flash", firstLoads.length > 0 && firstLoads.every((s) => s.hidden), JSON.stringify(firstLoads));
+    t.check("every GIF request keeps the no-referrer policy", CALM.srcSet.concat(LIVE.srcSet).every((s) => s.referrer === "no-referrer"));
+
+    for (const [dev, label] of [[CALM, "reduced motion"], [LIVE, "normal motion"]]) {
+      t.check(`${label}: a failed GIF leaves no frame or canvas`, !card(dev, "GIF that fails").querySelector("img, canvas") && !card(dev, "GIF that fails").classList.contains("has-thumb"));
+      t.check(`${label}: a failed purchased GIF does too`, !bought(dev, "GIF bought that fails").querySelector("img, canvas") && !bought(dev, "GIF bought that fails").classList.contains("has-thumb"));
+      t.check(`${label}: no Details button left with nothing behind it`, !btn(dev, "GIF that fails", "more"));
+      t.check(`${label}: a failed GIF can still be claimed`, !!btn(dev, "GIF that fails", "claim"));
+    }
+
+    const oneId = card(CALM, "GIF one").dataset.id;
+    btn(CALM, "GIF one", "claim").click(); await confirmYes(CALM); await sleep(400);
+    t.check("reduced motion: claiming still works, and the rebuilt card is still frozen", chip(CALM, "GIF one") === "Claimed by you" && card(CALM, "GIF one").dataset.id === oneId && thumbOf(CALM, "GIF one").tagName === "CANVAS");
+    btn(CALM, "GIF one", "purchase").click(); await sleep(600);
+    t.check("reduced motion: purchasing moves it, frozen", boughtThumb(CALM, "GIF one") && boughtThumb(CALM, "GIF one").tagName === "CANVAS");
+    t.check("stored image addresses are untouched", (await storedGifs()) === gifRowsBefore);
     await sleep(10);
   },
 });

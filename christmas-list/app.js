@@ -192,8 +192,29 @@
       brokenImages.add(g.image_url);
       renderList();
     });
+    if (XL.reducedMotion() && /\.gif$/i.test(new URL(g.image_url).pathname)) freezeWhenLoaded(img);
     img.src = g.image_url;
     return img;
+  }
+
+  // Browsers keep GIFs moving whatever the viewer's motion setting, so for those
+  // who asked for less motion the picture stays invisible until it has loaded,
+  // then a canvas showing one still frame takes its place. Drawing a picture from
+  // another site is allowed; only reading its pixels back isn't, and that's not needed.
+  function freezeWhenLoaded(img) {
+    img.style.visibility = "hidden";
+    img.addEventListener("load", () => {
+      const canvas = el("canvas", img.className);
+      canvas.width = img.naturalWidth;
+      canvas.height = img.naturalHeight;
+      canvas.setAttribute("aria-hidden", "true");
+      try {
+        canvas.getContext("2d").drawImage(img, 0, 0);
+        img.replaceWith(canvas);
+      } catch (e) {
+        img.style.visibility = ""; // better a moving picture than a blank frame
+      }
+    }, { once: true });
   }
 
   function buildRemoved(g, pending) {
