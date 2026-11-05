@@ -146,7 +146,7 @@ window.SUITES.push({
     t.check("no empty space where a picture would be",
       card(A, "Unpriced thing").querySelector(".gift-text").getBoundingClientRect().left - card(A, "Unpriced thing").getBoundingClientRect().left < 20);
     const z = thumb(A, "Zebra mug");
-    t.check("loads lazily, without leaking the page address", z.loading === "lazy" && z.referrerPolicy === "no-referrer");
+    t.check("doesn't leak the page address", z.referrerPolicy === "no-referrer");
     t.check("space is held before it loads", z.getAttribute("width") === "52" && z.getAttribute("height") === "52");
     t.check("decorative to screen readers (the name is right beside it)", z.getAttribute("alt") === "");
     t.check("never stretched or cropped", A.w.getComputedStyle(z).objectFit === "contain");

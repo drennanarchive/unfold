@@ -52,6 +52,32 @@
     return marked.length ? Math.min(...marked) : null;
   };
 
+  // A small version of a gift's picture for thumbnails. Many shop addresses already
+  // tell their own image service what size to send, so only that number changes.
+  // Anything else, and every GIF, comes back untouched. Callers fall back to the
+  // original if the small version fails.
+  const THUMB_PX = 144; // the largest frame is 72px; 144 stays sharp on high-density screens
+  XL.thumbnailUrl = function (address) {
+    let url;
+    try { url = new URL(address); } catch (e) { return address; }
+    if (/\.gif$/i.test(url.pathname)) return address;
+    const stored = url.href;
+    const q = url.searchParams;
+    const shrink = (widthKey, heightKey) => {
+      const width = Number(q.get(widthKey));
+      if (!(width > THUMB_PX)) return;
+      const height = Number(q.get(heightKey));
+      q.set(widthKey, THUMB_PX);
+      if (height > 0) q.set(heightKey, Math.round(height * THUMB_PX / width));
+    };
+    if (url.pathname.startsWith("/cdn/shop/")) shrink("width");                  // Shopify
+    else if (url.hostname === "m.media-amazon.com") url.pathname = url.pathname.replace(/\._(?:AC_)?S[LXY]\d+_\./, "._SL" + THUMB_PX + "_.");
+    else if (url.hostname.endsWith(".scene7.com")) shrink("wid", "hei");         // Adobe Scene7
+    else if (url.pathname.startsWith("/dw/image/")) shrink("sw", "sh");          // Salesforce Commerce
+    else if (/\.squarespace(-cdn)?\.com$/.test(url.hostname) && q.has("format")) q.set("format", "300w");
+    return url.href === stored ? address : url.href;
+  };
+
   XL.reducedMotion = () => Boolean(window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches);
 
   // Applies a theme ("home", "clara", "cameron") to the whole page.

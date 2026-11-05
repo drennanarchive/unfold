@@ -90,6 +90,8 @@
   const cards = new Map();  // gift id -> { li, sig }  (main list)
   const rows = new Map();   // gift id -> { li, sig }  ("Already purchased")
   const brokenImages = new Set(); // image addresses that failed to load in this visit
+  const FIRST_SCREEN_CARDS = 6;   // about what fits on a large screen before scrolling
+  let firstScreenIds = new Set(); // gift ids at the top of the list right now
 
   const giftById = (id) => state.gifts.find((g) => g.id === id);
 
@@ -181,19 +183,28 @@
   // The gift's picture. If it can't load, it's dropped everywhere for this visit,
   // so no broken icon or empty frame is left behind. The width and height hold
   // its space while it loads (style.css sets the final size).
-  function giftImage(g, className, size) {
+  function giftImage(g, className, size, firstScreen) {
     const img = el("img", className);
     img.alt = "";
     if (size) img.width = img.height = size;
-    img.loading = "lazy";
+    // Pictures the viewer is about to see start right away and ahead of the queue.
+    img.loading = firstScreen ? "eager" : "lazy";
+    if (firstScreen) img.fetchPriority = "high";
     img.decoding = "async";
     img.referrerPolicy = "no-referrer";
+    const address = size ? XL.thumbnailUrl(g.image_url) : g.image_url;
+    let triedOriginal = address === g.image_url;
     img.addEventListener("error", () => {
+      if (!triedOriginal) {
+        triedOriginal = true;
+        img.src = g.image_url; // the small version failed, so try the original
+        return;
+      }
       brokenImages.add(g.image_url);
       renderList();
     });
     if (XL.reducedMotion() && /\.gif$/i.test(new URL(g.image_url).pathname)) freezeWhenLoaded(img);
-    img.src = g.image_url;
+    img.src = address;
     return img;
   }
 
@@ -244,7 +255,7 @@
     li.classList.toggle("has-thumb", hasImage(g));
 
     const main = el("div", "gift-main");
-    if (hasImage(g)) main.append(giftImage(g, "gift-thumb", 52));
+    if (hasImage(g)) main.append(giftImage(g, "gift-thumb", 52, firstScreenIds.has(g.id)));
     const text = el("div", "gift-text");
 
     const top = el("div", "gift-top");
@@ -440,10 +451,11 @@
       showNotice("This browser isn't saving site data (private window?). You can still claim gifts, but it will forget which ones are yours once it's closed.");
     }
 
-    const active = items.filter((g) => !isPurchasedRow(g));
+    const active = sortedForViewer(items.filter((g) => !isPurchasedRow(g)));
     const sortControl = $("#sort-control");
     if (sortControl) sortControl.hidden = active.length < 2;
-    syncList(list, sortedForViewer(active), cards, buildGift);
+    firstScreenIds = new Set(active.slice(0, FIRST_SCREEN_CARDS).map((g) => g.id));
+    syncList(list, active, cards, buildGift);
     renderPurchased(items);
 
     renderSummary(items);

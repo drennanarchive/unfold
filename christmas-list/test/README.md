@@ -10,6 +10,7 @@ Supabase project. Everything runs in a browser tab.
 | `ui.test.js` | The pages: front door, navigation, the whole claim lifecycle across two browsers, auto-refresh, details expansion, offline / lost reply / first-load failure / not configured / blocked storage, owner sign-in, session persistence and expiry, add/edit/move/remove with Undo, unlinked accounts, owner page never calling claim functions |
 | `layout.test.js` | Phone (390, 430), tablet (768) and desktop (1280): no sideways scrolling, 44px tap targets, the right art for portrait vs landscape, compact cards, centred column, Cameron's bonsai left clear on phones, Clara's scene left open, reduced motion |
 | `ux.test.js` | Inline thumbnails (with, without and failing pictures, at phone and desktop sizes, in "Already purchased"), viewer-only sorting (price parsing, ties, no-price last, back to Default, claims while sorted, no requests or stored changes), owner one-tap reorder (saved order reaches the family page, focus, failed and lost saves), GIFs held still on their first frame for reduced motion (and left moving otherwise) |
+| `images.test.js` | Sized thumbnails from each shop's own image service (which addresses change, which never do), falling back to the original, Details keeping the full picture, the top of the list loading first, no extra requests on refresh or sort |
 | `run-headless.sh` | Runs everything in headless Chrome/Edge (normal + reduced motion) and exits non-zero on failure |
 
 ## Running
@@ -18,7 +19,7 @@ Supabase project. Everything runs in a browser tab.
 or `python -m http.server` from the `christmas-list` folder, then visit `/test/`. Once the site is
 published it also works at `https://drennanarchive.github.io/unfold/christmas-list/test/`.
 (Opening the file directly with a double-click won't work: browsers block pages from reading
-neighbouring files that way.) Add `?suite=db`, `?suite=pages`, `?suite=layout` or `?suite=ux` to run one part.
+neighbouring files that way.) Add `?suite=db`, `?suite=pages`, `?suite=layout`, `?suite=ux` or `?suite=images` to run one part.
 
 **From a terminal:**
 
