@@ -82,6 +82,17 @@ body[data-theme="cameron"] .manage-hint { color: #fbeed8; text-shadow: 0 1px 3px
   box-shadow: var(--shadow);
 }
 .owner-gift .gift-details { -webkit-line-clamp: 2; }
+.owner-row { display: flex; align-items: flex-start; gap: 12px; }
+.owner-body { flex: 1; min-width: 0; }
+/* One-tap reorder: up, this gift's number, down. */
+.reorder { flex: none; display: grid; justify-items: center; gap: 2px; width: var(--tap); }
+.reorder .btn { width: var(--tap); padding: 0; font-size: 1.1rem; }
+.reorder .btn:disabled { cursor: default; opacity: .3; }
+.owner-gifts[aria-busy="true"] .reorder .btn:not(:disabled),
+.owner-gifts[aria-busy="true"] .move-panel .btn:not(:disabled) { cursor: progress; }
+.owner-gift.is-saving .reorder { opacity: .55; }
+.owner-gift.is-moved { outline: 2px solid var(--accent); outline-offset: -1px; }
+.move-note { font-weight: 800; color: var(--accent); }
 .owner-meta { margin: 4px 0 0; display: flex; flex-wrap: wrap; gap: 4px 12px; font-size: .8rem; color: var(--ink-soft); }
 .owner-actions { display: flex; gap: 8px; margin-top: 10px; }
 .owner-actions .btn { flex: 1; padding: 0 10px; }
@@ -90,7 +101,7 @@ body[data-theme="cameron"] .manage-hint { color: #fbeed8; text-shadow: 0 1px 3px
 .move-panel .btn { padding: 0 8px; }
 .owner-empty { text-align: center; padding: 26px 18px; }
 .owner-empty p { margin: 0 0 4px; }
-.position { font-variant-numeric: tabular-nums; }
+.position { font-size: .9rem; font-weight: 800; color: var(--ink-soft); font-variant-numeric: tabular-nums; }
 
 /* ---------- Add / edit gift form ----------
    A themed card: accent strip, kicker + title, the one required field up

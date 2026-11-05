@@ -85,9 +85,11 @@
     version: 0,             // bumped by every action, so stale refreshes are ignored
     lastSync: null,
     purchasedDefaultSet: false, // "Already purchased" starts open on wide screens, closed on narrow
+    sort: "default",        // this viewer's sort for the main list; never saved anywhere
   };
   const cards = new Map();  // gift id -> { li, sig }  (main list)
   const rows = new Map();   // gift id -> { li, sig }  ("Already purchased")
+  const brokenImages = new Set(); // image addresses that failed to load in this visit
 
   const giftById = (id) => state.gifts.find((g) => g.id === id);
 
@@ -127,6 +129,9 @@
     $("#gifts").textContent = "";
     $("#purchased-list").textContent = "";
     state.purchasedDefaultSet = false;
+    state.sort = "default";
+    const sortSelect = $("#gift-sort");
+    if (sortSelect) sortSelect.value = "default";
     window.scrollTo(0, 0);
     renderList();
     refresh();
@@ -166,9 +171,29 @@
     return b;
   }
 
+  const hasImage = (g) => XL.isHttpUrl(g.image_url) && !brokenImages.has(g.image_url);
+
   function hasMore(g) {
     const longDetails = g.details && (g.details.length > 90 || g.details.includes("\n"));
-    return Boolean(longDetails || XL.isHttpUrl(g.link) || XL.isHttpUrl(g.image_url));
+    return Boolean(longDetails || XL.isHttpUrl(g.link) || hasImage(g));
+  }
+
+  // The gift's picture. If it can't load, it's dropped everywhere for this visit,
+  // so no broken icon or empty frame is left behind. The width and height hold
+  // its space while it loads (style.css sets the final size).
+  function giftImage(g, className, size) {
+    const img = el("img", className);
+    img.alt = "";
+    if (size) img.width = img.height = size;
+    img.loading = "lazy";
+    img.decoding = "async";
+    img.referrerPolicy = "no-referrer";
+    img.addEventListener("error", () => {
+      brokenImages.add(g.image_url);
+      renderList();
+    });
+    img.src = g.image_url;
+    return img;
   }
 
   function buildRemoved(g, pending) {
@@ -195,6 +220,11 @@
     li.dataset.status = g.status;
     li.classList.toggle("is-mine", g.mine);
     li.classList.toggle("is-open", open);
+    li.classList.toggle("has-thumb", hasImage(g));
+
+    const main = el("div", "gift-main");
+    if (hasImage(g)) main.append(giftImage(g, "gift-thumb", 52));
+    const text = el("div", "gift-text");
 
     const top = el("div", "gift-top");
     top.append(el("h3", "gift-name", g.name));
@@ -203,12 +233,14 @@
       price.append(el("span", "sr-only", "Approximate price: "), document.createTextNode(g.price));
       top.append(price);
     }
-    li.append(top);
+    text.append(top);
 
-    if (g.details) li.append(el("p", "gift-details", g.details));
+    if (g.details) text.append(el("p", "gift-details", g.details));
     if (g.mine && g.updated_since_claim) {
-      li.append(el("p", "gift-note", "✎ Updated since you claimed it"));
+      text.append(el("p", "gift-note", "✎ Updated since you claimed it"));
     }
+    main.append(text);
+    li.append(main);
 
     const more = hasMore(g);
     const extraId = "extra-" + g.id;
@@ -216,15 +248,7 @@
       const extra = el("div", "gift-extra");
       extra.id = extraId;
       extra.hidden = !open;
-      if (XL.isHttpUrl(g.image_url)) {
-        const img = el("img", "gift-image");
-        img.src = g.image_url;
-        img.alt = "";
-        img.loading = "lazy";
-        img.referrerPolicy = "no-referrer";
-        img.addEventListener("error", () => img.remove());
-        extra.append(img);
-      }
+      if (hasImage(g)) extra.append(giftImage(g, "gift-image"));
       if (XL.isHttpUrl(g.link)) {
         const a = el("a", "gift-link", "View item ↗");
         a.href = g.link;
@@ -270,6 +294,8 @@
     const pending = state.pending.has(g.id);
     const li = el("li", "bought");
     li.classList.toggle("is-mine", g.mine);
+    li.classList.toggle("has-thumb", hasImage(g));
+    if (hasImage(g)) li.append(giftImage(g, "bought-thumb", 34));
 
     const top = el("div", "bought-top");
     top.insertAdjacentHTML("beforeend", ICONS.purchased);
@@ -303,7 +329,7 @@
   }
 
   function signature(g) {
-    return JSON.stringify([g, state.pending.has(g.id), state.open.has(g.id)]);
+    return JSON.stringify([g, state.pending.has(g.id), state.open.has(g.id), hasImage(g)]);
   }
 
   // Puts the given items into a list element in order, rebuilding only the ones
@@ -341,6 +367,23 @@
   // purchased gifts stay in the main list. Removal notes stay in the main list.
   const isPurchasedRow = (g) => !g.removed && g.status === "purchased";
 
+  // Viewer-only sorting of the main list. It reorders a copy of what's already
+  // loaded, so "default" is always the owner's order from get_list. Array sort
+  // is stable, so ties keep the owner's order too. No price sorts last either way.
+  const nameOrder = new Intl.Collator("en", { sensitivity: "base", numeric: true });
+  const byPrice = (direction) => (a, b) => {
+    const pa = XL.priceValue(a.price);
+    const pb = XL.priceValue(b.price);
+    if (pa === null || pb === null) return (pa === null) - (pb === null);
+    return (pa - pb) * direction;
+  };
+  const SORTS = {
+    "price-asc": byPrice(1),
+    "price-desc": byPrice(-1),
+    name: (a, b) => nameOrder.compare(a.name, b.name),
+  };
+  const sortedForViewer = (items) => (SORTS[state.sort] ? items.slice().sort(SORTS[state.sort]) : items);
+
   function renderPurchased(items) {
     const section = $("#purchased");
     const bought = items.filter(isPurchasedRow);
@@ -376,7 +419,10 @@
       showNotice("This browser isn't saving site data (private window?). You can still claim gifts, but it will forget which ones are yours once it's closed.");
     }
 
-    syncList(list, items.filter((g) => !isPurchasedRow(g)), cards, buildGift);
+    const active = items.filter((g) => !isPurchasedRow(g));
+    const sortControl = $("#sort-control");
+    if (sortControl) sortControl.hidden = active.length < 2;
+    syncList(list, sortedForViewer(active), cards, buildGift);
     renderPurchased(items);
 
     renderSummary(items);
@@ -620,6 +666,13 @@
     const tag = $(".choice-" + p.key + " .choice-tag");
     if (tag && p.tagline) tag.textContent = p.tagline;
   });
+  const sortSelect = $("#gift-sort");
+  if (sortSelect) {
+    sortSelect.addEventListener("change", () => {
+      state.sort = sortSelect.value;
+      renderList();
+    });
+  }
   window.addEventListener("hashchange", route);
   route();
   if (!state.view) refresh(); // warm the data while people read the front door

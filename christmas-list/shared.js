@@ -34,6 +34,24 @@
     }
   };
 
+  // The number to sort a free-text price by, or null if it doesn't state one.
+  // Text that is only a price counts as written ("~50", "90-120", "20-$30").
+  // Otherwise only amounts with a currency symbol count, and the lowest wins
+  // ("$69 - $157", "$55 (min)"), so "size 10" or "3-pack" never pass as prices.
+  const AMOUNT = "(\\d{1,3}(?:,\\d{3})+|\\d+)(\\.\\d+)?";
+  const ONLY_A_PRICE = new RegExp("^(?:~|≈|about|around|approx\\.?|approximately|roughly|under)?\\s*" + AMOUNT +
+    "\\s*(?:(?:-|–|—|to)\\s*[$€£]?\\s*\\d[\\d,.]*\\s*)?(?:dollars|bucks|usd|[$€£])?\\+?$", "i");
+  const WITH_SYMBOL = new RegExp("[$€£]\\s*" + AMOUNT, "g");
+  const amount = (whole, fraction) => Number(whole.replace(/,/g, "") + (fraction || ""));
+
+  XL.priceValue = function (text) {
+    const value = String(text == null ? "" : text).trim();
+    const only = ONLY_A_PRICE.exec(value);
+    if (only) return amount(only[1], only[2]);
+    const marked = Array.from(value.matchAll(WITH_SYMBOL), (m) => amount(m[1], m[2]));
+    return marked.length ? Math.min(...marked) : null;
+  };
+
   XL.reducedMotion = () => Boolean(window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches);
 
   // Applies a theme ("home", "clara", "cameron") to the whole page.

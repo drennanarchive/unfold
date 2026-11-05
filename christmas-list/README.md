@@ -4,6 +4,7 @@ A small family Christmas app for **Clara** and **Cameron**.
 
 - **Family** open one link, pick Clara's or Cameron's list, and claim gifts so nobody doubles up. No accounts.
   Others only ever see **Available / Claimed / Purchased ✓**, never who.
+  Anyone can sort a list by price or name just for themselves; the owner's order stays the default.
 - **Clara and Cameron** sign in on a separate page (`manage.html`) to add, edit, reorder and remove
   their own gifts. They never see claim or purchase status, so surprises survive.
 

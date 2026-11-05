@@ -245,18 +245,42 @@
     state.gifts.forEach((g, index) => {
       const li = el("li", "owner-gift");
       li.dataset.id = g.id;
+      const justSaved = Boolean(focus && focus.saved && focus.id === g.id);
+      li.classList.toggle("is-moved", justSaved);
+      const first = index === 0;
+      const last = index === total - 1;
 
+      const row = el("div", "owner-row");
+      if (total > 1) {
+        const rail = el("div", "reorder");
+        rail.setAttribute("role", "group");
+        rail.setAttribute("aria-label", "Reorder " + g.name);
+        const up = actionButton("↑", "step-up", () => move(g, "up", "step-up"));
+        up.disabled = first;
+        up.setAttribute("aria-label", "Move " + g.name + " up");
+        const down = actionButton("↓", "step-down", () => move(g, "down", "step-down"));
+        down.disabled = last;
+        down.setAttribute("aria-label", "Move " + g.name + " down");
+        const position = el("span", "position");
+        position.append(el("span", "sr-only", "Number "), document.createTextNode(index + 1), el("span", "sr-only", " of " + total));
+        rail.append(up, position, down);
+        row.append(rail);
+      }
+
+      const body = el("div", "owner-body");
       const top = el("div", "gift-top");
       top.append(el("h3", "gift-name", g.name));
       if (g.price) top.append(el("span", "gift-price", g.price));
-      li.append(top);
-      if (g.details) li.append(el("p", "gift-details", g.details));
+      body.append(top);
+      if (g.details) body.append(el("p", "gift-details", g.details));
 
       const meta = el("p", "owner-meta");
-      meta.append(el("span", "position", "#" + (index + 1) + " of " + total));
+      if (justSaved) meta.append(el("span", "move-note", "✓ Saved"));
       if (g.link) meta.append(el("span", null, "🔗 Shopping link"));
       if (g.image_url) meta.append(el("span", null, "🖼 Image"));
-      li.append(meta);
+      body.append(meta);
+      row.append(body);
+      li.append(row);
 
       const actions = el("div", "owner-actions");
       const moveOpen = state.moveOpen === g.id;
@@ -279,8 +303,6 @@
         panel.id = "move-" + g.id;
         panel.setAttribute("role", "group");
         panel.setAttribute("aria-label", "Move " + g.name);
-        const first = index === 0;
-        const last = index === total - 1;
         [["up", "↑ Up", first], ["down", "↓ Down", last], ["top", "⤒ To top", first], ["bottom", "⤓ To bottom", last]]
           .forEach(([where, label, disabled]) => {
             const b = actionButton(label, "move-" + where, () => move(g, where));
@@ -295,7 +317,10 @@
     if (focus) {
       const li = list.querySelector('[data-id="' + focus.id + '"]');
       let target = li && li.querySelector('[data-role="' + focus.role + '"]');
-      if (target && target.disabled) target = li.querySelector(".move-panel button:not(:disabled)") || li.querySelector('[data-role="move"]');
+      if (target && target.disabled) {
+        const group = target.closest(".reorder") ? ".reorder" : ".move-panel";
+        target = li.querySelector(group + " button:not(:disabled)") || li.querySelector('[data-role="move"]');
+      }
       if (target) target.focus();
     }
   }
@@ -316,14 +341,54 @@
     }
   }
 
-  function move(g, where) {
+  // The list on screen only changes once the database has answered, so it never
+  // shows an order that wasn't saved. A lost reply might still have saved, so
+  // the fresh list decides what to tell the owner, not the error.
+  function move(g, where, role) {
     busy(async () => {
+      const focus = { id: g.id, role: role || "move-" + where };
+      const rowOf = () => $("#owner-gifts").querySelector('[data-id="' + g.id + '"]');
+      const orderOf = () => state.gifts.map((x) => x.id).join();
+      const orderBefore = orderOf();
+      const rowBefore = rowOf();
+      const topBefore = rowBefore ? rowBefore.getBoundingClientRect().top : null;
+      if (rowBefore) rowBefore.classList.add("is-saving");
+
+      let replyLost = false;
       try {
         await call("owner_move_gift", { p_id: g.id, p_where: where });
-        state.gifts = (await call("owner_list")) || [];
-        renderList({ id: g.id, role: "move-" + where });
       } catch (error) {
-        await handleError(error);
+        if (kindOf(error) !== "network") {
+          renderList(focus);
+          await handleError(error);
+          return;
+        }
+        replyLost = true;
+      }
+
+      try {
+        state.gifts = (await call("owner_list")) || [];
+      } catch (error) {
+        renderList(focus);
+        if (kindOf(error) !== "network") await handleError(error);
+        else if (replyLost) XL.toast("Couldn't reach the list. That move may not have saved, so please reload to check.");
+        else XL.toast("Moved, but couldn't refresh the list. Reload to see the new order.");
+        return;
+      }
+
+      const moved = orderOf() !== orderBefore;
+      renderList(Object.assign({ saved: moved }, focus));
+      if (moved) {
+        const position = state.gifts.findIndex((x) => x.id === g.id) + 1;
+        const status = $("#move-status");
+        if (status) status.textContent = "Saved. " + g.name + " is now number " + position + " of " + state.gifts.length + ".";
+        // Up and down keep the gift under the owner's finger, ready for another tap.
+        const row = rowOf();
+        if (row && topBefore !== null && (where === "up" || where === "down")) {
+          window.scrollBy(0, row.getBoundingClientRect().top - topBefore);
+        }
+      } else if (replyLost) {
+        XL.toast("Couldn't reach the list, so nothing moved. Please try again.");
       }
     });
   }

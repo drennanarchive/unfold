@@ -72,6 +72,15 @@
           <div class="list-head">
             <h2 id="gifts-heading">Wishlist</h2>
             <p class="summary" id="summary" aria-live="polite"></p>
+            <label class="sort-control" id="sort-control" hidden>
+              <span>Sort by</span>
+              <select id="gift-sort" autocomplete="off">
+                <option value="default" selected>Default order</option>
+                <option value="price-asc">Price: low to high</option>
+                <option value="price-desc">Price: high to low</option>
+                <option value="name">Name: A–Z</option>
+              </select>
+            </label>
           </div>
           <div id="notice" class="notice" role="status" hidden></div>
           <ul id="gifts" class="gifts"></ul>

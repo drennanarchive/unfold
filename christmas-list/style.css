@@ -508,6 +508,33 @@ body[data-theme="cameron"] .list-head::after { background: linear-gradient(90deg
 .dot-claimed { background: var(--chip-claimed-ink); }
 .dot-purchased { background: var(--chip-purchased-ink); opacity: .6; }
 
+/* Viewer-only sort: its own row on phones, on the heading's row when it fits. */
+.sort-control {
+  flex: 1 1 100%;
+  display: flex; align-items: center; justify-content: flex-end; gap: 8px;
+  font-size: .82rem; font-weight: 700;
+  color: var(--ink-soft);
+}
+.sort-control select {
+  min-height: var(--tap);
+  padding: 0 32px 0 12px;
+  border: 1px solid rgba(0, 0, 0, .14);
+  border-radius: var(--btn-radius);
+  background: var(--surface-solid) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M4 6l4 4 4-4' fill='none' stroke='%23666' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") no-repeat right 10px center / 14px;
+  color: var(--ink);
+  font: inherit;
+  font-size: 1rem; /* 16px stops iOS zooming into the control */
+  font-weight: 600;
+  cursor: pointer;
+  -webkit-appearance: none;
+  appearance: none;
+}
+.sort-control select:focus-visible { outline: 3px solid var(--focus); outline-offset: 1px; }
+@media (min-width: 680px) {
+  .sort-control { flex: 0 0 auto; margin-left: auto; }
+  .list-head { align-items: center; }
+}
+
 .notice {
   margin: 0 0 var(--gap);
   padding: 12px 14px;
@@ -534,9 +561,29 @@ body[data-theme="cameron"] .list-head::after { background: linear-gradient(90deg
   transition: opacity .3s var(--ease), background-color .3s var(--ease);
   animation: enter .45s var(--ease) both;
 }
+.gift-main { display: flex; align-items: flex-start; gap: 12px; }
+.gift-text { flex: 1; min-width: 0; }
+/* The whole picture always shows (contain), framed so any shape sits tidily. */
+.gift-thumb, .bought-thumb {
+  flex: none;
+  display: block;
+  object-fit: contain;
+  background: rgba(255, 255, 255, .78);
+  border: 1px solid var(--border);
+}
+.gift-thumb { width: 52px; height: 52px; border-radius: 10px; }
+@media (min-width: 680px) { .gift-thumb { width: 72px; height: 72px; border-radius: 12px; } }
+.gift[data-status="claimed"] .gift-thumb { opacity: .8; }
+/* THEME: clara — a frosted frame; THEME: cameron — a squarer frame edged in gold */
+body[data-theme="clara"] .gift-thumb, body[data-theme="clara"] .bought-thumb { background: rgba(255, 255, 255, .92); box-shadow: 0 2px 8px rgba(72, 84, 150, .16); }
+body[data-theme="cameron"] .gift-thumb, body[data-theme="cameron"] .bought-thumb { background: #fffaf0; border-color: rgba(201, 160, 90, .7); border-radius: 8px; }
 .gift-top { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
 .gift-name { margin: 0; font-size: 1.06rem; font-weight: 700; line-height: 1.25; overflow-wrap: anywhere; }
 .gift-price { flex: none; font-weight: 700; font-size: .95rem; color: var(--ink); white-space: nowrap; }
+/* A thumbnail narrows the text, so a long price drops to its own line instead of overflowing. */
+.has-thumb .gift-top { flex-wrap: wrap; gap: 0 12px; }
+.has-thumb .gift-name { flex: 1 1 55%; min-width: 0; }
+.has-thumb .gift-price { flex: 0 1 auto; white-space: normal; overflow-wrap: anywhere; }
 .gift-details {
   margin: 3px 0 0;
   color: var(--ink-soft);
@@ -748,6 +795,13 @@ body[data-theme="clara"] .list-foot a { text-shadow: 0 0 8px rgba(255, 255, 255,
 @media (pointer: coarse) { .bought-link { min-height: var(--tap); } }
 .bought .gift-note { grid-column: 1; padding-left: 21px; margin-top: 2px; }
 .bought-undo { grid-column: 2; grid-row: 2 / span 2; font-size: .82rem; }
+.bought-thumb { width: 34px; height: 34px; border-radius: 8px; grid-column: 1; grid-row: 1 / span 2; align-self: start; margin-top: 2px; }
+.bought.has-thumb { grid-template-columns: auto 1fr auto; }
+.bought.has-thumb .bought-top { grid-column: 2 / -1; flex-wrap: wrap; }
+.bought.has-thumb .bought-name { flex: 1 1 50%; }
+.bought.has-thumb .bought-price { flex: 0 1 auto; white-space: normal; overflow-wrap: anywhere; }
+.bought.has-thumb .bought-meta, .bought.has-thumb .gift-note { grid-column: 2; }
+.bought.has-thumb .bought-undo { grid-column: 3; }
 .bought.is-mine .bought-name { color: var(--ink); }
 .bought.is-mine .bought-status { color: var(--accent); }
 
@@ -770,6 +824,8 @@ body[data-theme="cameron"] .purchased summary h2::before { content: "✦ "; colo
   .purchased-list { max-height: 60vh; overflow-y: auto; }
   /* the panel is narrow: give "Undo purchase" its own line */
   .bought-undo { grid-column: 1 / -1; grid-row: auto; justify-self: start; margin-left: 15px; }
+  .bought.has-thumb .bought-meta, .bought.has-thumb .gift-note { grid-column: 2 / -1; }
+  .bought.has-thumb .bought-undo { grid-column: 2 / -1; }
 }
 
 /* ---------- Dialog ---------- */
