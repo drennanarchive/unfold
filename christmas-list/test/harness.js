@@ -216,7 +216,8 @@
   const card = (dev, name) => [...dev.d.querySelectorAll("#gifts > li")].find((li) => li.querySelector(".gift-name").textContent === name);
   const chip = (dev, name) => { const c = card(dev, name); return c && c.querySelector(".chip") ? c.querySelector(".chip").textContent : undefined; };
   const btn = (dev, name, role) => { const c = card(dev, name); return c ? c.querySelector(`[data-role="${role}"]`) : null; };
-  const toast = (dev) => dev.d.getElementById("toast").textContent;
+  // The message itself, without the text of any button beside it.
+  const toast = (dev) => { const s = dev.d.querySelector("#toast > span"); return s ? s.textContent : ""; };
   // "Already purchased" area helpers
   const bought = (dev, name) => [...dev.d.querySelectorAll("#purchased-list > li")].find((li) => li.querySelector(".bought-name").textContent === name);
   const boughtStatus = (dev, name) => { const r = bought(dev, name); return r ? r.querySelector(".bought-status").textContent : undefined; };

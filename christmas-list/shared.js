@@ -93,18 +93,25 @@
     if (!node) return;
     node.textContent = "";
     node.append(XL.el("span", null, message));
+    // Hiding also removes the button, so an invisible one can't be reached by Tab.
+    const hide = () => {
+      node.classList.remove("is-visible");
+      node.querySelectorAll(".toast-action").forEach((b) => b.remove());
+    };
     if (action) {
       const button = XL.el("button", "toast-action", action.label);
       button.type = "button";
+      if (action.ariaLabel) button.setAttribute("aria-label", action.ariaLabel);
       button.addEventListener("click", () => {
-        node.classList.remove("is-visible");
+        clearTimeout(toastTimer);
+        hide();
         action.onClick();
       });
       node.append(button);
     }
     node.classList.add("is-visible");
     clearTimeout(toastTimer);
-    toastTimer = setTimeout(() => node.classList.remove("is-visible"), action ? 7000 : 4000);
+    toastTimer = setTimeout(hide, action ? 7000 : 4000);
   };
 
   // ---- Confirm dialog. Resolves true if the person confirms. ----

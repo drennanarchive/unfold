@@ -293,6 +293,90 @@ window.SUITES.push({
     t.check("27. public page looks the same for an owner (normal family view)", BK.d.querySelectorAll("#gifts > li").length === Q.d.querySelectorAll("#gifts > li").length);
 
     // -------------------------------------------------------------------
+    t.section("Finding a gift after taking it");
+    const TAKEN = "🎁 You're getting this! It's in Already Taken.";
+    // Pin the motion setting for one page, and record how it scrolls.
+    const pinMotion = (dev, reduced) => {
+      const realMatch = dev.w.matchMedia.bind(dev.w);
+      dev.w.matchMedia = (q) => (/reduced-motion/.test(q) ? { matches: reduced } : realMatch(q));
+      dev.scrolls = [];
+      const realScroll = dev.w.Element.prototype.scrollIntoView;
+      dev.w.Element.prototype.scrollIntoView = function (options) { dev.scrolls.push(Object.assign({ target: this }, options)); return realScroll.call(this, options); };
+    };
+    const onScreen = (dev, el) => { const r = el.getBoundingClientRect(); return r.bottom > 0 && r.top < dev.w.innerHeight; };
+    const toastButton = (dev) => dev.d.querySelector("#toast .toast-action");
+    const toastShown = (dev) => dev.d.getElementById("toast").classList.contains("is-visible");
+    const toTopOfList = (dev) => dev.w.scrollTo(0, dev.d.querySelector(".list-head").getBoundingClientRect().top + dev.w.scrollY - 8);
+
+    // A long list (in the test database only), so Already Taken is screens away from the top.
+    for (let i = 1; i <= 12; i++) {
+      await db.query("insert into public.gifts (recipient, name, details, price, sort_order) values ('cameron', $1, 'Filler so the list is long.', '$5', $2)", ["Filler gift " + i, 1000 + i]);
+    }
+
+
+    // Far from Already Taken: a short phone screen, at the top of the list.
+    const S = await open(env, "index.html", "showme-a", "cameron", { width: 390, height: 420 });
+    pinMotion(S, false);
+    toTopOfList(S); await sleep(100);
+    const scrollAt = S.w.scrollY;
+    btn(S, "Bonsai pruning shears", "claim").click(); await confirmYes(S); await sleep(150);
+    const farRow = bought(S, "Bonsai pruning shears");
+    t.check("setup: the gift's new row is off screen", !!farRow && !onScreen(S, farRow));
+    t.check("off screen: the usual message, plus \"Show me\"", toast(S) === TAKEN && !!toastButton(S) && toastButton(S).textContent === "Show me", toast(S));
+    t.check("\"Show me\" has a clear accessible name", toastButton(S).getAttribute("aria-label") === "Show me the gift in Already Taken");
+    t.check("\"Show me\" is a real button, reachable by keyboard", toastButton(S).tagName === "BUTTON" && toastButton(S).tabIndex === 0);
+    t.check("\"Show me\" is at least 44px tall", toastButton(S).getBoundingClientRect().height >= 43.5, toastButton(S).getBoundingClientRect().height);
+    t.check("one message, announced once (the live region holds just the message and the button)", S.d.getElementById("toast").children.length === 2 && S.d.getElementById("toast").getAttribute("aria-live") === "polite");
+    t.check("the page itself didn't move", S.w.scrollY === scrollAt && S.scrolls.length === 0);
+    t.check("Already Taken still opened by itself", S.d.getElementById("purchased-details").open);
+    await sleep(4700);
+    t.check("with \"Show me\", the message stays longer than the usual 4 seconds", toastShown(S) && !!toastButton(S));
+    toastButton(S).click(); await sleep(300);
+    // This runner fast-forwards its clock, which stalls smooth-scroll animations, so here we
+    // check the request itself; the reduced-motion case below checks the gift arriving on screen.
+    t.check("\"Show me\" scrolls to that gift's row", S.scrolls.length === 1 && S.scrolls[0].target === bought(S, "Bonsai pruning shears"), S.scrolls.length);
+    t.check("...smoothly, for viewers who haven't asked for less motion", S.scrolls[0] && S.scrolls[0].behavior === "smooth" && S.scrolls[0].block === "center");
+    t.check("...and puts focus on its name", S.d.activeElement === bought(S, "Bonsai pruning shears").querySelector(".bought-name"));
+    t.check("the message closes, and its button is gone", !toastShown(S) && !toastButton(S));
+
+    // The same, for someone who asked for less motion.
+    const T2 = await open(env, "index.html", "showme-b", "cameron", { width: 390, height: 420 });
+    pinMotion(T2, true);
+    toTopOfList(T2); await sleep(100);
+    btn(T2, "Fancy coffee beans", "claim").click(); await confirmYes(T2); await sleep(150);
+    t.check("reduced motion: \"Show me\" is offered too", !!toastButton(T2));
+    toastButton(T2).click(); await sleep(300);
+    t.check("reduced motion: it jumps straight there, without animating", T2.scrolls[0] && T2.scrolls[0].behavior === "auto" && onScreen(T2, bought(T2, "Fancy coffee beans")));
+    t.check("reduced motion: focus is on the gift's name", T2.d.activeElement === bought(T2, "Fancy coffee beans").querySelector(".bought-name"));
+
+    // Ignored: the message simply goes away.
+    const U = await open(env, "index.html", "showme-c", "cameron", { width: 390, height: 420 });
+    pinMotion(U, false);
+    toTopOfList(U); await sleep(100);
+    btn(U, "Warm wool socks", "claim").click(); await confirmYes(U); await sleep(150);
+    const uScroll = U.w.scrollY;
+    t.check("setup: \"Show me\" offered", !!toastButton(U));
+    await sleep(7300);
+    t.check("left alone, it disappears after about 7 seconds", !toastShown(U));
+    t.check("...taking its button with it, so Tab can't reach an invisible button", !toastButton(U));
+    t.check("...and the page never moved", U.w.scrollY === uScroll && U.scrolls.length === 0);
+
+    // Already in view: just the short message.
+    const NEAR = await open(env, "index.html", "showme-d", "clara", { width: 390, height: 844 });
+    pinMotion(NEAR, false);
+    NEAR.w.scrollTo(0, NEAR.d.documentElement.scrollHeight); await sleep(150);
+    btn(NEAR, "Loose-leaf tea sampler", "claim").click(); await confirmYes(NEAR); await sleep(150);
+    const nearRow = bought(NEAR, "Loose-leaf tea sampler");
+    t.check("setup: the gift's new row is on screen", !!nearRow && onScreen(NEAR, nearRow));
+    t.check("on screen: the message without \"Show me\"", toast(NEAR) === TAKEN && !toastButton(NEAR));
+    await sleep(3300);
+    t.check("on screen: still showing at about 3 seconds", toastShown(NEAR));
+    await sleep(1300);
+    t.check("on screen: gone after the usual 4 seconds", !toastShown(NEAR));
+    t.check("on screen: nothing scrolled", NEAR.scrolls.length === 0);
+    t.check("these claims used only the usual functions", (await rpc(db, null, "get_list", { p_token: "f".repeat(64) })).data.filter((g) => ["Bonsai pruning shears", "Fancy coffee beans", "Warm wool socks", "Loose-leaf tea sampler"].includes(g.name)).every((g) => g.status === "claimed"));
+
+    // -------------------------------------------------------------------
     t.section("Security model unchanged");
     const publicCalls = env.server.calls.filter((c) => !c.owner).map((c) => c.name);
     const allowed = new Set(["get_list", "claim_gift", "release_claim", "mark_purchased", "mark_not_purchased"]);

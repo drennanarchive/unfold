@@ -625,6 +625,29 @@
 
   const TAKEN_MESSAGE = "🎁 You're getting this! It's in Already Taken.";
 
+  // On a long list the gift's new row can be screens away. Then the message
+  // offers "Show me" (and stays a little longer); the page itself never moves
+  // unless the shopper asks it to.
+  function announceTaken(id) {
+    const row = $("#purchased-list").querySelector('[data-id="' + id + '"]');
+    const box = row && row.getBoundingClientRect();
+    const offScreen = Boolean(box && (box.top >= window.innerHeight || box.bottom <= 0));
+    if (!offScreen) {
+      XL.toast(TAKEN_MESSAGE);
+      return;
+    }
+    XL.toast(TAKEN_MESSAGE, { label: "Show me", ariaLabel: "Show me the gift in Already Taken", onClick: () => showTaken(id) });
+  }
+
+  function showTaken(id) {
+    const row = $("#purchased-list").querySelector('[data-id="' + id + '"]');
+    if (!row) return;
+    $("#purchased-details").open = true;
+    row.scrollIntoView({ block: "center", behavior: XL.reducedMotion() ? "auto" : "smooth" });
+    const name = row.querySelector('[data-role="name"]');
+    if (name) name.focus({ preventScroll: true });
+  }
+
   async function claim(g) {
     const ok = await XL.confirm({
       title: "Get this gift? 🎁",
@@ -640,7 +663,7 @@
           setLocal(g.id, { status: "claimed", mine: true });
           $("#purchased-details").open = true; // so it's easy to find on a phone
           state.purchasedDefaultSet = true;    // ...and the phone default doesn't close it again
-          XL.toast(TAKEN_MESSAGE);
+          setTimeout(() => announceTaken(g.id), 0); // once the gift has moved on screen
         } else if (r === "taken") {
           setLocal(g.id, { status: "claimed", mine: false });
           XL.toast("Someone else just took this one.");
