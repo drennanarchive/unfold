@@ -44,12 +44,30 @@ window.SUITES.push({
     await rpc(db, null, "claim_gift", { p_gift_id: await giftIdOf("Cozy oversized blanket"), p_token: OTHER });
     await rpc(db, null, "mark_purchased", { p_gift_id: await giftIdOf("Cozy oversized blanket"), p_token: OTHER });
     await rpc(db, null, "claim_gift", { p_gift_id: await giftIdOf("Winter candle set"), p_token: OTHER });
+    // Keyboard safety on the confirmation
+    let claimsSent = env.server.calls.filter((c) => c.name === "claim_gift").length;
+    btn(P, "A good mystery novel", "claim").focus();
+    btn(P, "A good mystery novel", "claim").click(); await sleep(100);
+    t.check("the dialog opens with \"Not now\" focused", P.d.activeElement === P.d.getElementById("confirm-no"), P.d.activeElement && P.d.activeElement.id);
+    t.check("\"Not now\" comes before \"Yes, I'll get it!\"", P.d.getElementById("confirm-no").compareDocumentPosition(P.d.getElementById("confirm-yes")) & P.w.Node.DOCUMENT_POSITION_FOLLOWING);
+    P.d.activeElement.click(); await sleep(150); // what pressing Enter straight away does
+    t.check("pressing Enter straight away cancels", !P.d.getElementById("confirm").open && chip(P, "A good mystery novel") === "Available");
+    btn(P, "A good mystery novel", "claim").click(); await sleep(100);
+    P.d.getElementById("confirm").close(); await sleep(150); // what Escape does: it closes the dialog
+    t.check("Escape cancels too", !P.d.getElementById("confirm").open && chip(P, "A good mystery novel") === "Available");
+    t.check("neither sent anything", env.server.calls.filter((c) => c.name === "claim_gift").length === claimsSent);
+
     btn(P, "A good mystery novel", "claim").focus();
     const scrollBefore = P.w.scrollY;
     btn(P, "A good mystery novel", "claim").click(); await confirmYes(P);
     t.check("2. taking a gift moves it to Already Taken", !card(P, "A good mystery novel") && bought(P, "A good mystery novel") && boughtStatus(P, "A good mystery novel") === yours);
     t.check("phones: Already Taken opens by itself so it's easy to find", P.d.getElementById("purchased-details").open);
-    t.check("keyboard focus follows the gift to its Make Available Again button", P.d.activeElement && P.d.activeElement.dataset.role === "release" && P.d.activeElement.closest("li").dataset.id === bought(P, "A good mystery novel").dataset.id);
+    const taken = bought(P, "A good mystery novel");
+    t.check("keyboard focus lands on the gift's name, not on Make Available Again", P.d.activeElement === taken.querySelector(".bought-name") && P.d.activeElement.dataset.role === "name");
+    t.check("the name is focusable from the page but isn't an extra Tab stop", taken.querySelector(".bought-name").tabIndex === -1);
+    const releaseButton = taken.querySelector('[data-role="release"]');
+    t.check("Make Available Again is the next control by keyboard", releaseButton.tabIndex === 0 && !releaseButton.disabled && (taken.querySelector(".bought-name").compareDocumentPosition(releaseButton) & P.w.Node.DOCUMENT_POSITION_FOLLOWING));
+    t.check("the message is announced politely to screen readers", P.d.getElementById("toast").getAttribute("role") === "status" && P.d.getElementById("toast").getAttribute("aria-live") === "polite" && /You're getting this! It's in Already Taken/.test(P.d.getElementById("toast").textContent));
     t.check("...without jumping the page", P.w.scrollY === scrollBefore, P.w.scrollY + " vs " + scrollBefore);
     await rpc(db, null, "mark_purchased", { p_gift_id: await giftIdOf("A good mystery novel"), p_token: pToken() });
     await refocus(P); await refocus(Q);
@@ -67,10 +85,17 @@ window.SUITES.push({
     t.check("the database won't let another browser release it either", (await rpc(db, null, "release_claim", { p_gift_id: await giftIdOf("A good mystery novel"), p_token: OTHER })).data === "not_yours");
 
     t.section("Make Available Again");
-    // P's screen still thinks this is purchased; mark it so in the database too, without telling the page.
     let from = env.server.calls.length;
+    bought(P, "A good mystery novel").querySelector('[data-role="release"]').click(); await sleep(100);
+    t.check("the release dialog opens with \"Keep It\" focused, before \"Make Available\"", P.d.activeElement === P.d.getElementById("confirm-no") && P.d.getElementById("confirm-no").textContent === "Keep It" && (P.d.getElementById("confirm-no").compareDocumentPosition(P.d.getElementById("confirm-yes")) & P.w.Node.DOCUMENT_POSITION_FOLLOWING));
+    P.d.activeElement.click(); await sleep(150); // pressing Enter straight away
+    bought(P, "A good mystery novel").querySelector('[data-role="release"]').click(); await sleep(100);
+    P.d.getElementById("confirm").close(); await sleep(150); // Escape
+    t.check("Enter straight away, or Escape, keeps the gift and sends nothing", boughtStatus(P, "A good mystery novel") === yours && calls(from) === "" && (await claimState("A good mystery novel")) === "purchased", calls(from));
+    bought(P, "A good mystery novel").querySelector('[data-role="release"]').focus();
     bought(P, "A good mystery novel").querySelector('[data-role="release"]').click(); await confirmYes(P); await sleep(300);
     t.check("an older purchased record is released fully", chip(P, "A good mystery novel") === "Available" && (await claimState("A good mystery novel")) === "none");
+    t.check("afterwards focus is on the gift's name back in the list, not on \"I'll get this!\"", P.d.activeElement === card(P, "A good mystery novel").querySelector(".gift-name"));
     t.check("...using the existing functions in a safe order", calls(from) === "release_claim,mark_not_purchased,release_claim", calls(from));
     t.check("10. it returns to the main list at its original position", activeNames(P).join() === "A good mystery novel,Loose-leaf tea sampler", activeNames(P).join());
     t.check("other people's records weren't touched", (await claimState("Cozy oversized blanket")) === "purchased" && (await claimState("Winter candle set")) === "claimed");
@@ -141,10 +166,27 @@ window.SUITES.push({
     const note = bought(P, "Loose-leaf tea sampler");
     t.check("the taker gets a removal note in Already Taken", note && note.classList.contains("is-removed") && !card(P, "Loose-leaf tea sampler"));
     t.check("the note isn't counted as taken", purchasedCount(P) === "(3)", purchasedCount(P));
+    const REMOVED = "This gift was removed from the list. If you've bought it, check with the recipient.";
+    t.check("the note's wording doesn't name anyone", note.querySelector(".removed-msg").textContent === REMOVED, note.querySelector(".removed-msg").textContent);
     t.check("others don't see it at all", !bought(Q, "Loose-leaf tea sampler") && !card(Q, "Loose-leaf tea sampler"));
+    t.check("the database won't let another browser dismiss it", (await rpc(db, null, "release_claim", { p_gift_id: teaId, p_token: OTHER })).data === "not_yours");
+    note.querySelector('[data-role="dismiss"]').focus();
     note.querySelector('[data-role="dismiss"]').click(); await sleep(500);
     t.check("Dismiss still works, even for a gift marked purchased", !bought(P, "Loose-leaf tea sampler") && (await claimState("Loose-leaf tea sampler")) === "none");
+    t.check("after dismissing, focus moves to the Already Taken heading", P.d.activeElement === P.d.querySelector("#purchased-details summary"));
     await rpc(db, C, "owner_restore_gift", { p_id: teaId });
+
+    // The same note on Cameron's list
+    const camGiftId = (await rpc(db, M, "owner_list", {})).data.find((g) => g.name === "Warm wool socks").id;
+    await rpc(db, null, "claim_gift", { p_gift_id: camGiftId, p_token: pToken() });
+    await rpc(db, M, "owner_archive_gift", { p_id: camGiftId });
+    P.w.location.hash = "#cameron"; await sleep(600);
+    const camNote = bought(P, "Warm wool socks");
+    t.check("Cameron's list: the same wording", camNote && camNote.classList.contains("is-removed") && camNote.querySelector(".removed-msg").textContent === REMOVED);
+    camNote.querySelector('[data-role="dismiss"]').click(); await sleep(500);
+    t.check("Cameron's list: Dismiss works", !bought(P, "Warm wool socks"));
+    await rpc(db, M, "owner_restore_gift", { p_id: camGiftId });
+    P.w.location.hash = "#clara"; await sleep(600);
 
     // Phone default: compact and tucked away, but reachable
     const P2 = await reopen(P, "clara");

@@ -234,15 +234,24 @@
     }, { once: true });
   }
 
+  // A gift's name. It can take keyboard focus from the page (not from Tab), so
+  // after taking or releasing a gift, focus lands on the gift itself rather than
+  // on a button that would undo what was just done.
+  function giftName(tag, className, g) {
+    const node = el(tag, className, g.name);
+    node.tabIndex = -1;
+    node.dataset.role = "name";
+    return node;
+  }
+
   // A gift this browser took that the owner has since removed. Only this browser
   // ever sees it, in "Already Taken", until it's dismissed.
   function buildRemoved(g) {
     const pending = state.pending.has(g.id);
     const li = el("li", "bought is-removed");
     li.dataset.status = g.status;
-    li.append(el("span", "bought-name", g.name));
-    const name = (XL.person(g.recipient) || {}).name;
-    li.append(el("p", "removed-msg", "Removed from the list after you chose it. If you've already bought it, you may want to check with " + name + "."));
+    li.append(giftName("span", "bought-name", g));
+    li.append(el("p", "removed-msg", "This gift was removed from the list. If you've bought it, check with the recipient."));
     const dismiss = button("Dismiss", "btn-text bought-action", "dismiss", () => dismissRemoved(g), pending);
     dismiss.setAttribute("aria-label", "Dismiss note about " + g.name);
     li.append(dismiss);
@@ -263,7 +272,7 @@
     const text = el("div", "gift-text");
 
     const top = el("div", "gift-top");
-    top.append(el("h3", "gift-name", g.name));
+    top.append(giftName("h3", "gift-name", g));
     if (g.price) {
       const price = el("span", "gift-price");
       price.append(el("span", "sr-only", "Approximate price: "), document.createTextNode(g.price));
@@ -325,7 +334,7 @@
 
     const top = el("div", "bought-top");
     top.insertAdjacentHTML("beforeend", ICONS.taken);
-    top.append(el("span", "bought-name", g.name));
+    top.append(giftName("span", "bought-name", g));
     if (g.price) {
       const price = el("span", "bought-price");
       price.append(el("span", "sr-only", "Approximate price: "), document.createTextNode(g.price));
@@ -578,8 +587,9 @@
   async function act(g, { call, onResult, verify, success }) {
     if (state.pending.has(g.id)) return;
     // If the action came from this gift's own controls, keep keyboard focus with
-    // the gift afterwards, even if it moved between the list and "Already Taken".
-    // The page doesn't jump to it: the message says where it went.
+    // the gift afterwards, even if it moved between the list and "Already Taken":
+    // on its name, so the next Tab reaches its controls. The page doesn't jump to
+    // it, and the message (a polite live region) says where it went.
     const active = document.activeElement && document.activeElement.closest && document.activeElement.closest("[data-id]");
     const keepFocus = Boolean(active && active.dataset.id === g.id);
     state.pending.add(g.id);
@@ -599,8 +609,8 @@
       renderList();
       if (keepFocus) {
         const li = document.querySelector('[data-id="' + g.id + '"]');
-        const target = li && (li.querySelector('[data-role="claim"], [data-role="release"]')
-          || li.querySelector("button:not(:disabled)"));
+        // A dismissed note is gone, so focus goes to the "Already Taken" heading instead.
+        const target = li ? li.querySelector('[data-role="name"]') : $("#purchased-details summary");
         if (target) target.focus({ preventScroll: true });
       }
     }

@@ -41,6 +41,14 @@
       let passed = 0, failed = 0;
       const add = (cls, text) => { const div = document.createElement("div"); div.className = cls; div.textContent = text; log.append(div); lines.push(text); };
 
+      // A test file with a syntax error never adds its suite, which would otherwise
+      // look like a clean run. Every test file adds exactly one suite.
+      const files = document.querySelectorAll('script[src$=".test.js"]').length;
+      if (!window.SUITES || window.SUITES.length !== files) {
+        failed++;
+        add("fail", "    ERROR " + files + " test files but " + (window.SUITES ? window.SUITES.length : 0) + " suites loaded: a test file failed to load (see the browser console)");
+      }
+
       for (const suite of window.SUITES) {
         if (only && !suite.name.toLowerCase().startsWith(only.toLowerCase())) continue;
         add("suite", "■ " + suite.name);
