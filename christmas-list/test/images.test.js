@@ -125,9 +125,9 @@ window.SUITES.push({
     t.check("sorting reuses the same pictures and asks for nothing", thumb("First") === elementBefore && requests.length === seen && activeNames(P)[0] === "Moved up by price");
     select.value = "default"; select.dispatchEvent(new P.w.Event("change")); await sleep(100);
     btn(P, "First", "claim").click(); await confirmYes(P); await sleep(300);
-    t.check("claiming still works on a sized thumbnail", card(P, "First").querySelector(".chip").textContent === "Claimed by you" && !!thumb("First"));
-    btn(P, "First", "release").click(); await confirmYes(P); await sleep(200);
-    t.check("the purchased row keeps its controls and status", bought(P, "Bought").querySelector(".bought-status").textContent === "Purchased" && !bought(P, "Bought").querySelector("button"));
+    t.check("taking a gift still works, and its row keeps a sized thumbnail", !!bought(P, "First") && bought(P, "First").querySelector(".bought-status").textContent === "You're getting this 🎁" && /first\.png\?width=144$/.test(bought(P, "First").querySelector(".bought-thumb").getAttribute("src") === PIXEL ? requests.filter((r) => /first/.test(r.url) && /bought-thumb/.test(r.cls)).pop().url : ""));
+    bought(P, "First").querySelector('[data-role="release"]').click(); await confirmYes(P); await sleep(300);
+    t.check("someone else's taken row shows \"Taken\" and no controls", bought(P, "Bought").querySelector(".bought-status").textContent === "Taken" && !bought(P, "Bought").querySelector("button"));
     t.check("stored image addresses are untouched", (await stored()) === before);
     await sleep(10);
   },

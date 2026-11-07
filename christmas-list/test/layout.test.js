@@ -13,7 +13,7 @@ window.SUITES.push({
     const SIZES = [[390, 844, "phone"], [430, 932, "large phone"], [768, 1024, "tablet"], [820, 1180, "tablet / narrow"],
       [1280, 800, "desktop"], [1440, 900, "wide desktop"]];
 
-    // Some purchased gifts on both lists, so the "Already purchased" area shows.
+    // Some taken gifts on both lists (stored as purchased), so "Already Taken" shows.
     const OTHER = "f".repeat(64);
     for (const [uid, names] of [[USERS.clara.id, ["Winter candle set", "Loose-leaf tea sampler"]], [USERS.cameron.id, ["Warm wool socks"]]]) {
       for (const g of (await rpc(db, uid, "owner_list", {})).data.filter((x) => names.includes(x.name))) {
@@ -54,7 +54,12 @@ window.SUITES.push({
           bg.backgroundImage.includes(`${person}-${person === "clara" ? "winter" : "bonsai"}-${portrait ? "mobile" : "desktop"}.webp`), bg.backgroundImage.slice(0, 90));
         t.check(`${label}: gift cards stay compact`, cards.length > 0 && Math.max(...cards) <= 200, cards.map(Math.round).join(","));
         const viewW = d.documentElement.clientWidth; // excludes the scrollbar
-        t.check(`${label}: list column centred`, Math.abs(column.left - (viewW - column.right)) < 2, Math.round(column.left) + " / " + Math.round(viewW - column.right));
+        if (person === "cameron" && w >= 1100 && !portrait) {
+          // The two columns sit to the right of the bonsai, which fills about the left 30% of the art.
+          t.check(`${label}: the lists sit clear of the bonsai (left edge ≥ 28% across)`, column.left >= viewW * 0.28 && column.right <= viewW, Math.round(column.left) + " of " + viewW);
+        } else {
+          t.check(`${label}: list column centred`, Math.abs(column.left - (viewW - column.right)) < 2, Math.round(column.left) + " / " + Math.round(viewW - column.right));
+        }
         if (portrait && w < 600) {
           if (person === "cameron") {
             t.check(`${label}: art anchored bottom-left so the bonsai is never cropped`, bg.backgroundPosition === "0% 100%", bg.backgroundPosition);
@@ -65,25 +70,32 @@ window.SUITES.push({
           t.check(`${label}: first gift is visible without scrolling`, d.querySelector("#gifts > li").getBoundingClientRect().top < h);
         }
 
-        // "Already purchased" — measured opened, its largest state
+        // "Already Taken" — measured opened, its largest state
         const section = d.getElementById("purchased");
+        const wasOpen = d.getElementById("purchased-details").open;
         d.getElementById("purchased-details").open = true;
         await sleep(50);
         const box = section.getBoundingClientRect();
+        const main = d.querySelector(".list-main").getBoundingClientRect();
         const rowsH = [...d.querySelectorAll("#purchased-list > li")].map((li) => li.getBoundingClientRect().height);
         const lastCard = [...d.querySelectorAll("#gifts > li")].pop().getBoundingClientRect();
-        const rail = w >= 1240 && !portrait;
-        t.check(`${label}: purchased area shown with its rows`, !section.hidden && rowsH.length === (person === "clara" ? 2 : 1));
-        t.check(`${label}: 28/29/J. purchased area causes no sideways scrolling`, d.documentElement.scrollWidth <= w && box.right <= viewW + 0.5, Math.round(box.right) + " vs " + viewW);
-        t.check(`${label}: purchased rows are compact (≤ 90px, smaller than cards)`, Math.max(...rowsH) <= 90 && Math.max(...rowsH) < Math.min(...cards), rowsH.map(Math.round).join(","));
+        const twoColumns = w >= 1100 && !portrait;
+        t.check(`${label}: Already Taken shown with its rows`, !section.hidden && rowsH.length === (person === "clara" ? 2 : 1));
+        t.check(`${label}: 28/29/J. Already Taken causes no sideways scrolling`, d.documentElement.scrollWidth <= w && box.right <= viewW + 0.5, Math.round(box.right) + " vs " + viewW);
+        t.check(`${label}: taken rows are compact (≤ 90px, smaller than cards)`, Math.max(...rowsH) <= 90 && Math.max(...rowsH) < Math.min(...cards), rowsH.map(Math.round).join(","));
         t.check(`${label}: tap targets still ≥44px with it open`, smallTargets(d).length === 0, smallTargets(d).join(", "));
-        if (rail) {
-          t.check(`${label}: 31. side panel sits beside the list without overlapping it`, box.left >= column.right + 8, Math.round(box.left) + " vs list edge " + Math.round(column.right));
-          t.check(`${label}: 31. side panel is clearly secondary (much narrower than the list)`, box.width <= column.width * 0.5, Math.round(box.width) + " vs " + Math.round(column.width));
-          t.check(`${label}: side panel starts open`, d.getElementById("purchased-details").open);
+        t.check(`${label}: nothing scrolls on its own`, getComputedStyle(d.getElementById("purchased-list")).overflowY === "visible");
+        if (twoColumns) {
+          t.check(`${label}: 31. two columns: Already Taken sits beside Available without overlapping`, box.left >= main.right + 8 && Math.abs(box.top - main.top) < 2, Math.round(box.left) + " vs " + Math.round(main.right));
+          const share = box.width / (box.width + main.width);
+          t.check(`${label}: 31. Available gets about 70%, Already Taken about 30%`, share >= 0.25 && share <= 0.36, share.toFixed(2));
+          t.check(`${label}: Already Taken starts open`, wasOpen);
+          const h1 = d.querySelector(".hero h1").getBoundingClientRect();
+          t.check(`${label}: header stays centred over both columns`, Math.abs((h1.left + h1.right) / 2 - (main.left + box.right) / 2) < 3, Math.round((h1.left + h1.right) / 2) + " vs " + Math.round((main.left + box.right) / 2));
         } else {
-          t.check(`${label}: 30. purchased area follows the main list`, box.top >= lastCard.bottom - 1, Math.round(box.top) + " vs " + Math.round(lastCard.bottom));
-          t.check(`${label}: purchased area stays within the list column`, box.left >= column.left - 1 && box.right <= column.right + 1);
+          t.check(`${label}: 30. Already Taken follows the main list`, box.top >= lastCard.bottom - 1, Math.round(box.top) + " vs " + Math.round(lastCard.bottom));
+          t.check(`${label}: Already Taken stays within the list column`, box.left >= column.left - 1 && box.right <= column.right + 1);
+          t.check(`${label}: Already Taken starts collapsed`, !wasOpen);
         }
         P.frame.remove();
       }

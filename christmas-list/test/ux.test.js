@@ -115,28 +115,26 @@ window.SUITES.push({
     await setSort(A, "price-desc");
     const cherryId = card(A, "Cherry pitter").dataset.id;
     btn(A, "Cherry pitter", "claim").click(); await confirmYes(A); await sleep(200);
-    t.check("claiming from a sorted list claims the right gift", chip(A, "Cherry pitter") === "Claimed by you" && card(A, "Cherry pitter").dataset.id === cherryId);
+    t.check("taking from a sorted list takes the right gift", !card(A, "Cherry pitter") && bought(A, "Cherry pitter") && bought(A, "Cherry pitter").dataset.id === cherryId && bought(A, "Cherry pitter").querySelector(".bought-status").textContent === "You're getting this 🎁");
     const row = (await rpc(db, null, "get_list", { p_token: OTHER })).data.find((g) => g.name === "Cherry pitter");
     t.check("the database agrees, and no other gift changed", row.id === cherryId && row.status === "claimed" &&
       (await rpc(db, null, "get_list", { p_token: OTHER })).data.filter((g) => g.status !== "available").length === 1);
-    t.check("the sort holds after claiming", A.d.getElementById("gift-sort").value === "price-desc" && activeNames(A)[2] === "Zebra mug" && activeNames(A)[3] === "Cherry pitter", activeNames(A).join());
+    t.check("the sort holds for what's left", A.d.getElementById("gift-sort").value === "price-desc" && activeNames(A)[2] === "Zebra mug" && !activeNames(A).includes("Cherry pitter"), activeNames(A).join());
     await refocus(B);
-    t.check("another browser sees Claimed, never who", chip(B, "Cherry pitter") === "Claimed" && !btn(B, "Cherry pitter", "release") && !btn(B, "Cherry pitter", "claim"));
+    t.check("another browser sees Taken, never who", bought(B, "Cherry pitter").querySelector(".bought-status").textContent === "Taken" && !bought(B, "Cherry pitter").querySelector("button") && !btn(B, "Cherry pitter", "claim"));
     await setSort(B, "name");
-    t.check("its actions stay correct when sorted", chip(B, "Cherry pitter") === "Claimed" && !btn(B, "Cherry pitter", "release") && !!btn(B, "Zebra mug", "claim"));
-    t.check("the claimant still has its own controls", !!btn(A, "Cherry pitter", "purchase") && !!btn(A, "Cherry pitter", "release"));
+    t.check("its actions stay correct when sorted", !bought(B, "Cherry pitter").querySelector("button") && !!btn(B, "Zebra mug", "claim"));
+    t.check("the taker still has its own control", !!bought(A, "Cherry pitter").querySelector('[data-role="release"]'));
 
-    btn(A, "Cherry pitter", "purchase").click(); await sleep(500);
     const bananaId = await buyAs(C, "Banana stand");
     await refocus(A);
-    t.check("purchased gifts leave the sorted list", !card(A, "Cherry pitter") && !card(A, "Banana stand"));
-    t.check("Already purchased keeps the owner's order, whatever the sort", boughtNames(A).join() === "Banana stand,Cherry pitter", boughtNames(A).join());
-    t.check("purchase ownership survives sorting", !!bought(A, "Cherry pitter").querySelector('[data-role="unpurchase"]') && !bought(A, "Banana stand").querySelector("button"));
-    bought(A, "Cherry pitter").querySelector('[data-role="unpurchase"]').click(); await sleep(500);
-    btn(A, "Cherry pitter", "release").click(); await confirmYes(A); await sleep(200);
+    t.check("taken gifts stay out of the sorted list", !card(A, "Cherry pitter") && !card(A, "Banana stand"));
+    t.check("Already Taken keeps the owner's order, whatever the sort", boughtNames(A).join() === "Banana stand,Cherry pitter", boughtNames(A).join());
+    t.check("ownership survives sorting", !!bought(A, "Cherry pitter").querySelector('[data-role="release"]') && !bought(A, "Banana stand").querySelector("button"));
+    bought(A, "Cherry pitter").querySelector('[data-role="release"]').click(); await confirmYes(A); await sleep(300);
     await undoBuy(bananaId);
     await setSort(A, "default"); await refocus(A);
-    t.check("after undoing, everything is back in the owner's order", activeNames(A).join() === OWNER.join() && A.d.getElementById("purchased").hidden, activeNames(A).join());
+    t.check("after undoing, everything is back in the owner's order", activeNames(A).join() === OWNER.join() && getComputedStyle(A.d.getElementById("purchased")).display === "none", activeNames(A).join());
 
     // -------------------------------------------------------------------
     t.section("Thumbnails");
@@ -159,8 +157,8 @@ window.SUITES.push({
     btn(A, "Zebra mug", "more").click(); await sleep(80);
 
     btn(A, "Zebra mug", "claim").click(); await confirmYes(A); await sleep(200);
-    t.check("a claimed gift keeps its thumbnail", chip(A, "Zebra mug") === "Claimed by you" && !!thumb(A, "Zebra mug"));
-    btn(A, "Zebra mug", "release").click(); await confirmYes(A); await sleep(200);
+    t.check("a taken gift keeps its thumbnail in Already Taken", !!bought(A, "Zebra mug") && !!bought(A, "Zebra mug").querySelector(".bought-thumb"));
+    bought(A, "Zebra mug").querySelector('[data-role="release"]').click(); await confirmYes(A); await sleep(300);
 
     // A real failure: this address can never resolve. Off-screen frames may not have tried it yet.
     if (thumb(A, "Failing picture")) { thumb(A, "Failing picture").loading = "eager"; await sleep(1500); }
@@ -376,9 +374,8 @@ window.SUITES.push({
 
     const oneId = card(CALM, "GIF one").dataset.id;
     btn(CALM, "GIF one", "claim").click(); await confirmYes(CALM); await sleep(400);
-    t.check("reduced motion: claiming still works, and the rebuilt card is still frozen", chip(CALM, "GIF one") === "Claimed by you" && card(CALM, "GIF one").dataset.id === oneId && thumbOf(CALM, "GIF one").tagName === "CANVAS");
-    btn(CALM, "GIF one", "purchase").click(); await sleep(600);
-    t.check("reduced motion: purchasing moves it, frozen", boughtThumb(CALM, "GIF one") && boughtThumb(CALM, "GIF one").tagName === "CANVAS");
+    t.check("reduced motion: taking still works", !!bought(CALM, "GIF one") && bought(CALM, "GIF one").dataset.id === oneId && bought(CALM, "GIF one").querySelector(".bought-status").textContent === "You're getting this 🎁");
+    t.check("reduced motion: it moves to Already Taken, still frozen", boughtThumb(CALM, "GIF one") && boughtThumb(CALM, "GIF one").tagName === "CANVAS");
     t.check("stored image addresses are untouched", (await storedGifs()) === gifRowsBefore);
     await sleep(10);
   },

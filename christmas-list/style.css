@@ -507,6 +507,8 @@ body[data-theme="cameron"] .list-head::after { background: linear-gradient(90deg
 .dot-available { background: var(--chip-available-ink); }
 .dot-claimed { background: var(--chip-claimed-ink); }
 .dot-purchased { background: var(--chip-purchased-ink); opacity: .6; }
+.dot-taken { background: var(--chip-claimed-ink); }
+.summary-sep { opacity: .6; }
 
 /* Viewer-only sort: its own row on phones, on the heading's row when it fits. */
 .sort-control {
@@ -643,6 +645,7 @@ body[data-theme="cameron"] .gift-thumb, body[data-theme="cameron"] .bought-thumb
 .chip[data-status="available"] { background: var(--chip-available-bg); color: var(--chip-available-ink); }
 .chip[data-status="claimed"]   { background: var(--chip-claimed-bg);   color: var(--chip-claimed-ink); }
 .chip[data-status="purchased"] { background: var(--chip-purchased-bg); color: var(--chip-purchased-ink); }
+.chip[data-status="taken"]     { background: var(--chip-claimed-bg);   color: var(--chip-claimed-ink); }
 .chip[data-status="loading"]   { background: rgba(0, 0, 0, .05); color: var(--ink-soft); }
 .chip svg { width: 13px; height: 13px; flex: none; }
 
@@ -749,7 +752,7 @@ body[data-theme="clara"] .gift::before {
 body[data-theme="cameron"] .list-foot a { color: #f6e6cc; text-shadow: 0 1px 3px rgba(20, 10, 4, .8); }
 body[data-theme="clara"] .list-foot a { text-shadow: 0 0 8px rgba(255, 255, 255, .9); }
 
-/* ---------- Already purchased ----------
+/* ---------- Already Taken ----------
    Compact and secondary: one quiet panel of slim rows. Below the list on
    phones and tablets; a side panel beside the list on wide screens. */
 .purchased { margin-top: calc(var(--gap) * 2); }
@@ -793,15 +796,24 @@ body[data-theme="clara"] .list-foot a { text-shadow: 0 0 8px rgba(255, 255, 255,
 .bought-status { font-weight: 700; white-space: nowrap; }
 .bought-link { display: inline-flex; align-items: center; min-height: 32px; color: var(--accent); font-weight: 700; text-underline-offset: 3px; }
 @media (pointer: coarse) { .bought-link { min-height: var(--tap); } }
-.bought .gift-note { grid-column: 1; padding-left: 21px; margin-top: 2px; }
-.bought-undo { grid-column: 2; grid-row: 2 / span 2; font-size: .82rem; }
+.bought .gift-note { grid-column: 1 / -1; padding-left: 21px; margin-top: 2px; }
+/* Only the browser that took a gift gets Details and "Make Available Again". */
+.bought-extra { grid-column: 1 / -1; display: grid; gap: 8px; margin-top: 6px; padding-left: 21px; }
+.bought-extra .gift-details { margin: 0; display: block; -webkit-line-clamp: unset; }
+.bought-actions { grid-column: 1 / -1; display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 0 6px; }
+.bought-action { font-size: .85rem; }
+.bought.is-removed { grid-template-columns: 1fr; }
+.bought.is-removed .bought-name { text-decoration: line-through; text-decoration-thickness: 1px; }
+.bought.is-removed .removed-msg { margin: 2px 0 0; font-size: .82rem; color: var(--ink-soft); }
+.bought.is-removed .bought-action { justify-self: end; }
+.taken-empty { margin: 2px 14px 14px; font-size: .88rem; font-style: italic; color: var(--ink-soft); }
 .bought-thumb { width: 34px; height: 34px; border-radius: 8px; grid-column: 1; grid-row: 1 / span 2; align-self: start; margin-top: 2px; }
 .bought.has-thumb { grid-template-columns: auto 1fr auto; }
 .bought.has-thumb .bought-top { grid-column: 2 / -1; flex-wrap: wrap; }
 .bought.has-thumb .bought-name { flex: 1 1 50%; }
 .bought.has-thumb .bought-price { flex: 0 1 auto; white-space: normal; overflow-wrap: anywhere; }
-.bought.has-thumb .bought-meta, .bought.has-thumb .gift-note { grid-column: 2; }
-.bought.has-thumb .bought-undo { grid-column: 3; }
+.bought.has-thumb .bought-meta, .bought.has-thumb .gift-note, .bought.has-thumb .bought-extra { grid-column: 2 / -1; }
+.bought.has-thumb .bought-extra { padding-left: 0; }
 .bought.is-mine .bought-name { color: var(--ink); }
 .bought.is-mine .bought-status { color: var(--accent); }
 
@@ -811,22 +823,33 @@ body[data-theme="cameron"] .purchased details[open] summary { box-shadow: inset 
 body[data-theme="clara"] .purchased summary h2::before { content: "❄ "; color: #8ea6d6; font-size: .8em; }
 body[data-theme="cameron"] .purchased summary h2::before { content: "✦ "; color: #c9973a; font-size: .8em; }
 
-/* Wide screens: the panel sits beside the centred list, never over it. */
-@media (min-width: 1240px) and (min-aspect-ratio: 1/1) {
-  .list-section { position: relative; }
-  .purchased {
-    position: absolute;
-    top: 0;
-    left: calc(100% + 24px);
-    width: 260px;
-    margin: 0;
-  }
-  .purchased-list { max-height: 60vh; overflow-y: auto; }
-  /* the panel is narrow: give "Undo purchase" its own line */
-  .bought-undo { grid-column: 1 / -1; grid-row: auto; justify-self: start; margin-left: 15px; }
-  .bought.has-thumb .bought-meta, .bought.has-thumb .gift-note { grid-column: 2 / -1; }
-  .bought.has-thumb .bought-undo { grid-column: 2 / -1; }
+/* Phones and tablets show nothing until something is taken. */
+@media not all and (min-width: 1100px) and (min-aspect-ratio: 1/1) {
+  .purchased.is-empty { display: none; }
 }
+
+/* Wide screens: Available gifts on the left (about 70%), Already Taken in a
+   quieter column on the right. Both scroll with the page; nothing scrolls on
+   its own. Keep the breakpoint in step with WIDE in app.js. */
+@media (min-width: 1100px) and (min-aspect-ratio: 1/1) {
+  .list-column { max-width: 1120px; }
+  .list-section {
+    display: grid;
+    grid-template-columns: minmax(0, 7fr) minmax(300px, 3fr);
+    gap: 0 26px;
+    align-items: start;
+  }
+  .list-main { grid-column: 1; min-width: 0; }
+  .purchased { grid-column: 2; grid-row: 1; margin: 0; }
+  .sync, .list-foot { grid-column: 1 / -1; }
+  /* always open here, so the heading isn't a toggle */
+  .purchased summary { cursor: default; }
+  .purchased-chevron { display: none; }
+  /* THEME: cameron — the bonsai fills about the left 30% of the art, so the two
+     columns (and the header above them) sit to its right instead of over it. */
+  body[data-theme="cameron"] .list-column { max-width: min(1120px, calc(70vw - var(--gutter))); margin-right: 0; }
+}
+.purchased.is-empty .purchased-note { display: none; }
 
 /* ---------- Dialog ---------- */
 .dialog {

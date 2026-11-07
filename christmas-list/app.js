@@ -6,7 +6,7 @@
  *   #cameron   Cameron's list
  *
  * Each browser gets a random token (kept in localStorage). The database stores
- * only a hash of it, which is how this browser recognises "Claimed by you" and
+ * only a hash of it, which is how this browser recognises "You're getting this" and
  * is allowed to undo its own claims. Nobody's identity is ever stored or shown.
  */
 (function () {
@@ -84,16 +84,23 @@
     refreshAgain: false,
     version: 0,             // bumped by every action, so stale refreshes are ignored
     lastSync: null,
-    purchasedDefaultSet: false, // "Already purchased" starts open on wide screens, closed on narrow
+    purchasedDefaultSet: false, // "Already Taken" starts open on wide screens, closed on narrow
     sort: "default",        // this viewer's sort for the main list; never saved anywhere
   };
   const cards = new Map();  // gift id -> { li, sig }  (main list)
-  const rows = new Map();   // gift id -> { li, sig }  ("Already purchased")
+  const rows = new Map();   // gift id -> { li, sig }  ("Already Taken")
   const brokenImages = new Set(); // image addresses that failed to load in this visit
   const FIRST_SCREEN_CARDS = 6;   // about what fits on a large screen before scrolling
   let firstScreenIds = new Set(); // gift ids at the top of the list right now
 
   const giftById = (id) => state.gifts.find((g) => g.id === id);
+
+  // Family see two states. The database still keeps "claimed" and "purchased"
+  // apart (older purchases stay as they were); both simply show as Taken here.
+  const isTaken = (g) => g.status !== "available";
+  // Where the two columns sit side by side. Keep in step with style.css.
+  const WIDE = "(min-width: 1100px) and (min-aspect-ratio: 1/1)";
+  const isWide = () => window.matchMedia(WIDE).matches;
 
   // ---------------------------------------------------------------------------
   // Routing
@@ -145,21 +152,20 @@
 
   const ICONS = {
     available: '<svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="5.5" fill="none" stroke="currentColor" stroke-width="2"/></svg>',
-    claimed: '<svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="5.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M8 2.5a5.5 5.5 0 0 1 0 11z" fill="currentColor"/></svg>',
-    purchased: '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8.5l3.2 3.2L13 4.8" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+    taken: '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8.5l3.2 3.2L13 4.8" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>',
     chevron: '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4 6l4 4 4-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
   };
 
   function statusLabel(g) {
-    if (g.status === "available") return "Available";
-    if (g.status === "claimed") return g.mine ? "Claimed by you" : "Claimed";
-    return g.mine ? "Purchased by you" : "Purchased";
+    if (!isTaken(g)) return "Available";
+    return g.mine ? "You're getting this 🎁" : "Taken";
   }
 
   function chip(g, pending) {
     const node = el("span", "chip");
-    node.dataset.status = pending ? "loading" : g.status;
-    node.innerHTML = pending ? "" : ICONS[g.status];
+    const shown = isTaken(g) ? "taken" : "available";
+    node.dataset.status = pending ? "loading" : shown;
+    node.innerHTML = pending ? "" : ICONS[shown];
     node.append(el("span", null, pending ? "Saving…" : statusLabel(g)));
     return node;
   }
@@ -228,25 +234,23 @@
     }, { once: true });
   }
 
-  function buildRemoved(g, pending) {
-    const li = el("li", "gift is-removed");
+  // A gift this browser took that the owner has since removed. Only this browser
+  // ever sees it, in "Already Taken", until it's dismissed.
+  function buildRemoved(g) {
+    const pending = state.pending.has(g.id);
+    const li = el("li", "bought is-removed");
     li.dataset.status = g.status;
-    li.append(el("h3", "gift-name", g.name));
-    li.append(el("p", "removed-msg",
-      g.status === "purchased"
-        ? "Removed from the list after you bought it. You may want to check with " + (XL.person(g.recipient) || {}).name + "."
-        : "Removed from the list after you claimed it. It's no longer needed."));
-    const foot = el("div", "gift-foot");
-    foot.append(el("span", "spacer"));
-    foot.append(button("Dismiss", "btn-text", "dismiss", () => dismissRemoved(g), pending));
-    li.append(foot);
+    li.append(el("span", "bought-name", g.name));
+    const name = (XL.person(g.recipient) || {}).name;
+    li.append(el("p", "removed-msg", "Removed from the list after you chose it. If you've already bought it, you may want to check with " + name + "."));
+    const dismiss = button("Dismiss", "btn-text bought-action", "dismiss", () => dismissRemoved(g), pending);
+    dismiss.setAttribute("aria-label", "Dismiss note about " + g.name);
+    li.append(dismiss);
     return li;
   }
 
   function buildGift(g) {
     const pending = state.pending.has(g.id);
-    if (g.removed) return buildRemoved(g, pending);
-
     const open = state.open.has(g.id);
     const li = el("li", "gift");
     li.dataset.status = g.status;
@@ -268,9 +272,6 @@
     text.append(top);
 
     if (g.details) text.append(el("p", "gift-details", g.details));
-    if (g.mine && g.updated_since_claim) {
-      text.append(el("p", "gift-note", "✎ Updated since you claimed it"));
-    }
     main.append(text);
     li.append(main);
 
@@ -302,35 +303,28 @@
       toggle.setAttribute("aria-label", (open ? "Hide details for " : "Show details for ") + g.name);
       foot.append(toggle);
     }
-    if (g.status === "available") {
-      const claimButton = button("Claim", "btn btn-primary", "claim", () => claim(g), pending);
-      claimButton.setAttribute("aria-label", "Claim " + g.name);
-      foot.append(claimButton);
-    }
+    const claimButton = button("I'll get this!", "btn btn-primary", "claim", () => claim(g), pending);
+    claimButton.setAttribute("aria-label", "I'll get " + g.name);
+    foot.append(claimButton);
     li.append(foot);
-
-    if (g.mine && g.status === "claimed") {
-      const actions = el("div", "gift-actions");
-      actions.append(
-        button("Mark purchased", "btn btn-primary", "purchase", () => markPurchased(g), pending),
-        button("Undo claim", "btn btn-quiet", "release", () => release(g), pending)
-      );
-      li.append(actions);
-    }
     return li;
   }
 
-  // A compact row for the "Already purchased" area. Only the browser that bought
-  // it gets a control (to undo the purchase); everyone else just sees "Purchased".
-  function buildPurchased(g) {
+  // A compact row in "Already Taken". Everyone sees "Taken". Only the browser that
+  // took it sees "You're getting this", with Details and Make Available Again.
+  function buildTaken(g) {
+    if (g.removed) return buildRemoved(g);
     const pending = state.pending.has(g.id);
+    const open = g.mine && state.open.has(g.id);
     const li = el("li", "bought");
+    li.dataset.status = "taken";
     li.classList.toggle("is-mine", g.mine);
+    li.classList.toggle("is-open", open);
     li.classList.toggle("has-thumb", hasImage(g));
     if (hasImage(g)) li.append(giftImage(g, "bought-thumb", 34));
 
     const top = el("div", "bought-top");
-    top.insertAdjacentHTML("beforeend", ICONS.purchased);
+    top.insertAdjacentHTML("beforeend", ICONS.taken);
     top.append(el("span", "bought-name", g.name));
     if (g.price) {
       const price = el("span", "bought-price");
@@ -350,13 +344,32 @@
       meta.append(a);
     }
     li.append(meta);
-    if (g.mine && g.updated_since_claim) li.append(el("p", "gift-note", "✎ Updated since you claimed it"));
+    if (!g.mine) return li;
 
-    if (g.mine) {
-      const undo = button("Undo purchase", "btn-text bought-undo", "unpurchase", () => markNotPurchased(g), pending);
-      undo.setAttribute("aria-label", "Mark " + g.name + " as not purchased");
-      li.append(undo);
+    if (g.updated_since_claim) li.append(el("p", "gift-note", "✎ Updated since you chose it"));
+    const extraId = "taken-extra-" + g.id;
+    const more = Boolean(g.details || hasImage(g));
+    if (more) {
+      const extra = el("div", "bought-extra");
+      extra.id = extraId;
+      extra.hidden = !open;
+      if (g.details) extra.append(el("p", "gift-details", g.details));
+      if (hasImage(g)) extra.append(giftImage(g, "gift-image"));
+      li.append(extra);
     }
+    const actions = el("div", "bought-actions");
+    if (more) {
+      const toggle = button("Details", "more", "more", () => toggleOpen(g));
+      toggle.insertAdjacentHTML("beforeend", ICONS.chevron);
+      toggle.setAttribute("aria-expanded", String(open));
+      toggle.setAttribute("aria-controls", extraId);
+      toggle.setAttribute("aria-label", (open ? "Hide details for " : "Show details for ") + g.name);
+      actions.append(toggle);
+    }
+    const release = button("Make Available Again", "btn-text bought-action", "release", () => makeAvailable(g), pending);
+    release.setAttribute("aria-label", "Make " + g.name + " available again");
+    actions.append(release);
+    li.append(actions);
     return li;
   }
 
@@ -394,10 +407,10 @@
     }
   }
 
-  // Purchased gifts leave the main list for a compact "Already purchased" area
-  // (beside the list on wide screens, below it on phones). Claimed-but-not-
-  // purchased gifts stay in the main list. Removal notes stay in the main list.
-  const isPurchasedRow = (g) => !g.removed && g.status === "purchased";
+  // Available gifts fill the main list. Everything taken, plus notes about gifts
+  // this browser took that were then removed, goes to "Already Taken" (beside the
+  // list on wide screens, below it on phones), always in the owner's order.
+  const inTakenArea = (g) => g.removed || isTaken(g);
 
   // Viewer-only sorting of the main list. It reorders a copy of what's already
   // loaded, so "default" is always the owner's order from get_list. Array sort
@@ -416,18 +429,23 @@
   };
   const sortedForViewer = (items) => (SORTS[state.sort] ? items.slice().sort(SORTS[state.sort]) : items);
 
-  function renderPurchased(items) {
+  function renderTaken(items) {
     const section = $("#purchased");
-    const bought = items.filter(isPurchasedRow);
-    section.hidden = bought.length === 0;
-    $("#purchased-count").textContent = "(" + bought.length + ")";
+    const taken = items.filter(inTakenArea);
+    const count = taken.filter((g) => !g.removed).length;
+    section.hidden = !state.loaded && taken.length === 0; // nothing to say until the list arrives
+    section.classList.toggle("is-empty", taken.length === 0);
+    $("#purchased-count").textContent = "(" + count + ")";
+    const empty = $("#taken-empty");
+    if (empty) empty.hidden = taken.length > 0;
     const details = $("#purchased-details");
-    if (!state.purchasedDefaultSet && bought.length) {
-      // Open by default where it sits beside the list; tucked away on narrower screens.
-      details.open = window.matchMedia("(min-width: 1240px) and (min-aspect-ratio: 1/1)").matches;
+    if (isWide()) {
+      details.open = true; // always open beside the list
+    } else if (!state.purchasedDefaultSet && taken.length) {
+      details.open = false; // tucked away on narrower screens until wanted
       state.purchasedDefaultSet = true;
     }
-    syncList($("#purchased-list"), bought, rows, buildPurchased);
+    syncList($("#purchased-list"), taken, rows, buildTaken);
   }
 
   function renderList() {
@@ -448,15 +466,15 @@
     } else if (state.loaded && items.length === 0) {
       showNotice("Nothing here yet. " + person.name + " is still thinking. Check back soon!");
     } else if (state.loaded && !tokenSaved) {
-      showNotice("This browser isn't saving site data (private window?). You can still claim gifts, but it will forget which ones are yours once it's closed.");
+      showNotice("This browser isn't saving site data (private window?). You can still choose gifts, but it will forget which ones are yours once it's closed.");
     }
 
-    const active = sortedForViewer(items.filter((g) => !isPurchasedRow(g)));
+    const active = sortedForViewer(items.filter((g) => !inTakenArea(g)));
     const sortControl = $("#sort-control");
     if (sortControl) sortControl.hidden = active.length < 2;
     firstScreenIds = new Set(active.slice(0, FIRST_SCREEN_CARDS).map((g) => g.id));
     syncList(list, active, cards, buildGift);
-    renderPurchased(items);
+    renderTaken(items);
 
     renderSummary(items);
     renderSync();
@@ -478,12 +496,11 @@
     node.textContent = "";
     if (!state.loaded) return;
     const visible = items.filter((g) => !g.removed);
-    const count = (s) => visible.filter((g) => g.status === s).length;
-    [["available", "available"], ["claimed", "claimed"], ["purchased", "purchased"]].forEach(([key, word]) => {
-      const n = count(key);
-      if (!n && key !== "available") return;
+    const taken = visible.filter(isTaken).length;
+    [["available", visible.length - taken], ["taken", taken]].forEach(([word, n], i) => {
+      if (i) node.append(document.createTextNode(" · "));
       const span = el("span");
-      span.append(el("i", "dot dot-" + key), document.createTextNode(n + " " + word));
+      span.append(el("i", "dot dot-" + word), document.createTextNode(n + " " + word));
       node.append(span);
     });
   }
@@ -561,7 +578,8 @@
   async function act(g, { call, onResult, verify, success }) {
     if (state.pending.has(g.id)) return;
     // If the action came from this gift's own controls, keep keyboard focus with
-    // the gift afterwards, even if it moved between the list and "Already purchased".
+    // the gift afterwards, even if it moved between the list and "Already Taken".
+    // The page doesn't jump to it: the message says where it went.
     const active = document.activeElement && document.activeElement.closest && document.activeElement.closest("[data-id]");
     const keepFocus = Boolean(active && active.dataset.id === g.id);
     state.pending.add(g.id);
@@ -581,9 +599,9 @@
       renderList();
       if (keepFocus) {
         const li = document.querySelector('[data-id="' + g.id + '"]');
-        const target = li && (li.querySelector('[data-role="purchase"], [data-role="unpurchase"], [data-role="claim"], [data-role="release"]')
+        const target = li && (li.querySelector('[data-role="claim"], [data-role="release"]')
           || li.querySelector("button:not(:disabled)"));
-        if (target) target.focus();
+        if (target) target.focus({ preventScroll: true });
       }
     }
     await refresh();
@@ -595,11 +613,14 @@
     }
   }
 
+  const TAKEN_MESSAGE = "🎁 You're getting this! It's in Already Taken.";
+
   async function claim(g) {
     const ok = await XL.confirm({
-      title: "Claim “" + g.name + "”?",
-      body: "Everyone else will just see “Claimed”, never who. This browser remembers it's yours, so you can mark it purchased (or change your mind) later.",
-      confirmLabel: "Claim it",
+      title: "Get this gift? 🎁",
+      body: "Others will see “Taken.” You can undo it in this browser.",
+      confirmLabel: "Yes, I'll get it!",
+      cancelLabel: "Not now",
     });
     if (!ok) return;
     act(g, {
@@ -607,75 +628,60 @@
       onResult: (r) => {
         if (r === "claimed" || r === "already_yours") {
           setLocal(g.id, { status: "claimed", mine: true });
-          XL.toast("🎁 It's yours. Only this browser knows.");
+          $("#purchased-details").open = true; // so it's easy to find on a phone
+          state.purchasedDefaultSet = true;    // ...and the phone default doesn't close it again
+          XL.toast(TAKEN_MESSAGE);
         } else if (r === "taken") {
           setLocal(g.id, { status: "claimed", mine: false });
-          XL.toast("Someone just claimed this one.");
+          XL.toast("Someone else just took this one.");
         } else {
           XL.toast("That gift was just removed from the list.");
         }
       },
       verify: (fresh) => Boolean(fresh && fresh.mine),
-      success: "🎁 It went through. It's yours.",
+      success: TAKEN_MESSAGE,
     });
   }
 
-  async function release(g) {
+  /*
+   * Gives a gift this browser took back to everyone. The database won't release
+   * a gift marked purchased (older claims may be), so that case is first set
+   * back to claimed. Starting with release_claim means the screen's idea of the
+   * gift's state never decides which call is made. Between the calls the claim
+   * is still this browser's, so nobody else can take it; if a later call fails,
+   * the gift is simply still taken by you and trying again is safe.
+   */
+  async function releaseGift(g) {
+    const args = { p_gift_id: g.id, p_token: token };
+    const first = await api("release_claim", args);
+    if (first !== "purchased") return first;
+    await api("mark_not_purchased", args);
+    return api("release_claim", args);
+  }
+
+  async function makeAvailable(g) {
     const ok = await XL.confirm({
-      title: "Undo your claim?",
-      body: "“" + g.name + "” goes back on the list for everyone.",
-      confirmLabel: "Undo claim",
-      cancelLabel: "Keep it",
+      title: "Make this gift available again?",
+      body: "Someone else can then choose it.",
+      confirmLabel: "Make Available",
+      cancelLabel: "Keep It",
     });
     if (!ok) return;
     act(g, {
-      call: () => api("release_claim", { p_gift_id: g.id, p_token: token }),
+      call: () => releaseGift(g),
       onResult: (r) => {
         if (r === "released") {
+          state.open.delete(g.id);
           setLocal(g.id, { status: "available", mine: false, updated_since_claim: false });
-          XL.toast("Claim undone. It's back on the list.");
-        } else if (r === "purchased") {
-          XL.toast("Mark it as not purchased first.");
+          XL.toast("It's available again.");
+        } else if (r === "not_yours") {
+          XL.toast("That gift was chosen in a different browser, so it can only be changed there.");
         } else {
-          XL.toast("That claim wasn't made from this browser.");
+          XL.toast("Something went wrong, so nothing was changed. Please try again.");
         }
       },
       verify: (fresh) => !fresh || !fresh.mine,
-      success: "Claim undone.",
-    });
-  }
-
-  function markPurchased(g) {
-    act(g, {
-      call: () => api("mark_purchased", { p_gift_id: g.id, p_token: token }),
-      onResult: (r) => {
-        if (r === "purchased") {
-          setLocal(g.id, { status: "purchased" });
-          $("#purchased-details").open = true; // so you can see where it went
-          state.purchasedDefaultSet = true;    // ...and don't let the phone default close it again
-          XL.toast("Purchased ✓ Moved to “Already purchased”.", { label: "Undo", onClick: () => markNotPurchased(giftById(g.id) || g, true) });
-        } else {
-          XL.toast("That claim wasn't made from this browser.");
-        }
-      },
-      verify: (fresh) => Boolean(fresh && fresh.mine && fresh.status === "purchased"),
-      success: "Marked as purchased ✓",
-    });
-  }
-
-  function markNotPurchased(g, fromUndo) {
-    act(g, {
-      call: () => api("mark_not_purchased", { p_gift_id: g.id, p_token: token }),
-      onResult: (r) => {
-        if (r === "claimed") {
-          setLocal(g.id, { status: "claimed" });
-          XL.toast(fromUndo ? "Undone. Still claimed by you." : "Marked as not purchased. Still claimed by you.");
-        } else {
-          XL.toast("That claim wasn't made from this browser.");
-        }
-      },
-      verify: (fresh) => Boolean(fresh && fresh.mine && fresh.status === "claimed"),
-      success: "Marked as not purchased.",
+      success: "It's available again.",
     });
   }
 
@@ -699,6 +705,15 @@
     const tag = $(".choice-" + p.key + " .choice-tag");
     if (tag && p.tagline) tag.textContent = p.tagline;
   });
+  // Beside the list, "Already Taken" stays open: its heading isn't a toggle there.
+  const takenDetails = $("#purchased-details");
+  const takenSummary = takenDetails && takenDetails.querySelector("summary");
+  if (takenSummary) takenSummary.addEventListener("click", (event) => { if (isWide()) event.preventDefault(); });
+  const wideQuery = window.matchMedia(WIDE);
+  const onWidthChange = () => { if (state.view) renderList(); };
+  if (wideQuery.addEventListener) wideQuery.addEventListener("change", onWidthChange);
+  else if (wideQuery.addListener) wideQuery.addListener(onWidthChange);
+
   const sortSelect = $("#gift-sort");
   if (sortSelect) {
     sortSelect.addEventListener("change", () => {

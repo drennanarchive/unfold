@@ -220,6 +220,10 @@
   // "Already purchased" area helpers
   const bought = (dev, name) => [...dev.d.querySelectorAll("#purchased-list > li")].find((li) => li.querySelector(".bought-name").textContent === name);
   const boughtStatus = (dev, name) => { const r = bought(dev, name); return r ? r.querySelector(".bought-status").textContent : undefined; };
+  // A gift's status wherever it is: on its card, or in "Already Taken".
+  const status = (dev, name) => chip(dev, name) !== undefined ? chip(dev, name) : boughtStatus(dev, name);
+  // A control on a gift's "Already Taken" row.
+  const takenBtn = (dev, name, role) => { const r = bought(dev, name); return r ? r.querySelector(`[data-role="${role}"]`) : null; };
   const activeNames = (dev) => [...dev.d.querySelectorAll("#gifts > li .gift-name")].map((n) => n.textContent);
   const boughtNames = (dev) => [...dev.d.querySelectorAll("#purchased-list > li .bought-name")].map((n) => n.textContent);
   async function refocus(dev) { dev.w.dispatchEvent(new Event("focus")); await sleep(300); }
@@ -227,6 +231,6 @@
 
   window.T = {
     APP, USERS, CONFIG, sleep, readFile, makeDb, asRole, rpc, makeEnv, open, reopen,
-    card, chip, btn, toast, refocus, confirmYes, bought, boughtStatus, activeNames, boughtNames,
+    card, chip, btn, toast, refocus, confirmYes, bought, boughtStatus, activeNames, boughtNames, status, takenBtn,
   };
 })();

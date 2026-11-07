@@ -6,7 +6,7 @@ window.SUITES = window.SUITES || [];
 window.SUITES.push({
   name: "Pages: family list and owner management",
   async run(t) {
-    const { USERS, CONFIG, sleep, makeDb, makeEnv, open, reopen, rpc, card, chip, btn, toast, refocus, confirmYes, boughtStatus } = T;
+    const { USERS, CONFIG, sleep, makeDb, makeEnv, open, reopen, rpc, card, chip, btn, toast, refocus, confirmYes, bought, status, takenBtn } = T;
     const { db } = await makeDb();
     const env = makeEnv(db);
     const C = USERS.clara.id;
@@ -30,52 +30,54 @@ window.SUITES.push({
     t.check("family page sends only the publishable key", first.headers.apikey === CONFIG.supabasePublishableKey && !first.headers.Authorization);
     t.check("family page sends only a random 64-hex token (no identity)", Object.keys(first.args).join() === "p_token" && /^[0-9a-f]{64}$/.test(first.args.p_token));
 
-    t.section("Claim lifecycle");
+    t.section("Taking a gift");
     const B = await open(env, "index.html", "B", "clara");
+    const yours = "You're getting this 🎁";
+    t.check("the action reads \"I'll get this!\"", btn(A, "Cozy oversized blanket", "claim").textContent === "I'll get this!" && btn(A, "Cozy oversized blanket", "claim").getAttribute("aria-label") === "I'll get Cozy oversized blanket");
     btn(A, "Cozy oversized blanket", "claim").click();
-    t.check("claiming asks first", A.d.getElementById("confirm").open);
+    t.check("it asks first", A.d.getElementById("confirm").open);
+    t.check("a short, friendly question", A.d.getElementById("confirm-title").textContent === "Get this gift? 🎁" && A.d.getElementById("confirm-body").textContent === "Others will see “Taken.” You can undo it in this browser.");
+    t.check("with the agreed buttons", A.d.getElementById("confirm-yes").textContent === "Yes, I'll get it!" && A.d.getElementById("confirm-no").textContent === "Not now");
+    t.check("\"Not now\" comes first, so a stray Enter cancels", A.d.querySelector("#confirm .dialog-actions button") === A.d.getElementById("confirm-no"));
     A.d.getElementById("confirm-no").click(); await sleep(200);
-    t.check("'Not now' changes nothing", chip(A, "Cozy oversized blanket") === "Available");
+    t.check("\"Not now\" changes nothing", chip(A, "Cozy oversized blanket") === "Available");
     btn(A, "Cozy oversized blanket", "claim").click(); await confirmYes(A);
-    t.check("claimant sees 'Claimed by you'", chip(A, "Cozy oversized blanket") === "Claimed by you");
-    t.check("claimant gets Mark purchased + Undo claim", !!btn(A, "Cozy oversized blanket", "purchase") && !!btn(A, "Cozy oversized blanket", "release"));
-    t.check("counts update", /3 available/.test(A.d.getElementById("summary").textContent) && /1 claimed/.test(A.d.getElementById("summary").textContent));
+    t.check("it moves to Already Taken, as \"You're getting this 🎁\"", !card(A, "Cozy oversized blanket") && status(A, "Cozy oversized blanket") === yours);
+    t.check("the message says where it went", toast(A) === "🎁 You're getting this! It's in Already Taken.", toast(A));
+    t.check("the taker can make it available again", !!takenBtn(A, "Cozy oversized blanket", "release") && takenBtn(A, "Cozy oversized blanket", "release").textContent === "Make Available Again");
+    t.check("no purchase step anywhere", !A.d.querySelector('[data-role="purchase"], [data-role="unpurchase"]') && !/purchase/i.test(A.d.getElementById("list").textContent));
+    t.check("counts read \"N available · N taken\"", A.d.getElementById("summary").textContent.replace(/\s+/g, " ").trim() === "3 available · 1 taken", A.d.getElementById("summary").textContent);
+    t.check("Already Taken shows its count", A.d.getElementById("purchased-title").textContent.replace(/\s+/g, " ").trim() === "Already Taken (1)");
     t.check("another browser (stale) still shows Available", chip(B, "Cozy oversized blanket") === "Available");
     btn(B, "Cozy oversized blanket", "claim").click(); await confirmYes(B);
-    t.check("late claimer told it was just taken", /just claimed/i.test(toast(B)), toast(B));
-    t.check("late claimer sees plain 'Claimed', no actions", chip(B, "Cozy oversized blanket") === "Claimed" && !btn(B, "Cozy oversized blanket", "release"));
-
-    btn(A, "Cozy oversized blanket", "purchase").click(); await sleep(400);
-    t.check("mark purchased -> 'Purchased by you' in Already purchased", boughtStatus(A, "Cozy oversized blanket") === "Purchased by you" && !card(A, "Cozy oversized blanket"));
-    t.check("purchase message offers Undo", !!A.d.querySelector("#toast .toast-action"));
+    t.check("late taker told someone else just took it", toast(B) === "Someone else just took this one.", toast(B));
+    t.check("late taker sees plain \"Taken\", no controls", status(B, "Cozy oversized blanket") === "Taken" && !bought(B, "Cozy oversized blanket").querySelector("button"));
     await refocus(B);
-    t.check("others see 'Purchased', never who", boughtStatus(B, "Cozy oversized blanket") === "Purchased");
-    A.d.querySelector("#toast .toast-action").click(); await sleep(500);
-    t.check("Undo -> back to 'Claimed by you' in the main list", chip(A, "Cozy oversized blanket") === "Claimed by you" && !T.bought(A, "Cozy oversized blanket"));
-    btn(A, "Cozy oversized blanket", "purchase").click(); await sleep(400);
-    T.bought(A, "Cozy oversized blanket").querySelector('[data-role="unpurchase"]').click(); await sleep(400);
-    t.check("'Undo purchase' in Already purchased works", chip(A, "Cozy oversized blanket") === "Claimed by you");
+    t.check("others never see who", !/getting this/.test(bought(B, "Cozy oversized blanket").textContent));
 
     const A2 = await reopen(A, "clara");
-    t.check("after a reload the browser still recognises its claim", chip(A2, "Cozy oversized blanket") === "Claimed by you");
+    t.check("after a reload the browser still recognises it", status(A2, "Cozy oversized blanket") === yours);
     Object.assign(A, A2);
-    btn(A, "Cozy oversized blanket", "release").click();
-    t.check("undoing a claim asks first", A.d.getElementById("confirm").open);
-    await confirmYes(A);
-    t.check("undo claim -> Available", chip(A, "Cozy oversized blanket") === "Available");
+    takenBtn(A, "Cozy oversized blanket", "release").click();
+    t.check("making it available asks first", A.d.getElementById("confirm").open && A.d.getElementById("confirm-title").textContent === "Make this gift available again?" && A.d.getElementById("confirm-body").textContent === "Someone else can then choose it.");
+    t.check("with the agreed buttons", A.d.getElementById("confirm-yes").textContent === "Make Available" && A.d.getElementById("confirm-no").textContent === "Keep It");
+    A.d.getElementById("confirm-no").click(); await sleep(200);
+    t.check("\"Keep It\" changes nothing", status(A, "Cozy oversized blanket") === yours);
+    takenBtn(A, "Cozy oversized blanket", "release").click(); await confirmYes(A);
+    t.check("back in the list as Available", chip(A, "Cozy oversized blanket") === "Available" && !bought(A, "Cozy oversized blanket"));
     await refocus(B);
     t.check("others see it available again", chip(B, "Cozy oversized blanket") === "Available");
 
     btn(A, "Winter candle set", "claim").click(); await confirmYes(A);
     t.check("other browser hasn't refreshed yet", chip(B, "Winter candle set") === "Available");
     await sleep(5600);
-    t.check("other browser auto-refreshes and sees 'Claimed'", chip(B, "Winter candle set") === "Claimed");
+    t.check("other browser auto-refreshes and sees \"Taken\"", status(B, "Winter candle set") === "Taken");
 
     btn(A, "A good mystery novel", "claim").click(); btn(B, "A good mystery novel", "claim").click();
     A.d.getElementById("confirm-yes").click(); B.d.getElementById("confirm-yes").click();
     await sleep(900);
-    const pair = [chip(A, "A good mystery novel"), chip(B, "A good mystery novel")];
-    t.check("two browsers claiming at once: exactly one wins", pair.filter((x) => x === "Claimed by you").length === 1 && pair.includes("Claimed"), pair.join(" / "));
+    const pair = [status(A, "A good mystery novel"), status(B, "A good mystery novel")];
+    t.check("two browsers taking it at once: exactly one wins", pair.filter((x) => x === yours).length === 1 && pair.includes("Taken"), pair.join(" / "));
 
     t.section("Details");
     const more = btn(A, "Cozy oversized blanket", "more");
@@ -95,14 +97,15 @@ window.SUITES.push({
     const candle = (await claraGifts()).find((g) => g.name === "Winter candle set");
     await rpc(db, C, "owner_update_gift", { p_id: candle.id, p_name: "Winter candle set", p_details: "Pine or cedar only now", p_price: "$28" });
     await refocus(A); await refocus(B);
-    t.check("claimant sees 'Updated since you claimed it'", /Updated since you claimed/.test(card(A, "Winter candle set").textContent));
-    t.check("others don't", !/Updated since/.test(card(B, "Winter candle set").textContent));
+    t.check("taker sees 'Updated since you chose it'", /Updated since you chose it/.test(bought(A, "Winter candle set").textContent));
+    t.check("others don't", !/Updated since/.test(bought(B, "Winter candle set").textContent));
     await rpc(db, C, "owner_archive_gift", { p_id: candle.id });
     await refocus(A); await refocus(B);
-    t.check("removed gift disappears for others", !card(B, "Winter candle set"));
-    t.check("claimant gets a small removal note", card(A, "Winter candle set")?.classList.contains("is-removed"));
-    btn(A, "Winter candle set", "dismiss").click(); await sleep(500);
-    t.check("note can be dismissed", !card(A, "Winter candle set"));
+    t.check("removed gift disappears for others", !card(B, "Winter candle set") && !bought(B, "Winter candle set"));
+    t.check("taker gets a small removal note in Already Taken", !!bought(A, "Winter candle set") && bought(A, "Winter candle set").classList.contains("is-removed") && !card(A, "Winter candle set"));
+    t.check("the note isn't counted as taken", A.d.getElementById("purchased-title").textContent.replace(/\s+/g, " ").trim() === "Already Taken (1)", A.d.getElementById("purchased-title").textContent);
+    takenBtn(A, "Winter candle set", "dismiss").click(); await sleep(500);
+    t.check("note can be dismissed", !bought(A, "Winter candle set"));
 
     t.section("Failures and retries");
     env.server.down = true;
@@ -117,7 +120,7 @@ window.SUITES.push({
     t.check("recovers when back online", /Up to date/.test(B.d.getElementById("sync").textContent));
     env.server.loseNext = "claim_gift";
     btn(B, "Cozy oversized blanket", "claim").click(); await confirmYes(B); await sleep(500);
-    t.check("lost reply: page re-checks and confirms it worked", /went through/i.test(toast(B)) && chip(B, "Cozy oversized blanket") === "Claimed by you", toast(B));
+    t.check("lost reply: page re-checks and confirms it worked", toast(B) === "🎁 You're getting this! It's in Already Taken." && status(B, "Cozy oversized blanket") === "You're getting this 🎁", toast(B));
     env.server.down = true;
     const D = await open(env, "index.html", "D", "cameron");
     t.check("first load offline: notice with Try again", !!D.d.querySelector('#notice [data-role="retry"]'));
@@ -141,7 +144,7 @@ window.SUITES.push({
     const ownerNames = () => [...O.d.querySelectorAll(".owner-gift .gift-name")].map((n) => n.textContent);
     t.check("Clara gets her themed editor", !O.d.getElementById("editor").hidden && O.d.body.dataset.theme === "clara");
     t.check("only her own gifts", ownerNames().length === 3 && !ownerNames().includes("Wireless headphones"), ownerNames().join(" | "));
-    t.check("no claim or purchase status anywhere", !/claimed|purchased|available/i.test(O.d.getElementById("owner-gifts").textContent));
+    t.check("no claim or purchase status anywhere", !/claimed|purchased|available|taken|getting this/i.test(O.d.getElementById("owner-gifts").textContent));
     O = await reopen(O);
     t.check("session persists across a reload", !O.d.getElementById("editor").hidden);
 

@@ -2,8 +2,8 @@
 
 A small family Christmas app for **Clara** and **Cameron**.
 
-- **Family** open one link, pick Clara's or Cameron's list, and claim gifts so nobody doubles up. No accounts.
-  Others only ever see **Available / Claimed / Purchased ✓**, never who.
+- **Family** open one link, pick Clara's or Cameron's list, and tap **I'll get this!** so nobody doubles up.
+  No accounts. Others only ever see **Available** or **Taken**, never who.
   Anyone can sort a list by price or name just for themselves; the owner's order stays the default.
 - **Clara and Cameron** sign in on a separate page (`manage.html`) to add, edit, reorder and remove
   their own gifts. They never see claim or purchase status, so surprises survive.
@@ -87,9 +87,15 @@ repository with `.github/workflows/static.yml`, so nothing else needs configurin
 - Forgot your password? Type your email on the sign-in page and press **Forgot password?**
   (Supabase's free plan sends only a few emails per hour.)
 
-**Family:** claim → (later) **Mark purchased**. Mistakes can be undone: **Undo claim**, or
-**Already purchased → Undo purchase**. A browser only recognises claims it made itself. Claim on a phone,
-and a laptop will just show "Claimed".
+**Family:** **I'll get this!** moves a gift to **Already Taken** (beside the list on wide screens, below it
+on phones). Changed your mind? **Make Available Again** in Already Taken. A browser only recognises gifts
+it chose itself: choose on a phone, and a laptop will just show "Taken".
+
+Behind the scenes the database still has three states: older claims may be marked purchased (from
+before v1.2), and both claimed and purchased show as Taken. **Make Available Again** releases either
+kind: it calls `release_claim`, and only if that answers "purchased" does it call `mark_not_purchased`
+and then `release_claim` again. The claim stays this browser's between those calls, so a dropped
+connection leaves the gift taken by you and trying again is safe. Nothing is ever marked purchased now.
 
 ### Fixing things by hand (Supabase → Table Editor)
 - A stuck claim (claimer switched devices or cleared their browser): `claims` → delete that row.

@@ -1,10 +1,11 @@
 /*
- * "Already purchased" area and the public "Manage list" link.
+ * "Already Taken" area (claimed and purchased records both shown as Taken, and
+ * released safely) and the public "Manage list" link.
  * Numbers in the check names refer to the acceptance cases (1–33, A–N).
  */
 window.SUITES = window.SUITES || [];
 window.SUITES.push({
-  name: "Purchased area and Manage navigation",
+  name: "Taken area and Manage navigation",
   async run(t) {
     const { USERS, sleep, makeDb, makeEnv, open, reopen, rpc, card, chip, btn, toast, refocus, confirmYes,
       bought, boughtStatus, activeNames, boughtNames } = T;
@@ -24,51 +25,126 @@ window.SUITES.push({
     const ordersBefore = await sortOrders(C);
 
     // -------------------------------------------------------------------
-    t.section("Main list vs Already purchased");
-    const P = await open(env, "index.html", "claimant", "clara");   // the browser that claims
+    t.section("Already Taken: both kinds of record");
+    const P = await open(env, "index.html", "claimant", "clara");   // the browser that takes gifts
     const Q = await open(env, "index.html", "someone-else", "clara"); // another family member
-    t.check("1. available gifts are in the main list", activeNames(P).join() === (await ownerOrder(C)).join());
-    t.check("13. no purchased gifts -> section hidden entirely", P.d.getElementById("purchased").hidden);
+    const yours = "You're getting this 🎁";
+    const OTHER = "e".repeat(64);
+    const pToken = () => env.stores["claimant"]["christmas-list-claim-token"];
+    const giftIdOf = async (name) => (await rpc(db, C, "owner_list", {})).data.find((g) => g.name === name).id;
+    const claimState = async (name) => { const r = await db.query("select c.state from public.claims c join public.gifts g on g.id = c.gift_id where g.name = $1", [name]); return r.rows[0] ? r.rows[0].state : "none"; };
+    const counts = (dev) => dev.d.getElementById("summary").textContent.replace(/\s+/g, " ").trim();
+    const calls = (from) => env.server.calls.slice(from).filter((c) => !c.owner && c.name !== "get_list").map((c) => c.name).join(",");
 
+    t.check("1. available gifts are in the main list, in the owner's order", activeNames(P).join() === (await ownerOrder(C)).join());
+    t.check("13. phones: nothing taken, so the section stays out of the way", getComputedStyle(P.d.getElementById("purchased")).display === "none");
+
+    // Records as they already exist in the database: one claimed and one purchased by
+    // someone else, and one this browser claimed that was later marked purchased.
+    await rpc(db, null, "claim_gift", { p_gift_id: await giftIdOf("Cozy oversized blanket"), p_token: OTHER });
+    await rpc(db, null, "mark_purchased", { p_gift_id: await giftIdOf("Cozy oversized blanket"), p_token: OTHER });
+    await rpc(db, null, "claim_gift", { p_gift_id: await giftIdOf("Winter candle set"), p_token: OTHER });
+    btn(P, "A good mystery novel", "claim").focus();
+    const scrollBefore = P.w.scrollY;
     btn(P, "A good mystery novel", "claim").click(); await confirmYes(P);
-    t.check("2. claimed-but-not-purchased stays in the main list", chip(P, "A good mystery novel") === "Claimed by you");
-    t.check("8 / A. claiming does not move it to Already purchased", !bought(P, "A good mystery novel") && P.d.getElementById("purchased").hidden);
-
-    const purchaseButton = btn(P, "A good mystery novel", "purchase");
-    purchaseButton.focus(); purchaseButton.click(); await sleep(500); // as a keyboard user would
-    t.check("9. marking purchased moves it to Already purchased", !!bought(P, "A good mystery novel"));
-    t.check("3. it no longer appears as a full-size card", !card(P, "A good mystery novel"));
-    t.check("B. it is never in both places at once", activeNames(P).concat(boughtNames(P)).filter((n) => n === "A good mystery novel").length === 1);
-    t.check("4 / 12. claimant sees 'Purchased by you' with an Undo control", boughtStatus(P, "A good mystery novel") === "Purchased by you" && !!bought(P, "A good mystery novel").querySelector('[data-role="unpurchase"]'));
-    t.check("purchase message explains where it went", /Already purchased/.test(toast(P)), toast(P));
-    t.check("area opens to show where it went", P.d.getElementById("purchased-details").open);
-    t.check("32. keyboard focus follows the gift to its new place (its Undo button)", P.d.activeElement && P.d.activeElement.dataset.role === "unpurchase", P.d.activeElement && P.d.activeElement.outerHTML.slice(0, 80));
-
-    await refocus(Q);
-    t.check("4. other browsers also see it under Already purchased", boughtStatus(Q, "A good mystery novel") === "Purchased" && !card(Q, "A good mystery novel"));
-    t.check("C. other browsers get no Undo control", !bought(Q, "A good mystery novel").querySelector("button"));
-    t.check("other browsers never see who bought it", !/by you/i.test(bought(Q, "A good mystery novel").textContent));
-
-    // A second purchase, made by the other browser
-    btn(Q, "Cozy oversized blanket", "claim").click(); await confirmYes(Q);
-    btn(Q, "Cozy oversized blanket", "purchase").click(); await sleep(500);
-    await refocus(P);
-    t.check("5. several purchased gifts are listed", boughtNames(P).length === 2);
-    t.check("5. listed in the owner's order", boughtNames(P).join() === "Cozy oversized blanket,A good mystery novel", boughtNames(P).join());
-    t.check("6. purchased count is correct", purchasedCount(P) === "(2)" && /2 purchased/.test(P.d.getElementById("summary").textContent));
-    const availableShown = [...P.d.querySelectorAll("#gifts > li .chip")].filter((c) => c.textContent === "Available").length;
-    t.check("7. available count still matches the list", /2 available/.test(P.d.getElementById("summary").textContent) && availableShown === 2, P.d.getElementById("summary").textContent);
-    t.check("C. this browser can't undo the other browser's purchase", !bought(P, "Cozy oversized blanket").querySelector("button") && boughtStatus(P, "Cozy oversized blanket") === "Purchased");
+    t.check("2. taking a gift moves it to Already Taken", !card(P, "A good mystery novel") && bought(P, "A good mystery novel") && boughtStatus(P, "A good mystery novel") === yours);
+    t.check("phones: Already Taken opens by itself so it's easy to find", P.d.getElementById("purchased-details").open);
+    t.check("keyboard focus follows the gift to its Make Available Again button", P.d.activeElement && P.d.activeElement.dataset.role === "release" && P.d.activeElement.closest("li").dataset.id === bought(P, "A good mystery novel").dataset.id);
+    t.check("...without jumping the page", P.w.scrollY === scrollBefore, P.w.scrollY + " vs " + scrollBefore);
+    await rpc(db, null, "mark_purchased", { p_gift_id: await giftIdOf("A good mystery novel"), p_token: pToken() });
+    await refocus(P); await refocus(Q);
+    t.check("database still holds both kinds, untouched", (await claimState("Cozy oversized blanket")) === "purchased" && (await claimState("Winter candle set")) === "claimed" && (await claimState("A good mystery novel")) === "purchased");
+    t.check("claimed and purchased records both show as Taken to others", ["Cozy oversized blanket", "Winter candle set", "A good mystery novel"].every((n) => boughtStatus(Q, n) === "Taken"));
+    t.check("the taker sees its own, older purchased record as \"You're getting this\"", boughtStatus(P, "A good mystery novel") === yours && boughtStatus(P, "Cozy oversized blanket") === "Taken");
+    t.check("only Available gifts stay in the main list", activeNames(P).join() === "Loose-leaf tea sampler");
+    t.check("B. never in both places at once", !activeNames(P).some((n) => boughtNames(P).includes(n)));
+    t.check("5. Already Taken keeps the owner's order, whatever the state", boughtNames(P).join() === "Cozy oversized blanket,A good mystery novel,Winter candle set", boughtNames(P).join());
+    t.check("6. counts are \"1 available · 3 taken\"", counts(P) === "1 available · 3 taken" && purchasedCount(P) === "(3)", counts(P));
+    t.check("C. other browsers get no controls at all", ["Cozy oversized blanket", "Winter candle set", "A good mystery novel"].every((n) => !bought(Q, n).querySelector("button")));
+    t.check("C. not even for gifts this browser didn't take", !bought(P, "Cozy oversized blanket").querySelector("button") && !bought(P, "Winter candle set").querySelector("button"));
     const link = bought(P, "Cozy oversized blanket").querySelector(".bought-link");
-    t.check("14. product link still available in the compact row", link && link.href === "https://example.com/blanket" && link.target === "_blank" && link.rel.includes("noopener"));
+    t.check("14. the shopping link is still in the compact row", link && link.href === "https://example.com/blanket" && link.target === "_blank" && link.rel.includes("noopener"));
+    t.check("the database won't let another browser release it either", (await rpc(db, null, "release_claim", { p_gift_id: await giftIdOf("A good mystery novel"), p_token: OTHER })).data === "not_yours");
 
-    bought(P, "A good mystery novel").querySelector('[data-role="unpurchase"]').click(); await sleep(500);
-    t.check("10. marking not purchased moves it back to the main list", chip(P, "A good mystery novel") === "Claimed by you" && !bought(P, "A good mystery novel"));
-    const expectedOrder = (await ownerOrder(C)).filter((n) => n !== "Cozy oversized blanket");
-    t.check("11. it returns to its original position", activeNames(P).join() === expectedOrder.join(), activeNames(P).join());
+    t.section("Make Available Again");
+    // P's screen still thinks this is purchased; mark it so in the database too, without telling the page.
+    let from = env.server.calls.length;
+    bought(P, "A good mystery novel").querySelector('[data-role="release"]').click(); await confirmYes(P); await sleep(300);
+    t.check("an older purchased record is released fully", chip(P, "A good mystery novel") === "Available" && (await claimState("A good mystery novel")) === "none");
+    t.check("...using the existing functions in a safe order", calls(from) === "release_claim,mark_not_purchased,release_claim", calls(from));
+    t.check("10. it returns to the main list at its original position", activeNames(P).join() === "A good mystery novel,Loose-leaf tea sampler", activeNames(P).join());
+    t.check("other people's records weren't touched", (await claimState("Cozy oversized blanket")) === "purchased" && (await claimState("Winter candle set")) === "claimed");
     t.check("K. none of this changed the stored order", (await sortOrders(C)) === ordersBefore);
 
-    btn(P, "A good mystery novel", "purchase").click(); await sleep(500);
+    btn(P, "A good mystery novel", "claim").click(); await confirmYes(P);
+    from = env.server.calls.length;
+    bought(P, "A good mystery novel").querySelector('[data-role="release"]').click(); await confirmYes(P); await sleep(300);
+    t.check("a claimed record is released in one step", chip(P, "A good mystery novel") === "Available" && calls(from) === "release_claim", calls(from));
+
+    // Stale screen: the page thinks it's only claimed, but it's purchased in the database.
+    btn(P, "A good mystery novel", "claim").click(); await confirmYes(P);
+    await rpc(db, null, "mark_purchased", { p_gift_id: await giftIdOf("A good mystery novel"), p_token: pToken() });
+    bought(P, "A good mystery novel").querySelector('[data-role="release"]').click(); await confirmYes(P); await sleep(300);
+    t.check("stale screen: still released correctly", chip(P, "A good mystery novel") === "Available" && (await claimState("A good mystery novel")) === "none");
+
+    t.section("Make Available Again when the connection fails");
+    const realFetch = env.fetch;
+    const failOn = (name, when, after) => { let seen = 0; env.fetch = async (url, opts) => {
+      if (url.includes("/rpc/" + name) && ++seen === when) {
+        if (after) { await realFetch(url, opts); }   // the server did it, but the reply was lost
+        env.fetch = realFetch;
+        throw new TypeError("Failed to fetch");
+      }
+      return realFetch(url, opts);
+    }; };
+    const takePurchased = async () => {
+      btn(P, "A good mystery novel", "claim").click(); await confirmYes(P);
+      await rpc(db, null, "mark_purchased", { p_gift_id: await giftIdOf("A good mystery novel"), p_token: pToken() });
+      await refocus(P);
+    };
+    const release = async () => { bought(P, "A good mystery novel").querySelector('[data-role="release"]').click(); await confirmYes(P); await sleep(400); };
+
+    await takePurchased();
+    failOn("release_claim", 2, false); // fails after it was set back to claimed
+    await release();
+    t.check("fails partway: still Taken and still yours", boughtStatus(P, "A good mystery novel") === yours && (await claimState("A good mystery novel")) === "claimed");
+    t.check("fails partway: an honest message", /nothing changed/i.test(toast(P)), toast(P));
+    t.check("fails partway: nobody else can take it meanwhile", (await rpc(db, null, "claim_gift", { p_gift_id: await giftIdOf("A good mystery novel"), p_token: OTHER })).data === "taken");
+    await release();
+    t.check("trying again finishes the job", chip(P, "A good mystery novel") === "Available" && (await claimState("A good mystery novel")) === "none");
+
+    await takePurchased();
+    failOn("mark_not_purchased", 1, true); // done, but the reply was lost
+    await release();
+    t.check("lost reply partway: still yours, and it says to try again", boughtStatus(P, "A good mystery novel") === yours && /try again/i.test(toast(P)), toast(P));
+    await release();
+    t.check("lost reply partway: trying again works", chip(P, "A good mystery novel") === "Available");
+
+    await takePurchased();
+    failOn("release_claim", 2, true); // the final step worked, but its reply was lost
+    await release();
+    t.check("lost final reply: the page re-checks and confirms it worked", chip(P, "A good mystery novel") === "Available" && toast(P) === "It's available again.", toast(P));
+
+    await takePurchased();
+    env.server.down = true;
+    await release();
+    env.server.down = false;
+    t.check("fully offline: nothing changes, and it says so", boughtStatus(P, "A good mystery novel") === yours && (await claimState("A good mystery novel")) === "purchased" && /Nothing has changed/.test(toast(P)), toast(P));
+    await refocus(P);
+
+    t.section("Gifts removed after someone took them");
+    btn(P, "Loose-leaf tea sampler", "claim").click(); await confirmYes(P);
+    await rpc(db, null, "mark_purchased", { p_gift_id: await giftIdOf("Loose-leaf tea sampler"), p_token: pToken() });
+    const teaId = await giftIdOf("Loose-leaf tea sampler");
+    await rpc(db, C, "owner_archive_gift", { p_id: teaId });
+    await refocus(P); await refocus(Q);
+    const note = bought(P, "Loose-leaf tea sampler");
+    t.check("the taker gets a removal note in Already Taken", note && note.classList.contains("is-removed") && !card(P, "Loose-leaf tea sampler"));
+    t.check("the note isn't counted as taken", purchasedCount(P) === "(3)", purchasedCount(P));
+    t.check("others don't see it at all", !bought(Q, "Loose-leaf tea sampler") && !card(Q, "Loose-leaf tea sampler"));
+    note.querySelector('[data-role="dismiss"]').click(); await sleep(500);
+    t.check("Dismiss still works, even for a gift marked purchased", !bought(P, "Loose-leaf tea sampler") && (await claimState("Loose-leaf tea sampler")) === "none");
+    await rpc(db, C, "owner_restore_gift", { p_id: teaId });
 
     // Phone default: compact and tucked away, but reachable
     const P2 = await reopen(P, "clara");
@@ -78,18 +154,33 @@ window.SUITES.push({
     summary.focus();
     t.check("32. the section toggle is keyboard-focusable", P2.d.activeElement === summary);
     summary.click(); await sleep(100);
-    t.check("32. it opens and shows the rows", details.open && boughtNames(P2).length === 2);
-    t.check("32. Undo has an accessible name", bought(P2, "A good mystery novel").querySelector('[data-role="unpurchase"]').getAttribute("aria-label") === "Mark A good mystery novel as not purchased");
+    t.check("32. it opens and shows the rows", details.open && boughtNames(P2).length === 3);
+    t.check("32. Make Available Again has an accessible name", bought(P2, "A good mystery novel").querySelector('[data-role="release"]').getAttribute("aria-label") === "Make A good mystery novel available again");
     t.check("32. the Manage link has a visible name", P2.d.querySelector(".list-foot a").textContent.trim() === "Manage list");
 
+    // Desktop: always open, no toggle, and nothing scrolls on its own
+    const W = await open(env, "index.html", "claimant", "clara", { width: 1280, height: 800 });
+    const wd = W.d.getElementById("purchased-details");
+    t.check("desktop: Already Taken is open from the start", wd.open);
+    wd.querySelector("summary").click(); await sleep(100);
+    t.check("desktop: its heading doesn't close it", wd.open && getComputedStyle(W.d.querySelector(".purchased-chevron")).display === "none");
+    const takenList = W.d.getElementById("purchased-list");
+    t.check("desktop: no separately scrolling list", getComputedStyle(takenList).overflowY === "visible" && takenList.scrollHeight <= takenList.clientHeight + 1);
+    const WE = await open(env, "index.html", "desktop-empty", "cameron", { width: 1280, height: 800 });
+    t.check("desktop: with nothing taken, the column says so quietly", getComputedStyle(WE.d.getElementById("purchased")).display !== "none" && !WE.d.getElementById("taken-empty").hidden && WE.d.getElementById("taken-empty").textContent === "Nothing taken yet.");
+    WE.frame.remove();
+
     // Both themes
-    await rpc(db, null, "claim_gift", { p_gift_id: (await rpc(db, M, "owner_list", {})).data[0].id, p_token: "e".repeat(64) });
-    await rpc(db, null, "mark_purchased", { p_gift_id: (await rpc(db, M, "owner_list", {})).data[0].id, p_token: "e".repeat(64) });
+    await rpc(db, null, "claim_gift", { p_gift_id: (await rpc(db, M, "owner_list", {})).data[0].id, p_token: OTHER });
+    await rpc(db, null, "mark_purchased", { p_gift_id: (await rpc(db, M, "owner_list", {})).data[0].id, p_token: OTHER });
     const themeMark = async (dev) => getComputedStyle(dev.d.querySelector("#purchased summary h2"), "::before").content;
     const claraMark = await themeMark(P2);
     const PC = await open(env, "index.html", "cameron-view", "cameron");
     t.check("15. Clara's area uses her theme (❄)", claraMark.includes("❄") && P2.d.body.dataset.theme === "clara");
     t.check("15. Cameron's area uses his theme (✦)", (await themeMark(PC)).includes("✦") && !PC.d.getElementById("purchased").hidden && boughtNames(PC).includes("Wireless headphones"));
+
+    // The taker still holds an older purchased record (from the offline check), used by the owner-edit checks below.
+    t.check("the taker's purchased record is still in place", (await claimState("A good mystery novel")) === "purchased" && boughtStatus(P2, "A good mystery novel") === yours);
 
     // -------------------------------------------------------------------
     t.section("Owner privacy");
@@ -109,9 +200,10 @@ window.SUITES.push({
     O.d.getElementById("f-details").value = "Anything twisty. Hardcover please.";
     O.d.getElementById("gift-form").requestSubmit(); await sleep(700);
     await refocus(P2); await refocus(Q);
-    t.check("19 / L. editing a purchased gift keeps it purchased (claimant)", boughtStatus(P2, "A good mystery novel") === "Purchased by you");
-    t.check("19 / L. ...and for everyone else", boughtStatus(Q, "A good mystery novel") === "Purchased");
-    t.check("19. claimant gets the 'updated since you claimed' note", /Updated since you claimed/.test(bought(P2, "A good mystery novel").textContent));
+    t.check("19 / L. editing a gift keeps its stored purchase record", (await claimState("A good mystery novel")) === "purchased");
+    t.check("19 / L. the taker still sees \"You're getting this\"", boughtStatus(P2, "A good mystery novel") === yours);
+    t.check("19 / L. ...and everyone else \"Taken\"", boughtStatus(Q, "A good mystery novel") === "Taken");
+    t.check("19. the taker gets the 'updated since you chose it' note", /Updated since you chose it/.test(bought(P2, "A good mystery novel").textContent));
     t.check("K. owner edit didn't reorder anything", (await sortOrders(C)) === ordersBefore);
 
     // -------------------------------------------------------------------
