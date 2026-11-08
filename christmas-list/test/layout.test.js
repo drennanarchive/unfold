@@ -95,7 +95,7 @@ window.SUITES.push({
         } else {
           t.check(`${label}: 30. Already Taken follows the main list`, box.top >= lastCard.bottom - 1, Math.round(box.top) + " vs " + Math.round(lastCard.bottom));
           t.check(`${label}: Already Taken stays within the list column`, box.left >= column.left - 1 && box.right <= column.right + 1);
-          t.check(`${label}: Already Taken starts collapsed`, !wasOpen);
+          t.check(`${label}: Already Taken starts open`, wasOpen);
         }
         P.frame.remove();
       }

@@ -88,8 +88,11 @@ repository with `.github/workflows/static.yml`, so nothing else needs configurin
   (Supabase's free plan sends only a few emails per hour.)
 
 **Family:** **I'll get this!** moves a gift to **Already Taken** (beside the list on wide screens, below it
-on phones). Changed your mind? **Make Available Again** in Already Taken. A browser only recognises gifts
-it chose itself: choose on a phone, and a laptop will just show "Taken".
+on phones, open from the start). Changed your mind? **Make Available Again** in Already Taken. A browser
+only recognises gifts it chose itself: choose on a phone, and a laptop will just show "Taken".
+On phones, a small pill in the bottom-left corner jumps between the two sections: **Already Taken (N) ↓**
+while looking at Available, **↑ Available Gifts** while looking at Already Taken. It only appears when the
+other section is off screen and has gifts in it.
 
 Behind the scenes the database still has three states: older claims may be marked purchased (from
 before v1.2), and both claimed and purchased show as Taken. **Make Available Again** releases either

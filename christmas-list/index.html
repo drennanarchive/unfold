@@ -71,7 +71,7 @@
         <section class="list-section" aria-labelledby="gifts-heading">
           <div class="list-main">
           <div class="list-head">
-            <h2 id="gifts-heading">Wishlist</h2>
+            <h2 id="gifts-heading" tabindex="-1">Wishlist</h2>
             <p class="summary" id="summary" aria-live="polite"></p>
             <label class="sort-control" id="sort-control" hidden>
               <span>Sort by</span>
@@ -120,6 +120,8 @@
   </dialog>
 
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <!-- Phones only: a shortcut between Available and Already Taken (app.js decides when it shows) -->
+  <button id="section-jump" class="section-jump" type="button" hidden></button>
 
   <script src="config.js"></script>
   <script src="shared.js"></script>

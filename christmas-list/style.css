@@ -824,7 +824,36 @@ body[data-theme="clara"] .purchased summary h2::before { content: "❄ "; color:
 body[data-theme="cameron"] .purchased summary h2::before { content: "✦ "; color: #c9973a; font-size: .8em; }
 
 /* Phones and tablets show nothing until something is taken. */
+/* Phones: a small pill near the bottom that jumps between Available and Already
+   Taken. Fixed in place, so showing or hiding it never moves the page. It sits
+   bottom-left, clear of the right-aligned "I'll get this!" and "Make Available
+   Again" buttons, and steps aside while a message is showing. */
+.section-jump {
+  position: fixed;
+  left: max(14px, calc(env(safe-area-inset-left) + 10px));
+  bottom: max(14px, calc(env(safe-area-inset-bottom) + 10px));
+  z-index: 15;
+  display: inline-flex; align-items: center; gap: 6px;
+  min-height: var(--tap);
+  padding: 0 16px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface-solid);
+  color: var(--ink);
+  font: inherit;
+  font-size: .92rem; font-weight: 800;
+  white-space: nowrap;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, .18);
+  cursor: pointer;
+}
+.jump-arrow { color: var(--accent); }
+body[data-theme="cameron"] .section-jump { border-color: rgba(201, 160, 90, .6); }
+.toast.is-visible ~ .section-jump { visibility: hidden; }
+.list-head, .purchased { scroll-margin-top: 12px; }
+
 @media not all and (min-width: 1100px) and (min-aspect-ratio: 1/1) {
+  /* room below the last gift, so the pill never sits over it for good */
+  .list-view { padding-bottom: 96px; }
   .purchased.is-empty { display: none; }
 }
 
@@ -845,6 +874,8 @@ body[data-theme="cameron"] .purchased summary h2::before { content: "✦ "; colo
   /* always open here, so the heading isn't a toggle */
   .purchased summary { cursor: default; }
   .purchased-chevron { display: none; }
+  /* both columns are already in view side by side */
+  .section-jump { display: none !important; }
   /* THEME: cameron — the bonsai fills about the left 30% of the art, so the two
      columns (and the header above them) sit to its right instead of over it. */
   body[data-theme="cameron"] .list-column { max-width: min(1120px, calc(70vw - var(--gutter))); margin-right: 0; }

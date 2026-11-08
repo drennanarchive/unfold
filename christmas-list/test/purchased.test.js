@@ -188,15 +188,17 @@ window.SUITES.push({
     await rpc(db, M, "owner_restore_gift", { p_id: camGiftId });
     P.w.location.hash = "#clara"; await sleep(600);
 
-    // Phone default: compact and tucked away, but reachable
+    // Phone default (v1.2.1): open, so every taken gift shows without a tap; its heading can still close it
     const P2 = await reopen(P, "clara");
     const details = P2.d.getElementById("purchased-details");
-    t.check("mobile: section follows the main list, collapsed to one line", !P2.d.getElementById("purchased").hidden && !details.open);
+    t.check("mobile: section follows the main list, open from the start", !P2.d.getElementById("purchased").hidden && details.open && boughtNames(P2).length === 3);
     const summary = details.querySelector("summary");
     summary.focus();
     t.check("32. the section toggle is keyboard-focusable", P2.d.activeElement === summary);
     summary.click(); await sleep(100);
-    t.check("32. it opens and shows the rows", details.open && boughtNames(P2).length === 3);
+    t.check("32. on phones its heading still closes it", !details.open);
+    summary.click(); await sleep(100);
+    t.check("32. ...and opens it again, showing the rows", details.open && boughtNames(P2).length === 3);
     t.check("32. Make Available Again has an accessible name", bought(P2, "A good mystery novel").querySelector('[data-role="release"]').getAttribute("aria-label") === "Make A good mystery novel available again");
     t.check("32. the Manage link has a visible name", P2.d.querySelector(".list-foot a").textContent.trim() === "Manage list");
 
@@ -375,6 +377,102 @@ window.SUITES.push({
     t.check("on screen: gone after the usual 4 seconds", !toastShown(NEAR));
     t.check("on screen: nothing scrolled", NEAR.scrolls.length === 0);
     t.check("these claims used only the usual functions", (await rpc(db, null, "get_list", { p_token: "f".repeat(64) })).data.filter((g) => ["Bonsai pruning shears", "Fancy coffee beans", "Warm wool socks", "Loose-leaf tea sampler"].includes(g.name)).every((g) => g.status === "claimed"));
+
+    // -------------------------------------------------------------------
+    t.section("Phones: shortcut between Available and Already Taken");
+    const jumpOf = (dev) => dev.d.getElementById("section-jump");
+    const jumpShown = (dev) => { const b = jumpOf(dev), s = dev.w.getComputedStyle(b); return !b.hidden && s.display !== "none" && s.visibility !== "hidden"; };
+    const jumpText = (dev) => [...jumpOf(dev).querySelectorAll("span")].map((s) => s.textContent).join(" ");
+    const takenOn = async (who) => (await rpc(db, null, "get_list", { p_token: "f".repeat(64) })).data.filter((g) => g.recipient === who && !g.removed && g.status !== "available").length;
+    const settle = () => sleep(250); // the section watcher reports asynchronously
+    const toTaken = (dev) => dev.w.scrollTo(0, dev.d.getElementById("purchased").getBoundingClientRect().top + dev.w.scrollY - 12);
+    // Test pages normally sit off screen, where Chrome pauses the visibility tracking this feature uses.
+    const onStage = (dev) => { dev.frame.style.cssText += ";position:fixed;left:0;top:0;z-index:9;border:0"; };
+    const offStage = (dev) => { dev.frame.remove(); };
+
+    const J = await open(env, "index.html", "jump-a", "cameron", { width: 390, height: 640 });
+    onStage(J);
+    pinMotion(J, false);
+    toTopOfList(J); await settle();
+    let camTaken = await takenOn("cameron");
+    t.check("browsing Available: \"Already Taken (N) ↓\" with the real count", jumpShown(J) && jumpOf(J).dataset.mode === "down" && jumpText(J) === "Already Taken (" + camTaken + ") ↓", jumpText(J));
+    t.check("it's a 44px button with a clear spoken name", jumpOf(J).tagName === "BUTTON" && jumpOf(J).getBoundingClientRect().height >= 43.5 && jumpOf(J).getAttribute("aria-label") === "Go to Already Taken, " + camTaken + " gifts");
+    t.check("the arrows aren't read out", [...jumpOf(J).querySelectorAll(".jump-arrow")].every((a) => a.getAttribute("aria-hidden") === "true"));
+    const pill = jumpOf(J).getBoundingClientRect();
+    t.check("a compact pill near the bottom-left corner, not full width", pill.bottom <= J.w.innerHeight && pill.bottom >= J.w.innerHeight - 70 && pill.left >= 10 && pill.left <= 30 && pill.width < 390 * 0.6, Math.round(pill.left) + "-" + Math.round(pill.right) + " bottom " + Math.round(pill.bottom) + " of " + J.w.innerHeight);
+    const claimLefts = [...J.d.querySelectorAll('#gifts [data-role="claim"]')].map((b) => b.getBoundingClientRect().left);
+    t.check("it never reaches the right-aligned \"I'll get this!\" buttons", claimLefts.length > 0 && pill.right < Math.min(...claimLefts), Math.round(pill.right) + " vs " + Math.round(Math.min(...claimLefts)));
+    t.check("it's fixed in place, so it never moves the page", J.w.getComputedStyle(jumpOf(J)).position === "fixed");
+    t.check("the page has room below its last gift, so the pill can't hide it for good", parseFloat(J.w.getComputedStyle(J.d.querySelector(".list-view")).paddingBottom) >= pill.height + 20);
+    jumpOf(J).click(); await sleep(150);
+    t.check("tapping it heads for Already Taken (smoothly)", J.scrolls.length === 1 && J.scrolls[0].target === J.d.getElementById("purchased") && J.scrolls[0].behavior === "smooth" && J.scrolls[0].block === "start");
+    t.check("keyboard focus moves to the Already Taken heading", J.d.activeElement === J.d.querySelector("#purchased-details summary"));
+    // This runner's fast-forwarded clock doesn't deliver new visibility updates after a
+    // programmatic scroll (nor finish smooth scrolls), so switching to "↑ Available Gifts"
+    // while scrolling is checked in real-time Chrome instead. Here: what tapping it does.
+    jumpOf(J).dataset.mode = "up";
+    jumpOf(J).click(); await sleep(150);
+    t.check("tapping it heads back to the Available heading", J.scrolls.length === 2 && J.scrolls[1].target === J.d.querySelector(".list-head"));
+    t.check("keyboard focus moves to the Wishlist heading", J.d.activeElement === J.d.getElementById("gifts-heading"));
+
+    toTopOfList(J); await settle();
+    const fillerToTake = [...J.d.querySelectorAll("#gifts > li .gift-name")].find((n) => /Filler gift/.test(n.textContent)).textContent;
+    btn(J, fillerToTake, "claim").click(); await confirmYes(J); await sleep(200);
+    t.check("while a message is showing, the pill steps aside", J.d.getElementById("toast").classList.contains("is-visible") && !jumpShown(J));
+    await sleep(7400);
+    toTopOfList(J); await settle();
+    t.check("taking a gift updates the count", jumpShown(J) && jumpText(J) === "Already Taken (" + (camTaken + 1) + ") ↓", jumpText(J));
+    camTaken += 1;
+    const sel = J.d.getElementById("gift-sort");
+    sel.value = "name"; sel.dispatchEvent(new J.w.Event("change")); await settle();
+    t.check("sorting leaves the shortcut correct", jumpShown(J) && jumpText(J) === "Already Taken (" + camTaken + ") ↓");
+    sel.value = "default"; sel.dispatchEvent(new J.w.Event("change")); await settle();
+
+    J.frame.style.width = "1280px"; J.frame.style.height = "800px"; await settle();
+    t.check("widening to desktop: no shortcut (both columns are side by side)", !jumpShown(J));
+    J.frame.style.width = "390px"; J.frame.style.height = "640px"; toTopOfList(J); await settle();
+    t.check("back to portrait: still right", jumpShown(J) && jumpOf(J).dataset.mode === "down");
+
+    J.w.location.hash = "#clara"; await sleep(700); await settle();
+    const claraTaken = await takenOn("clara");
+    const claraOk = jumpOf(J).hidden || (jumpOf(J).dataset.mode === "down" ? jumpText(J) === "Already Taken (" + claraTaken + ") ↓" : jumpText(J) === "↑ Available Gifts");
+    t.check("switching lists: the shortcut follows the new list", claraOk, jumpText(J));
+    J.w.location.hash = ""; await sleep(500); await settle();
+    t.check("on the front door: no shortcut", !jumpShown(J));
+
+    offStage(J);
+    const BOTH = await open(env, "index.html", "jump-b", "clara", { width: 390, height: 2600 });
+    onStage(BOTH);
+    BOTH.w.scrollTo(0, BOTH.d.querySelector(".list-head").getBoundingClientRect().top + BOTH.w.scrollY - 200); await settle();
+    t.check("when both sections are in view: no shortcut", !jumpShown(BOTH));
+    offStage(BOTH);
+    const D2 = await open(env, "index.html", "jump-desktop", "cameron", { width: 1280, height: 800 });
+    onStage(D2);
+    await settle();
+    t.check("desktop: never shown", !jumpShown(D2) && D2.w.getComputedStyle(jumpOf(D2)).display === "none");
+
+    // Reduced motion: it jumps straight there.
+    offStage(D2);
+    const JR = await open(env, "index.html", "jump-c", "cameron", { width: 390, height: 640 });
+    pinMotion(JR, true);
+    toTopOfList(JR); await settle();
+    jumpOf(JR).dataset.mode = "down"; // see the note above about this runner and visibility updates
+    jumpOf(JR).click(); await settle();
+    t.check("reduced motion: no animation, and it really arrives", JR.scrolls[0] && JR.scrolls[0].behavior === "auto" && JR.scrolls[0].target === JR.d.getElementById("purchased") && onScreen(JR, JR.d.getElementById("purchased")), JSON.stringify({ n: JR.scrolls.length, behavior: JR.scrolls[0] && JR.scrolls[0].behavior, isTaken: JR.scrolls[0] && JR.scrolls[0].target === JR.d.getElementById("purchased"), top: Math.round(JR.d.getElementById("purchased").getBoundingClientRect().top), h: JR.w.innerHeight, hidden: JR.d.getElementById("purchased").hidden }));
+
+    // Lists with an empty section: nothing to jump to.
+    const fresh = await makeDb();
+    const env2 = makeEnv(fresh.db);
+    offStage(JR);
+    const E1 = await open(env2, "index.html", "jump-empty", "clara", { width: 390, height: 500 });
+    onStage(E1);
+    toTopOfList(E1); await settle();
+    t.check("nothing taken yet: no shortcut", !jumpShown(E1));
+    for (const g of (await rpc(fresh.db, C, "owner_list", {})).data) await rpc(fresh.db, null, "claim_gift", { p_gift_id: g.id, p_token: OTHER });
+    E1.w.dispatchEvent(new E1.w.Event("focus")); await sleep(500);
+    toTaken(E1); await settle();
+    t.check("everything taken: no shortcut back to an empty Available", !jumpShown(E1));
+    offStage(E1);
 
     // -------------------------------------------------------------------
     t.section("Security model unchanged");

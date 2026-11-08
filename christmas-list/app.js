@@ -84,7 +84,7 @@
     refreshAgain: false,
     version: 0,             // bumped by every action, so stale refreshes are ignored
     lastSync: null,
-    purchasedDefaultSet: false, // "Already Taken" starts open on wide screens, closed on narrow
+    purchasedDefaultSet: false, // "Already Taken" starts open; on phones it can then be closed
     sort: "default",        // this viewer's sort for the main list; never saved anywhere
   };
   const cards = new Map();  // gift id -> { li, sig }  (main list)
@@ -117,6 +117,7 @@
     if (!person) {
       XL.setTheme("home");
       document.title = "Our Christmas Wishlists";
+      updateJump();
       return;
     }
 
@@ -451,7 +452,7 @@
     if (isWide()) {
       details.open = true; // always open beside the list
     } else if (!state.purchasedDefaultSet && taken.length) {
-      details.open = false; // tucked away on narrower screens until wanted
+      details.open = true; // open to start with; on phones its heading can still close it
       state.purchasedDefaultSet = true;
     }
     syncList($("#purchased-list"), taken, rows, buildTaken);
@@ -487,6 +488,53 @@
 
     renderSummary(items);
     renderSync();
+    updateJump();
+  }
+
+  // ---------------------------------------------------------------------------
+  // Phones: a small floating shortcut between Available and Already Taken
+  // ---------------------------------------------------------------------------
+
+  // Whether each section is in the middle part of the screen. An IntersectionObserver
+  // keeps these up to date, so nothing runs while scrolling.
+  const inView = { available: false, taken: false };
+  const jump = $("#section-jump");
+
+  // "Already Taken (N) ↓" while looking at Available, "↑ Available Gifts" while
+  // looking at Already Taken; nothing when both (or neither) are in view, when the
+  // other section is empty, on wide screens, or on the front door.
+  function updateJump() {
+    if (!jump) return;
+    const items = state.view ? state.gifts.filter((g) => g.recipient === state.view) : [];
+    const takenCount = items.filter((g) => !g.removed && isTaken(g)).length;
+    const availableCount = items.filter((g) => !inTakenArea(g)).length;
+    let mode = null;
+    if (state.view && state.loaded && !isWide()) {
+      if (inView.available && !inView.taken && takenCount) mode = "down";
+      else if (inView.taken && !inView.available && availableCount) mode = "up";
+    }
+    jump.hidden = !mode;
+    if (!mode) return;
+    const label = mode === "down" ? "Already Taken (" + takenCount + ")" : "Available Gifts";
+    if (jump.dataset.mode === mode && jump.dataset.label === label) return;
+    jump.dataset.mode = mode;
+    jump.dataset.label = label;
+    jump.textContent = "";
+    if (mode === "up") jump.append(el("span", "jump-arrow", "↑"));
+    jump.append(el("span", null, label));
+    if (mode === "down") jump.append(el("span", "jump-arrow", "↓"));
+    jump.querySelectorAll(".jump-arrow").forEach((a) => a.setAttribute("aria-hidden", "true"));
+    jump.setAttribute("aria-label", mode === "down" ? "Go to Already Taken, " + takenCount + (takenCount === 1 ? " gift" : " gifts") : "Go back to Available Gifts");
+  }
+
+  function jumpToSection() {
+    const down = jump.dataset.mode === "down";
+    const target = down ? $("#purchased") : $(".list-head");
+    if (!target) return;
+    target.scrollIntoView({ block: "start", behavior: XL.reducedMotion() ? "auto" : "smooth" });
+    // Keyboard and screen-reader users continue from the section they asked for.
+    const landing = down ? $("#purchased-details summary") : $("#gifts-heading");
+    if (landing) landing.focus({ preventScroll: true });
   }
 
   function showNotice(text, isError, withRetry) {
@@ -742,6 +790,25 @@
   const takenDetails = $("#purchased-details");
   const takenSummary = takenDetails && takenDetails.querySelector("summary");
   if (takenSummary) takenSummary.addEventListener("click", (event) => { if (isWide()) event.preventDefault(); });
+  if (jump && window.IntersectionObserver) {
+    jump.addEventListener("click", jumpToSection);
+    const availableArea = $(".list-main");
+    const takenArea = $("#purchased");
+    const watch = (entries) => {
+      entries.forEach((entry) => { inView[entry.target === takenArea ? "taken" : "available"] = entry.isIntersecting; });
+      updateJump();
+    };
+    // "In view" means reaching the band between 10% and 85% down the screen, so a
+    // sliver at the top doesn't count, but a heading showing above the pill does.
+    // The page itself is the root.
+    const options = { rootMargin: "-10% 0px -15% 0px" };
+    let observer;
+    try { observer = new IntersectionObserver(watch, Object.assign({ root: document }, options)); }
+    catch (e) { observer = new IntersectionObserver(watch, options); } // browsers without a document root
+    if (availableArea) observer.observe(availableArea);
+    if (takenArea) observer.observe(takenArea);
+  }
+
   const wideQuery = window.matchMedia(WIDE);
   const onWidthChange = () => { if (state.view) renderList(); };
   if (wideQuery.addEventListener) wideQuery.addEventListener("change", onWidthChange);
