@@ -861,11 +861,15 @@ body[data-theme="cameron"] .section-jump { border-color: rgba(201, 160, 90, .6);
    quieter column on the right. Both scroll with the page; nothing scrolls on
    its own. Keep the breakpoint in step with WIDE in app.js. */
 @media (min-width: 1100px) and (min-aspect-ratio: 1/1) {
-  .list-column { max-width: 1120px; }
+  /* The same centred layout for both lists, so switching between them doesn't jump.
+     The scrollbar's space is always kept, or a shorter list (no scrollbar) would sit
+     a few pixels to the right of a longer one. */
+  html { scrollbar-gutter: stable; }
+  .list-column { max-width: 1000px; }
   .list-section {
     display: grid;
-    grid-template-columns: minmax(0, 7fr) minmax(300px, 3fr);
-    gap: 0 26px;
+    grid-template-columns: minmax(0, 7fr) minmax(290px, 3fr);
+    gap: 0 24px;
     align-items: start;
   }
   .list-main { grid-column: 1; min-width: 0; }
@@ -876,9 +880,16 @@ body[data-theme="cameron"] .section-jump { border-color: rgba(201, 160, 90, .6);
   .purchased-chevron { display: none; }
   /* both columns are already in view side by side */
   .section-jump { display: none !important; }
-  /* THEME: cameron — the bonsai fills about the left 30% of the art, so the two
-     columns (and the header above them) sit to its right instead of over it. */
-  body[data-theme="cameron"] .list-column { max-width: min(1120px, calc(70vw - var(--gutter))); margin-right: 0; }
+  /* Panels a little more see-through on desktop, so more of the art shows. The
+     blur behind them is unchanged, which keeps text crisp and readable. */
+  body[data-theme="clara"] {
+    --surface: linear-gradient(155deg, rgba(255, 255, 255, .74) 0%, rgba(240, 245, 254, .62) 55%, rgba(244, 238, 251, .6) 100%);
+    --surface-quiet: linear-gradient(155deg, rgba(255, 255, 255, .56) 0%, rgba(238, 242, 252, .44) 60%, rgba(242, 236, 249, .42) 100%);
+  }
+  body[data-theme="cameron"] {
+    --surface: linear-gradient(165deg, rgba(253, 249, 240, .88) 0%, rgba(246, 238, 220, .82) 100%);
+    --surface-quiet: linear-gradient(165deg, rgba(250, 245, 234, .74) 0%, rgba(241, 232, 213, .68) 100%);
+  }
 }
 .purchased.is-empty .purchased-note { display: none; }
 

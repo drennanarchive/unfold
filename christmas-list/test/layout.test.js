@@ -37,6 +37,7 @@ window.SUITES.push({
       P.frame.remove();
     }
 
+    const layoutOf = {}; // Clara's layout at each width, to compare Cameron's against
     for (const person of ["clara", "cameron"]) {
       t.section(person === "clara" ? "Clara's list" : "Cameron's list");
       for (const [w, h, label] of SIZES) {
@@ -54,11 +55,19 @@ window.SUITES.push({
           bg.backgroundImage.includes(`${person}-${person === "clara" ? "winter" : "bonsai"}-${portrait ? "mobile" : "desktop"}.webp`), bg.backgroundImage.slice(0, 90));
         t.check(`${label}: gift cards stay compact`, cards.length > 0 && Math.max(...cards) <= 200, cards.map(Math.round).join(","));
         const viewW = d.documentElement.clientWidth; // excludes the scrollbar
-        if (person === "cameron" && w >= 1100 && !portrait) {
-          // The two columns sit to the right of the bonsai, which fills about the left 30% of the art.
-          t.check(`${label}: the lists sit clear of the bonsai (left edge ≥ 28% across)`, column.left >= viewW * 0.28 && column.right <= viewW, Math.round(column.left) + " of " + viewW);
+        const page = d.querySelector(".list-view").getBoundingClientRect(); // the content area (any reserved scrollbar space excluded)
+        t.check(`${label}: list column centred`, Math.abs((column.left - page.left) - (page.right - column.right)) < 2, Math.round(column.left - page.left) + " / " + Math.round(page.right - column.right));
+        // Both lists share one layout, so switching between them doesn't move anything.
+        const shape = [column.left, column.right, d.querySelector(".list-main").getBoundingClientRect().width, d.getElementById("purchased").getBoundingClientRect().width].map(Math.round).join(",");
+        if (person === "clara") layoutOf[w] = shape;
+        else t.check(`${label}: same placement and widths as Clara's list`, layoutOf[w] === shape, shape + " vs " + layoutOf[w]);
+        if (w >= 1100 && !portrait) {
+          t.check(`${label}: a slimmer desktop column (at most 1000px wide)`, column.width <= 1000 + 1, Math.round(column.width));
+          const cardBg = getComputedStyle(d.querySelector("#gifts > li")).backgroundImage;
+          t.check(`${label}: panels a little more see-through on desktop`, /rgba\(253, 249, 240, 0\.88\)|rgba\(255, 255, 255, 0\.74\)/.test(cardBg), cardBg.slice(0, 80));
         } else {
-          t.check(`${label}: list column centred`, Math.abs(column.left - (viewW - column.right)) < 2, Math.round(column.left) + " / " + Math.round(viewW - column.right));
+          const cardBg = getComputedStyle(d.querySelector("#gifts > li")).backgroundImage;
+          t.check(`${label}: phone and tablet panels unchanged`, /rgba\(253, 249, 240, 0\.95\)|rgba\(255, 255, 255, 0\.82\)/.test(cardBg), cardBg.slice(0, 80));
         }
         if (portrait && w < 600) {
           if (person === "cameron") {
